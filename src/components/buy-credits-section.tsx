@@ -5,7 +5,7 @@ import {
   purchaseCreditPack,
   startProSubscription,
 } from "@/actions/billing";
-import { CREDIT_PACKS } from "@/lib/stripe";
+import { CREDIT_PACKS } from "@/lib/pricing";
 
 type Props = {
   isPro: boolean;
