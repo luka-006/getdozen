@@ -35,7 +35,14 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/signup") ||
     path.startsWith("/auth");
   const isPublic =
-    path === "/" || isAuthRoute || path.startsWith("/api/cron");
+    path === "/" ||
+    isAuthRoute ||
+    path.startsWith("/api/cron") ||
+    path.startsWith("/api/stripe") ||
+    path === "/wall" ||
+    path === "/pricing" ||
+    path.startsWith("/profile/") ||
+    path === "/setup";
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();

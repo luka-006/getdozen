@@ -1,11 +1,19 @@
 import { requireProfile } from "@/lib/auth";
 import { CreditBadge } from "@/components/credit-badge";
+import { BuyCreditsSection } from "@/components/buy-credits-section";
+import { canPurchaseCredits } from "@/lib/credits";
+import { CREDIT_PACKS, stripeConfigured } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { formatCredits } from "@/lib/utils";
 import type { CreditLedgerEntry } from "@/lib/types";
 
-export default async function WalletPage() {
+type Props = {
+  searchParams: Promise<{ error?: string; message?: string }>;
+};
+
+export default async function WalletPage({ searchParams }: Props) {
   const profile = await requireProfile();
+  const params = await searchParams;
   const supabase = await createClient();
 
   const { data: ledger } = await supabase
@@ -16,13 +24,32 @@ export default async function WalletPage() {
     .limit(50);
 
   const entries = (ledger ?? []) as CreditLedgerEntry[];
+  const purchaseErrors: Record<string, string | null> = {};
+  for (const pack of CREDIT_PACKS) {
+    const check = canPurchaseCredits(profile, pack.credits);
+    purchaseErrors[pack.id] = check.ok ? null : check.error;
+  }
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Wallet</h1>
       <p className="mt-1 text-ink/70">
         Credits expire 6 months from the date earned.
+        {profile.is_pro ? " Pro is active." : ""}
       </p>
+
+      {params.error ? (
+        <p className="mt-4 text-[13px] text-flag">{params.error}</p>
+      ) : null}
+      {params.message ? (
+        <p className="mt-4 text-[13px] text-ink/80">{params.message}</p>
+      ) : null}
+      {!stripeConfigured() ? (
+        <p className="mt-4 rounded-[6px] border border-border bg-mist px-3 py-2 text-[13px] text-ink/70">
+          Stripe keys are not set yet. Add STRIPE_SECRET_KEY and
+          STRIPE_WEBHOOK_SECRET to enable checkout.
+        </p>
+      ) : null}
 
       <div className="mt-6">
         <CreditBadge
@@ -31,6 +58,8 @@ export default async function WalletPage() {
           pulseKey={profile.credits}
         />
       </div>
+
+      <BuyCreditsSection isPro={profile.is_pro} purchaseErrors={purchaseErrors} />
 
       <div className="mt-10">
         <h2 className="font-display text-[24px] font-semibold">Ledger</h2>
@@ -65,10 +94,6 @@ export default async function WalletPage() {
           )}
         </div>
       </div>
-
-      <p className="mt-8 text-[13px] text-ink/60">
-        Buying credits ships later. Earn by reviewing and testing first.
-      </p>
     </div>
   );
 }

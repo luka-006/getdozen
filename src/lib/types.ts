@@ -28,8 +28,21 @@ export type Profile = {
   is_pro: boolean;
   daily_review_count: number;
   daily_review_date: string | null;
+  purchased_credits: number;
+  stripe_customer_id?: string | null;
+  stripe_subscription_id?: string | null;
   is_admin: boolean;
   is_banned: boolean;
+  created_at: string;
+};
+
+export type ShippedApp = {
+  id: string;
+  owner_id: string;
+  app_name: string;
+  app_url: string;
+  launched_at: string;
+  helper_ids: string[];
   created_at: string;
 };
 

@@ -10,6 +10,54 @@ type Props = {
   searchParams: Promise<{ error?: string; message?: string }>;
 };
 
+async function getReciprocityLine(params: {
+  requesterId: string;
+  reviewerId: string;
+  currentReviewId: string;
+}): Promise<string | null> {
+  const admin = createAdminClient();
+
+  const [{ data: reviewerRequests }, { data: requesterRequests }] =
+    await Promise.all([
+      admin.from("requests").select("id").eq("user_id", params.reviewerId),
+      admin.from("requests").select("id").eq("user_id", params.requesterId),
+    ]);
+
+  const theirRequestIds = (reviewerRequests ?? []).map((r) => r.id);
+  const yourRequestIds = (requesterRequests ?? []).map((r) => r.id);
+
+  let youReviewedThem = false;
+  if (theirRequestIds.length > 0) {
+    const { data } = await admin
+      .from("reviews")
+      .select("id")
+      .eq("reviewer_id", params.requesterId)
+      .in("request_id", theirRequestIds)
+      .limit(1);
+    youReviewedThem = (data ?? []).length > 0;
+  }
+
+  let theyReviewedYoursEarlier = false;
+  if (yourRequestIds.length > 0) {
+    const { data } = await admin
+      .from("reviews")
+      .select("id")
+      .eq("reviewer_id", params.reviewerId)
+      .in("request_id", yourRequestIds)
+      .neq("id", params.currentReviewId)
+      .limit(1);
+    theyReviewedYoursEarlier = (data ?? []).length > 0;
+  }
+
+  if (youReviewedThem) {
+    return "You reviewed their app earlier. They reviewed yours today.";
+  }
+  if (theyReviewedYoursEarlier) {
+    return "They reviewed your app earlier. You are confirming another review today.";
+  }
+  return null;
+}
+
 export default async function ConfirmReviewPage({ params, searchParams }: Props) {
   const profile = await requireProfile();
   const { id } = await params;
@@ -45,6 +93,12 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
     .eq("id", review.reviewer_id)
     .single();
 
+  const reciprocityLine = await getReciprocityLine({
+    requesterId: profile.id,
+    reviewerId: review.reviewer_id,
+    currentReviewId: review.id,
+  });
+
   const answers = review.answers as Record<string, string>;
   const remaining = formatDistanceToNowStrict(new Date(review.auto_confirm_at), {
     addSuffix: true,
@@ -66,6 +120,9 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
         </Link>
         . Did this person clearly actually use the product?
       </p>
+      {reciprocityLine ? (
+        <p className="mt-2 text-[14px] text-blue">{reciprocityLine}</p>
+      ) : null}
       <p className="mt-2 font-mono text-[13px] text-ink/60">
         Auto-confirms {remaining}
       </p>

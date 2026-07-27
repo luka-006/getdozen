@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CreditBadge } from "@/components/credit-badge";
+import { MobileNav } from "@/components/mobile-nav";
 import type { Profile } from "@/lib/types";
 
 const links = [
@@ -7,12 +8,13 @@ const links = [
   { href: "/requests/new", label: "Post request" },
   { href: "/testers", label: "Testers" },
   { href: "/wallet", label: "Wallet" },
+  { href: "/wall", label: "Wall" },
 ];
 
 export function SiteHeader({ profile }: { profile: Profile | null }) {
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-white/80 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
+      <div className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-6">
           <Link
             href={profile ? "/board" : "/"}
@@ -32,12 +34,22 @@ export function SiteHeader({ profile }: { profile: Profile | null }) {
                 </Link>
               ))}
             </nav>
-          ) : null}
+          ) : (
+            <nav className="flex items-center gap-3 sm:gap-4">
+              <Link href="/wall" className="text-[13px] text-ink/80 hover:text-blue">
+                Wall
+              </Link>
+              <Link href="/pricing" className="text-[13px] text-ink/80 hover:text-blue">
+                Pricing
+              </Link>
+            </nav>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
           {profile ? (
             <>
+              <MobileNav links={links} />
               <CreditBadge
                 value={profile.credits}
                 pending={profile.credits_pending}

@@ -78,9 +78,16 @@ export default async function ProfilePage({ params }: Props) {
       ) : null}
 
       <section className="mt-10">
-        <h2 className="font-display text-[24px] font-semibold">
-          Helped ship
-        </h2>
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 className="font-display text-[24px] font-semibold">
+            Helped ship
+          </h2>
+          {me.id === profile.id ? (
+            <Link href="/wall/new" className="text-[13px] text-blue">
+              Add shipped app
+            </Link>
+          ) : null}
+        </div>
         <div className="mt-4 border-t border-border">
           {(shipped ?? []).length === 0 ? (
             <p className="py-6 text-ink/65">Nothing listed yet.</p>
@@ -103,6 +110,11 @@ export default async function ProfilePage({ params }: Props) {
             ))
           )}
         </div>
+        <p className="mt-3 text-[13px] text-ink/55">
+          <Link href="/wall" className="text-blue">
+            View the shipped wall
+          </Link>
+        </p>
       </section>
 
       <section className="mt-10">

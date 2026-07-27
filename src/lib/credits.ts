@@ -2,6 +2,7 @@ import {
   AUTO_CONFIRM_HOURS,
   BOUNTY_MULTIPLIER,
   creditCostForQuestionCount,
+  PURCHASE_CAP_FREE_CREDITS,
   RAMP_RATE,
   RAMP_REVIEW_COUNT,
   SIGNUP_BONUS,
@@ -11,6 +12,36 @@ import type { Profile } from "@/lib/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export { SIGNUP_BONUS };
+
+/**
+ * After the first PURCHASE_CAP_FREE_CREDITS purchased credits, buyers must
+ * have given at least 1 review per 2 credits bought (total purchased).
+ */
+export function canPurchaseCredits(
+  profile: Pick<Profile, "purchased_credits" | "reviews_given">,
+  amount: number,
+): { ok: true } | { ok: false; error: string } {
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return { ok: false, error: "Choose a valid credit amount." };
+  }
+
+  const purchased = Number(profile.purchased_credits ?? 0);
+  const projected = purchased + amount;
+
+  if (projected <= PURCHASE_CAP_FREE_CREDITS) {
+    return { ok: true };
+  }
+
+  const requiredReviews = Math.floor(projected / 2);
+  if (profile.reviews_given >= requiredReviews) {
+    return { ok: true };
+  }
+
+  return {
+    ok: false,
+    error: `After the first ${PURCHASE_CAP_FREE_CREDITS} purchased credits, you need at least 1 review given per 2 credits bought. Give ${requiredReviews - profile.reviews_given} more review${requiredReviews - profile.reviews_given === 1 ? "" : "s"} before buying ${amount} more.`,
+  };
+}
 
 export function earnAmountForReview(
   questionCount: number,
