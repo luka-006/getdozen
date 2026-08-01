@@ -37,7 +37,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
     .single();
 
   let credentials: string | null = null;
-  if (!isOwner && row.type === "feedback" && row.status === "open") {
+  if (!isOwner && (row.type === "feedback" || row.type === "combo") && row.status === "open") {
     // credentials stay encrypted until review starts; detail page only hints
   }
 
@@ -58,13 +58,22 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
   }
 
   let commitments: TesterCommitment[] = [];
-  if (row.type === "tester" && isOwner) {
+  if (isOwner && (row.type === "tester" || row.type === "combo")) {
     const { data } = await supabase
       .from("tester_commitments")
       .select("*")
       .eq("request_id", id)
       .order("created_at");
     commitments = (data ?? []) as TesterCommitment[];
+  }
+
+  let hasReview = false;
+  if (row.type === "feedback" || row.type === "combo") {
+    const { count } = await supabase
+      .from("reviews")
+      .select("*", { count: "exact", head: true })
+      .eq("request_id", id);
+    hasReview = (count ?? 0) > 0;
   }
 
   return (
@@ -93,11 +102,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </div>
         <div className="flex justify-between gap-4 border-b border-border py-2">
           <dt className="text-ink/60">App</dt>
-          <dd>
-            <a href={row.app_url} className="text-blue" target="_blank" rel="noreferrer">
-              Open app
-            </a>
-          </dd>
+          <dd className="text-ink/70 truncate max-w-[60%]">{row.app_url}</dd>
         </div>
         <div className="flex justify-between gap-4 border-b border-border py-2">
           <dt className="text-ink/60">Waiting</dt>
@@ -123,6 +128,31 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               </dd>
             </div>
           </>
+        ) : row.type === "combo" ? (
+          <>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Testers</dt>
+              <dd className="font-mono">
+                {row.testers_filled} / {row.testers_needed}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Questions</dt>
+              <dd className="font-mono">{row.question_count}</dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Pack cost</dt>
+              <dd>
+                <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
+                  {formatCredits(Number(row.credit_cost))}
+                </span>
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Focus</dt>
+              <dd>{row.test_focus}</dd>
+            </div>
+          </>
         ) : (
           <>
             <div className="flex justify-between gap-4 border-b border-border py-2">
@@ -141,46 +171,54 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
       {isOwner && credentials ? (
         <div className="mt-6 well px-4 py-3">
-          <p className="text-[13px] font-medium">Test credentials (you)</p>
+          <p className="text-[13px] font-medium">Throwaway login (you)</p>
           <p className="mt-1 font-mono text-[13px] whitespace-pre-wrap">{credentials}</p>
         </div>
       ) : null}
 
-      {!isOwner && row.type === "feedback" && row.status === "open" ? (
-        <div className="mt-8">
+      <div className="mt-8 flex flex-wrap gap-3">
+        <a
+          href={row.app_url}
+          className="btn btn-secondary"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open app
+        </a>
+        {!isOwner &&
+        (row.type === "feedback" || row.type === "combo") &&
+        row.status === "open" &&
+        !hasReview ? (
           <Link href={`/requests/${row.id}/review`} className="btn btn-primary">
             Start review
           </Link>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
 
-      {!isOwner && row.type === "tester" && row.status === "open" ? (
+      {!isOwner &&
+      (row.type === "tester" || row.type === "combo") &&
+      row.status === "open" ? (
         <form action={joinTesterRequest} className="mt-8 space-y-4">
           <input type="hidden" name="request_id" value={row.id} />
           <div className="field">
-            <label htmlFor="google_email">
-              Google account email you will use to opt in
-            </label>
+            <label htmlFor="google_email">Google account for opt-in</label>
             <input
               id="google_email"
               name="google_email"
               type="email"
               className="input"
               required
+              placeholder="you@gmail.com"
             />
           </div>
-          <p className="text-[13px] text-ink/65">
-            Real devices only. One account per person. Emulators and duplicate
-            Google accounts can get the developer suspended.
-          </p>
           {row.opt_in_link ? (
             <a
               href={row.opt_in_link}
               target="_blank"
               rel="noreferrer"
-              className="text-blue text-[15px]"
+              className="btn btn-secondary"
             >
-              Open Play Console opt-in link
+              Open opt-in link
             </a>
           ) : null}
           <button type="submit" className="btn btn-primary">
@@ -189,7 +227,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </form>
       ) : null}
 
-      {isOwner && row.type === "tester" ? (
+      {isOwner && (row.type === "tester" || row.type === "combo") ? (
         <section className="mt-10 space-y-4">
           <h2 className="font-display text-[24px] font-semibold">Tester progress</h2>
           {commitments.length === 0 ? (
@@ -205,7 +243,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </section>
       ) : null}
 
-      {isOwner && row.type === "feedback" ? (
+      {isOwner && (row.type === "feedback" || row.type === "combo") ? (
         <OwnerReviews requestId={row.id} />
       ) : null}
     </div>

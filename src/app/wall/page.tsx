@@ -33,18 +33,15 @@ export default async function WallPage() {
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[32px] font-semibold">Shipped wall</h1>
-          <p className="mt-1 text-ink/70">
-            Apps that went out with help from getdozen.app reviewers and testers.
-          </p>
+          <h1 className="font-display text-[32px] font-semibold">Wall</h1>
         </div>
         {profile ? (
           <Link href="/wall/new" className="btn btn-primary">
-            Add shipped app
+            Add app
           </Link>
         ) : (
           <Link href="/login?next=/wall/new" className="btn btn-secondary">
-            Sign in to add
+            Sign in
           </Link>
         )}
       </div>

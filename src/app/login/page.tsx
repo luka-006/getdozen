@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { signInWithEmail, signInWithGoogle } from "@/actions/auth";
+import { signInWithEmail } from "@/actions/auth";
 
 type Props = {
   searchParams: Promise<{
@@ -20,12 +20,10 @@ export default async function LoginPage({ searchParams }: Props) {
     <div className="mx-auto w-full max-w-[480px] px-4 py-14">
       <div className="surface p-6 sm:p-8">
         <p className="font-display text-[18px] font-semibold tracking-[0.03em]">
-          getdozen.app
+          Dozen
         </p>
         <h1 className="mt-3 font-display text-[28px] font-semibold">Sign in</h1>
-        <p className="mt-2 text-[14px] text-ink/70">
-          Email or Google. New accounts start with 1 credit.
-        </p>
+        <p className="mt-2 text-[14px] text-ink/70">Email or Google.</p>
 
         {params.error ? (
           <p className="mt-4 rounded-[6px] border border-flag/40 bg-flag/5 px-3 py-2 text-[13px] text-flag">
@@ -68,12 +66,12 @@ export default async function LoginPage({ searchParams }: Props) {
           </button>
         </form>
 
-        <form action={signInWithGoogle} className="mt-3">
-          <input type="hidden" name="next" value={next} />
-          <button type="submit" className="btn btn-secondary w-full">
-            Continue with Google
-          </button>
-        </form>
+        <a
+          href={`/auth/google?next=${encodeURIComponent(next)}`}
+          className="btn btn-secondary mt-3 w-full"
+        >
+          Continue with Google
+        </a>
 
         <p className="mt-6 text-center text-[13px] text-ink/70">
           New here?{" "}

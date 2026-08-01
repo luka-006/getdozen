@@ -31,6 +31,10 @@ export function answersTooSimilar(a: string, b: string): boolean {
   return longer.includes(shorter) && shorter.length / longer.length > 0.85;
 }
 
+export function countWords(value: string): number {
+  return value.trim().split(/\s+/).filter(Boolean).length;
+}
+
 export function isLaunchBonusActive(): boolean {
   const started = process.env.NEXT_PUBLIC_LAUNCH_STARTED_AT;
   if (!started) return true;

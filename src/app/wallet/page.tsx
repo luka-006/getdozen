@@ -33,10 +33,9 @@ export default async function WalletPage({ searchParams }: Props) {
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Wallet</h1>
-      <p className="mt-1 text-ink/70">
-        Credits expire 6 months from the date earned.
-        {profile.is_pro ? " Pro is active." : ""}
-      </p>
+      {profile.is_pro ? (
+        <p className="mt-1 text-[13px] text-ink/60">Pro</p>
+      ) : null}
 
       {params.error ? (
         <p className="mt-4 text-[13px] text-flag">{params.error}</p>

@@ -2,7 +2,8 @@
 
 import { useMemo, useRef, useState } from "react";
 import { submitReview } from "@/actions/reviews";
-import { MIN_ANSWER_CHARS } from "@/lib/constants";
+import { MIN_ANSWER_WORDS } from "@/lib/constants";
+import { countWords } from "@/lib/utils";
 
 type Question = {
   id: string;
@@ -10,14 +11,19 @@ type Question = {
   is_core: boolean;
   is_proof: boolean;
   position: number;
+  suggested_answers?: string[] | null;
 };
 
 export function ReviewForm({
   requestId,
   questions,
+  isDemo = false,
+  proofHint = null,
 }: {
   requestId: string;
   questions: Question[];
+  isDemo?: boolean;
+  proofHint?: string | null;
 }) {
   const ordered = useMemo(
     () => [...questions].sort((a, b) => a.position - b.position),
@@ -25,13 +31,47 @@ export function ReviewForm({
   );
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [picked, setPicked] = useState<Record<string, string | null>>({});
   const startedAt = useRef(Date.now());
   const timeInputRef = useRef<HTMLInputElement>(null);
 
   const current = ordered[index];
   const answer = answers[current?.id ?? ""] ?? "";
+  const words = countWords(answer);
   const progress = ((index + 1) / ordered.length) * 100;
-  const canNext = answer.trim().length >= MIN_ANSWER_CHARS;
+  const suggestions = (current?.suggested_answers ?? []).filter(Boolean);
+  const canNext = current?.is_proof
+    ? answer.trim().length > 0
+    : words >= MIN_ANSWER_WORDS;
+
+  function fillDemoAnswers() {
+    const stamp = Date.now();
+    const next: Record<string, string> = {};
+    ordered.forEach((q, i) => {
+      if (q.is_proof) {
+        next[q.id] = proofHint ?? "test";
+      } else {
+        next[q.id] =
+          `Demo answer ${i + 1}: this product feels clear enough for a first pass. I would keep exploring the main flow and note a few rough edges around signup and pricing clarity on Dozen (${stamp}).`;
+      }
+    });
+    setAnswers(next);
+    setPicked({});
+    setIndex(0);
+  }
+
+  function chooseSuggestion(text: string) {
+    if (!current) return;
+    setPicked((prev) => ({ ...prev, [current.id]: text }));
+    setAnswers((prev) => {
+      const existing = (prev[current.id] ?? "").trim();
+      // Seed from chip; keep room for the reviewer to expand in writing.
+      if (!existing || existing === picked[current.id]) {
+        return { ...prev, [current.id]: `${text} — ` };
+      }
+      return { ...prev, [current.id]: `${existing} ${text}` };
+    });
+  }
 
   if (!current) return null;
 
@@ -41,24 +81,31 @@ export function ReviewForm({
       className="space-y-6"
       onSubmit={() => {
         if (timeInputRef.current) {
+          const elapsed = Math.floor((Date.now() - startedAt.current) / 1000);
           timeInputRef.current.value = String(
-            Math.floor((Date.now() - startedAt.current) / 1000),
+            isDemo ? Math.max(elapsed, 600) : elapsed,
           );
         }
       }}
     >
       <input type="hidden" name="request_id" value={requestId} />
-      <input
-        type="hidden"
-        name="answers"
-        value={JSON.stringify(answers)}
-      />
+      <input type="hidden" name="answers" value={JSON.stringify(answers)} />
       <input
         ref={timeInputRef}
         type="hidden"
         name="time_spent_seconds"
         defaultValue="0"
       />
+
+      {isDemo ? (
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={fillDemoAnswers}
+        >
+          Fill dummy answers
+        </button>
+      ) : null}
 
       <div>
         <div className="mb-2 flex justify-between text-[13px] text-ink/65">
@@ -68,21 +115,55 @@ export function ReviewForm({
           <span className="font-mono">{Math.round(progress)}%</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-[6px] bg-mist">
-          <div className="h-full bg-blue" style={{ width: `${progress}%` }} />
+          <div
+            className="h-full bg-blue transition-[width] duration-300 ease-out"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div key={current.id} className="space-y-2 motion-fade-in">
         {current.is_core ? (
           <p className="text-[13px] text-ink/55">Core question</p>
         ) : null}
         {current.is_proof ? (
           <p className="text-[13px] text-ink/55">
-            Proof question — answer only if you opened the app
+            Proof — open the app first
+            {proofHint ? (
+              <>
+                {" "}
+                · answer <span className="font-mono">{proofHint}</span>
+              </>
+            ) : null}
           </p>
         ) : null}
         <h2 className="font-display text-[24px] font-semibold">{current.text}</h2>
       </div>
+
+      {!current.is_proof ? (
+        <p className="text-[13px] leading-relaxed text-ink/60">
+          This maker values direct, expanded answers in your own words. Chips
+          are starters — write it out.
+        </p>
+      ) : null}
+
+      {!current.is_proof && suggestions.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {suggestions.map((s) => {
+            const active = picked[current.id] === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                className={`answer-chip ${active ? "answer-chip-active" : ""}`}
+                onClick={() => chooseSuggestion(s)}
+              >
+                {s}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div className="field">
         <label htmlFor="answer">Your answer</label>
@@ -94,9 +175,16 @@ export function ReviewForm({
             setAnswers((prev) => ({ ...prev, [current.id]: e.target.value }))
           }
           required
+          placeholder={
+            current.is_proof
+              ? "Short proof answer"
+              : "Write a direct, specific answer…"
+          }
         />
         <p className="font-mono text-[12px] text-ink/55">
-          {answer.trim().length} / {MIN_ANSWER_CHARS} min
+          {current.is_proof
+            ? `${answer.trim().length} chars`
+            : `${words} / ${MIN_ANSWER_WORDS} words`}
         </p>
       </div>
 

@@ -43,13 +43,10 @@ export default async function TestersPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
-      <h1 className="font-display text-[32px] font-semibold">Tester dashboard</h1>
-      <p className="mt-1 text-ink/70">
-        Active commitments:{" "}
-        <span className="font-mono">
-          {activeCount} / {maxSlots}
-        </span>
-        {profile.is_pro ? " (Pro)" : ""}
+      <h1 className="font-display text-[32px] font-semibold">My tests</h1>
+      <p className="mt-1 font-mono text-[13px] text-ink/65">
+        {activeCount} / {maxSlots}
+        {profile.is_pro ? " · Pro" : ""}
       </p>
 
       {query.error ? (

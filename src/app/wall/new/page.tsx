@@ -19,10 +19,7 @@ export default async function NewShippedAppPage({ searchParams }: Props) {
         </Link>{" "}
         / add
       </p>
-      <h1 className="mt-2 font-display text-[32px] font-semibold">Add shipped app</h1>
-      <p className="mt-1 text-ink/70">
-        Credit the reviewers and testers who helped you ship.
-      </p>
+      <h1 className="mt-2 font-display text-[32px] font-semibold">Add app</h1>
 
       {params.error ? (
         <p className="mt-4 text-[13px] text-flag">{params.error}</p>
@@ -53,10 +50,10 @@ export default async function NewShippedAppPage({ searchParams }: Props) {
             id="helper_emails"
             name="helper_emails"
             className="textarea"
-            placeholder="Comma-separated emails of getdozen.app profiles who helped"
+            placeholder="emails who helped"
           />
           <p className="text-[12px] text-ink/55">
-            Must match accounts already on getdozen.app.
+            Must match accounts already on Dozen.
           </p>
         </div>
         <button type="submit" className="btn btn-primary">

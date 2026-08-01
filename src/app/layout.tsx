@@ -23,9 +23,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "getdozen.app",
-  description:
-    "Earn credits by reviewing indie apps and testing closed tracks. Spend credits to get real feedback and 12 testers for 14 days.",
+  title: "Dozen",
+  description: "12 testers who tell you what's wrong with your app.",
 };
 
 export default async function RootLayout({

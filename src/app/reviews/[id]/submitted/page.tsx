@@ -14,7 +14,7 @@ export default async function ReviewSubmittedPage({ params }: Props) {
 
   const { data: review } = await supabase
     .from("reviews")
-    .select("id, credits_awarded, auto_confirm_at, reviewer_id")
+    .select("id, credits_awarded, auto_confirm_at, reviewer_id, confirm_status")
     .eq("id", id)
     .single();
 
@@ -26,6 +26,8 @@ export default async function ReviewSubmittedPage({ params }: Props) {
     );
   }
 
+  const confirmed = review.confirm_status === "confirmed";
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-12">
       <h1 className="font-display text-[32px] font-semibold">Review submitted</h1>
@@ -33,18 +35,14 @@ export default async function ReviewSubmittedPage({ params }: Props) {
         <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
           {formatCredits(Number(review.credits_awarded ?? 0))}
         </span>{" "}
-        credits are pending. They unlock when the requester confirms, or
-        automatically after 48 hours.
-      </p>
-      <p className="mt-2 font-mono text-[13px] text-ink/60">
-        Auto-confirm: {new Date(review.auto_confirm_at).toLocaleString()}
+        {confirmed ? "added to your wallet" : "pending · confirms in 48h"}
       </p>
       <div className="mt-8 flex gap-3">
         <Link href="/board" className="btn btn-primary">
-          Back to board
+          Board
         </Link>
         <Link href="/wallet" className="btn btn-secondary">
-          Open wallet
+          Wallet
         </Link>
       </div>
     </div>

@@ -40,7 +40,6 @@ export default async function AdminPage({ searchParams }: Props) {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Admin</h1>
-      <p className="mt-1 text-ink/70">Reports, bans, disputes.</p>
 
       {query.message ? (
         <p className="mt-4 text-[13px]">{query.message}</p>

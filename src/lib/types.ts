@@ -1,7 +1,7 @@
 import type { FOCUS_TAGS } from "./constants";
 
 export type FocusTag = (typeof FOCUS_TAGS)[number];
-export type RequestType = "feedback" | "tester";
+export type RequestType = "feedback" | "tester" | "combo" | "language" | "play" | "testflight";
 export type RequestStatus =
   | "open"
   | "in_progress"
@@ -23,12 +23,14 @@ export type Profile = {
   credits: number;
   credits_pending: number;
   reviews_given: number;
+  bugs_found?: number;
   rating_avg: number;
   is_ramped: boolean;
   is_pro: boolean;
   daily_review_count: number;
   daily_review_date: string | null;
   purchased_credits: number;
+  has_reviewed_once?: boolean;
   stripe_customer_id?: string | null;
   stripe_subscription_id?: string | null;
   is_admin: boolean;

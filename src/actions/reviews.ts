@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import {
   DAILY_REVIEW_LIMIT,
-  MIN_ANSWER_CHARS,
+  MIN_ANSWER_WORDS,
   minSecondsForQuestionCount,
 } from "@/lib/constants";
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { answersTooSimilar, normalizeAnswer } from "@/lib/utils";
+import { answersTooSimilar, countWords, normalizeAnswer } from "@/lib/utils";
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
@@ -71,11 +71,23 @@ export async function submitReview(formData: FormData) {
     .eq("id", requestId)
     .single();
 
-  if (!request || request.type !== "feedback" || request.status !== "open") {
+  if (!request || (request.type !== "feedback" && request.type !== "combo") || request.status !== "open") {
     redirect(`/board?error=${encodeURIComponent("Request is not available")}`);
   }
   if (request.user_id === profile.id) {
     redirect(`/requests/${requestId}?error=${encodeURIComponent("You cannot review your own request")}`);
+  }
+
+  if (request.type === "combo") {
+    const { count: existingReviews } = await admin
+      .from("reviews")
+      .select("*", { count: "exact", head: true })
+      .eq("request_id", requestId);
+    if ((existingReviews ?? 0) > 0) {
+      redirect(
+        `/requests/${requestId}?error=${encodeURIComponent("This pack already has a review")}`,
+      );
+    }
   }
 
   try {
@@ -108,14 +120,20 @@ export async function submitReview(formData: FormData) {
   }
 
   for (const q of questions) {
+    if (q.is_proof) continue;
     const answer = (answers[q.id] ?? "").trim();
-    if (answer.length < MIN_ANSWER_CHARS) {
-      redirect(`/requests/${requestId}/review?error=${encodeURIComponent(`Answers need at least ${MIN_ANSWER_CHARS} characters`)}`);
+    if (countWords(answer) < MIN_ANSWER_WORDS) {
+      redirect(
+        `/requests/${requestId}/review?error=${encodeURIComponent(
+          `Answers need at least ${MIN_ANSWER_WORDS} words`,
+        )}`,
+      );
     }
   }
 
   const floor = minSecondsForQuestionCount(request.question_count);
-  if (timeSpent < floor) {
+  const isDemo = String(request.app_name).startsWith("Demo ");
+  if (!isDemo && timeSpent < floor) {
     redirect(`/requests/${requestId}/review?error=${encodeURIComponent("This review was completed unrealistically fast")}`);
   }
 
@@ -173,10 +191,67 @@ export async function submitReview(formData: FormData) {
     availableAt: autoConfirmAt(),
   });
 
-  await admin
-    .from("requests")
-    .update({ status: "in_progress", claimed_at: new Date().toISOString() })
-    .eq("id", requestId);
+  if (request.type === "combo") {
+    const testersFull =
+      Number(request.testers_filled) >= Number(request.testers_needed);
+    await admin
+      .from("requests")
+      .update({
+        claimed_at: new Date().toISOString(),
+        status: testersFull ? "in_progress" : "open",
+      })
+      .eq("id", requestId);
+  } else {
+    await admin
+      .from("requests")
+      .update({ status: "in_progress", claimed_at: new Date().toISOString() })
+      .eq("id", requestId);
+  }
+
+  if (isDemo) {
+    await admin
+      .from("reviews")
+      .update({
+        confirm_status: "confirmed",
+        rating_received: 5,
+      })
+      .eq("id", review.id);
+
+    await admin.rpc("release_pending_credits", { p_review_id: review.id });
+
+    const { data: reviewer } = await admin
+      .from("profiles")
+      .select("reviews_given, rating_avg, rating_count")
+      .eq("id", profile.id)
+      .single();
+
+    if (reviewer) {
+      await admin
+        .from("profiles")
+        .update({
+          reviews_given: reviewer.reviews_given + 1,
+          has_reviewed_once: true,
+          is_ramped: reviewer.reviews_given + 1 >= 5,
+          rating_avg: Number(
+            (
+              (reviewer.rating_avg * reviewer.rating_count + 5) /
+              (reviewer.rating_count + 1)
+            ).toFixed(2),
+          ),
+          rating_count: reviewer.rating_count + 1,
+        })
+        .eq("id", profile.id);
+    }
+
+    const testersFull =
+      Number(request.testers_filled) >= Number(request.testers_needed);
+    if (request.type !== "combo" || testersFull) {
+      await admin
+        .from("requests")
+        .update({ status: "completed" })
+        .eq("id", requestId);
+    }
+  }
 
   revalidatePath("/board");
   revalidatePath("/wallet");
@@ -266,6 +341,7 @@ export async function confirmReview(formData: FormData) {
       .from("profiles")
       .update({
         reviews_given: reviewer.reviews_given + 1,
+        has_reviewed_once: true,
         is_ramped: reviewer.reviews_given + 1 >= 5,
         rating_avg: ratingAvg,
         rating_count: ratingCount,

@@ -7,6 +7,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getCreditPack,
   getStripe,
+  getStripePriceId,
+  eurForCredits,
+  PRO_PRICE_ENV,
   PRO_PRICE_EUR,
   stripeConfigured,
 } from "@/lib/stripe";
@@ -64,6 +67,8 @@ export async function purchaseCreditPack(formData: FormData) {
   const stripe = getStripe()!;
   const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
 
+  // Always price_data so 1 credit = €1 in app stays source of truth
+  // (Dashboard STRIPE_PRICE_CREDITS_* may still be old €2/€9/€25 prices).
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer: customerId,
@@ -81,8 +86,8 @@ export async function purchaseCreditPack(formData: FormData) {
           currency: "eur",
           unit_amount: Math.round(pack.amountEur * 100),
           product_data: {
-            name: `getdozen ${pack.label}`,
-            description: `${pack.credits} credits for reviews and testers`,
+            name: `Dozen ${pack.label}`,
+            description: `${pack.credits} credits · €1 each`,
           },
         },
       },
@@ -93,6 +98,65 @@ export async function purchaseCreditPack(formData: FormData) {
 
   if (!session.url) {
     redirect(`/wallet?error=${encodeURIComponent("Could not start checkout")}`);
+  }
+
+  redirect(session.url);
+}
+
+export async function purchaseCreditsAmount(formData: FormData) {
+  const profile = await requireProfile();
+  const returnTo = String(formData.get("return_to") ?? "/wallet");
+  const credits = Math.ceil(Number(formData.get("credits") ?? 0));
+
+  if (!Number.isFinite(credits) || credits < 1 || credits > 500) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Pick a valid credit amount")}`);
+  }
+
+  const check = canPurchaseCredits(profile, credits);
+  if (!check.ok) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(check.error)}`);
+  }
+
+  if (!stripeConfigured()) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Stripe not configured yet")}`);
+  }
+
+  const stripe = getStripe()!;
+  const customerId = await ensureStripeCustomer(
+    profile as typeof profile & { stripe_customer_id?: string | null },
+  );
+
+  const amountEur = eurForCredits(credits);
+
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    customer: customerId,
+    client_reference_id: profile.id,
+    metadata: {
+      kind: "credits",
+      profile_id: profile.id,
+      credits: String(credits),
+      pack_id: `custom_${credits}`,
+    },
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: Math.round(amountEur * 100),
+          product_data: {
+            name: `Dozen ${credits} credit${credits === 1 ? "" : "s"}`,
+            description: `${credits} credits · €1 each`,
+          },
+        },
+      },
+    ],
+    success_url: `${siteUrl()}/wallet?message=${encodeURIComponent("Payment received. Credits appear after Stripe confirms.")}`,
+    cancel_url: `${siteUrl()}${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Checkout cancelled")}`,
+  });
+
+  if (!session.url) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Could not start checkout")}`);
   }
 
   redirect(session.url);
@@ -112,6 +176,7 @@ export async function startProSubscription() {
   const stripe = getStripe()!;
   const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
 
+  const proPriceId = getStripePriceId(PRO_PRICE_ENV);
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
@@ -126,19 +191,21 @@ export async function startProSubscription() {
       },
     },
     line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: Math.round(PRO_PRICE_EUR * 100),
-          recurring: { interval: "month" },
-          product_data: {
-            name: "getdozen Pro",
-            description:
-              "5 concurrent tester slots, board boost, 48-hour review guarantee, analytics",
+      proPriceId
+        ? { quantity: 1, price: proPriceId }
+        : {
+            quantity: 1,
+            price_data: {
+              currency: "eur",
+              unit_amount: Math.round(PRO_PRICE_EUR * 100),
+              recurring: { interval: "month" },
+              product_data: {
+                name: "Dozen Pro",
+                description:
+                  "5 concurrent tester slots, board boost, 48-hour review guarantee",
+              },
+            },
           },
-        },
-      },
     ],
     success_url: `${siteUrl()}/wallet?message=${encodeURIComponent("Pro is activating. Refresh in a moment.")}`,
     cancel_url: `${siteUrl()}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,

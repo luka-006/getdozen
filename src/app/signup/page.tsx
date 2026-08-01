@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { signInWithGoogle, signUpWithEmail } from "@/actions/auth";
+import { signUpWithEmail } from "@/actions/auth";
 
 type Props = {
   searchParams: Promise<{
@@ -17,13 +17,13 @@ export default async function SignupPage({ searchParams }: Props) {
     <div className="mx-auto w-full max-w-[480px] px-4 py-14">
       <div className="surface p-6 sm:p-8">
         <p className="font-display text-[18px] font-semibold tracking-[0.03em]">
-          getdozen.app
+          Dozen
         </p>
         <h1 className="mt-3 font-display text-[28px] font-semibold">
           Create account
         </h1>
         <p className="mt-2 text-[14px] text-ink/70">
-          Start with 1 credit. Earn more by reviewing and testing.
+          Create your account.
         </p>
 
         {params.error ? (
@@ -77,12 +77,12 @@ export default async function SignupPage({ searchParams }: Props) {
           </button>
         </form>
 
-        <form action={signInWithGoogle} className="mt-3">
-          <input type="hidden" name="next" value={next} />
-          <button type="submit" className="btn btn-secondary w-full">
-            Continue with Google
-          </button>
-        </form>
+        <a
+          href={`/auth/google?next=${encodeURIComponent(next)}`}
+          className="btn btn-secondary mt-3 w-full"
+        >
+          Continue with Google
+        </a>
 
         <p className="mt-6 text-center text-[13px] text-ink/70">
           Already have an account?{" "}

@@ -1,73 +1,76 @@
 import Link from "next/link";
+import { Avatar } from "@/components/avatar";
 import { CreditBadge } from "@/components/credit-badge";
+import { DozenMark } from "@/components/dozen-mark";
 import { MobileNav } from "@/components/mobile-nav";
 import type { Profile } from "@/lib/types";
 
-const links = [
-  { href: "/board", label: "Board" },
-  { href: "/requests/new", label: "Post request" },
-  { href: "/testers", label: "Testers" },
-  { href: "/wallet", label: "Wallet" },
-  { href: "/wall", label: "Wall" },
-];
-
 export function SiteHeader({ profile }: { profile: Profile | null }) {
+  const links = profile
+    ? [
+        { href: "/board", label: "Board" },
+        { href: "/requests/new", label: "Post" },
+        { href: "/testers", label: "My tests" },
+        { href: "/wallet", label: "Wallet" },
+        { href: `/profile/${profile.id}`, label: "Profile" },
+      ]
+    : [
+        { href: "/pricing", label: "Pricing" },
+        { href: "/wall", label: "Wall" },
+      ];
+
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-white/80 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-border bg-paper/95 backdrop-blur-md">
       <div className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-6">
           <Link
             href={profile ? "/board" : "/"}
-            className="font-display text-[18px] font-semibold tracking-[0.03em] text-ink"
+            className="flex items-center gap-2.5 text-ink"
           >
-            getdozen.app
+            <DozenMark className="h-8 w-8 shrink-0" />
+            <span className="font-display text-[18px] font-semibold tracking-[0.03em]">
+              Dozen
+            </span>
           </Link>
-          {profile ? (
-            <nav className="hidden items-center gap-4 sm:flex">
-              {links.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-[13px] text-ink/80 hover:text-blue"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </nav>
-          ) : (
-            <nav className="flex items-center gap-3 sm:gap-4">
-              <Link href="/wall" className="text-[13px] text-ink/80 hover:text-blue">
-                Wall
+          <nav className="hidden items-center gap-4 sm:flex">
+            {links.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-[13px] text-ink/80 hover:text-blue"
+              >
+                {link.label}
               </Link>
-              <Link href="/pricing" className="text-[13px] text-ink/80 hover:text-blue">
-                Pricing
-              </Link>
-            </nav>
-          )}
+            ))}
+          </nav>
         </div>
 
         <div className="flex items-center gap-3">
           {profile ? (
             <>
               <MobileNav links={links} />
-              <CreditBadge
-                value={profile.credits}
-                pending={profile.credits_pending}
-              />
+              <Link href="/wallet" className="shrink-0" title="Wallet">
+                <CreditBadge
+                  value={profile.credits}
+                  pending={profile.credits_pending}
+                />
+              </Link>
               <Link
                 href={`/profile/${profile.id}`}
-                className="text-[13px] text-ink/80 hover:text-blue"
+                className="shrink-0"
+                title="Profile"
               >
-                {profile.display_name}
+                <Avatar name={profile.display_name} url={profile.avatar_url} />
               </Link>
             </>
           ) : (
             <div className="flex items-center gap-2">
+              <MobileNav links={links} />
               <Link href="/login" className="btn btn-secondary min-h-9 px-3 text-[13px]">
                 Sign in
               </Link>
               <Link href="/signup" className="btn btn-primary min-h-9 px-3 text-[13px]">
-                Create account
+                Join
               </Link>
             </div>
           )}

@@ -7,12 +7,44 @@ export const CORE_QUESTIONS = [
 export const MIN_QUESTIONS = 10;
 export const MAX_QUESTIONS = 30;
 export const MIN_ANSWER_CHARS = 40;
+export const MIN_ANSWER_WORDS = 25;
 export const DAILY_REVIEW_LIMIT = 3;
 export const RAMP_REVIEW_COUNT = 5;
 export const RAMP_RATE = 0.5;
 export const SIGNUP_BONUS = 1;
 export const TESTER_COST = 2;
-export const TESTER_EARN = 3;
+export const TESTER_EARN = 2;
+
+/** Testers + feedback bundles (cheaper than buying both separately). */
+export const COMBO_PACKS = [
+  {
+    id: "combo_12_10",
+    testers: 12,
+    questions: 10,
+    credits: 30,
+    label: "12 testers · 10 questions",
+  },
+  {
+    id: "combo_15_20",
+    testers: 15,
+    questions: 20,
+    credits: 40,
+    label: "15 testers · 20 questions",
+  },
+  {
+    id: "combo_20_30",
+    testers: 20,
+    questions: 30,
+    credits: 50,
+    label: "20 testers · 30 questions",
+  },
+] as const;
+
+export type ComboPackId = (typeof COMBO_PACKS)[number]["id"];
+
+export function getComboPack(id: string) {
+  return COMBO_PACKS.find((pack) => pack.id === id) ?? null;
+}
 export const MAX_CONCURRENT_COMMITMENTS = 3;
 export const MAX_CONCURRENT_COMMITMENTS_PRO = 5;
 export const MAX_MISSED_CHECKINS = 3;
@@ -23,8 +55,7 @@ export const BOUNTY_MULTIPLIER = 1.5;
 export const REQUEST_EXPIRY_DAYS = 30;
 export const CREDIT_EXPIRY_MONTHS = 6;
 export const LAUNCH_BONUS_DAYS = 14;
-export const PURCHASE_CAP_FREE_CREDITS = 3;
-export const FOCUS_TAGS = ["UX", "Market", "Technical"] as const;
+export const FOCUS_TAGS = ["Everything", "UX", "Market", "Technical"] as const;
 
 export const QUESTION_LIBRARY = [
   {

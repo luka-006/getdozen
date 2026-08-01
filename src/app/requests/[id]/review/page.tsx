@@ -22,7 +22,8 @@ export default async function ReviewPage({ params, searchParams }: Props) {
     .eq("id", id)
     .single();
 
-  if (!request || request.type !== "feedback") notFound();
+  if (!request || (request.type !== "feedback" && request.type !== "combo"))
+    notFound();
   if (request.user_id === profile.id) {
     redirect(`/requests/${id}?error=${encodeURIComponent("You cannot review your own request")}`);
   }
@@ -32,7 +33,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
 
   const { data: questions } = await admin
     .from("questions")
-    .select("id, text, is_core, is_proof, position")
+    .select("id, text, is_core, is_proof, position, suggested_answers")
     .eq("request_id", id)
     .order("position");
 
@@ -47,6 +48,12 @@ export default async function ReviewPage({ params, searchParams }: Props) {
     }
   }
 
+  const isDemo = String(request.app_name).startsWith("Demo ");
+  const proofHint = isDemo ? "test" : null;
+  const loginHint =
+    credentials ??
+    (isDemo ? "demo@test.com / password123" : null);
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <p className="text-[13px] text-ink/55">
@@ -55,26 +62,41 @@ export default async function ReviewPage({ params, searchParams }: Props) {
         </Link>{" "}
         / review
       </p>
-      <h1 className="mt-2 font-display text-[32px] font-semibold">Review form</h1>
-      <p className="mt-1 text-ink/70">
-        One question at a time. Open the app before answering the proof question.
-      </p>
+      <h1 className="mt-2 font-display text-[32px] font-semibold">Review</h1>
 
-      <p className="mt-4">
-        <a href={request.app_url} target="_blank" rel="noreferrer" className="text-blue">
+      <div className="mt-4 flex flex-wrap gap-3">
+        <a
+          href={request.app_url}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-primary"
+        >
           Open app
         </a>
-      </p>
+        <a
+          href={request.app_url}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-secondary"
+        >
+          Sign in
+        </a>
+      </div>
 
-      {credentials ? (
+      {loginHint ? (
         <div className="mt-4 well px-4 py-3">
-          <p className="text-[13px] font-medium">Test login for this review</p>
-          <p className="mt-1 font-mono text-[13px] whitespace-pre-wrap">{credentials}</p>
-          <p className="mt-2 text-[12px] text-ink/60">
-            Use only while this review is open. Never reuse someone else&apos;s
-            real account.
+          <p className="text-[13px] font-medium">Throwaway login</p>
+          <p className="mt-1 font-mono text-[13px] whitespace-pre-wrap">
+            {loginHint}
           </p>
         </div>
+      ) : null}
+
+      {isDemo ? (
+        <p className="mt-4 text-[13px] text-ink/60">
+          Demo request — proof answer is <span className="font-mono">test</span>
+          . Credits confirm automatically.
+        </p>
       ) : null}
 
       {query.error ? (
@@ -82,7 +104,12 @@ export default async function ReviewPage({ params, searchParams }: Props) {
       ) : null}
 
       <div className="mt-8">
-        <ReviewForm requestId={id} questions={questions} />
+        <ReviewForm
+          requestId={id}
+          questions={questions}
+          isDemo={isDemo}
+          proofHint={proofHint}
+        />
       </div>
     </div>
   );

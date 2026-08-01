@@ -32,7 +32,11 @@ export async function joinTesterRequest(formData: FormData) {
     .eq("id", requestId)
     .single();
 
-  if (!request || request.type !== "tester" || request.status !== "open") {
+  if (
+    !request ||
+    (request.type !== "tester" && request.type !== "combo") ||
+    request.status !== "open"
+  ) {
     redirect(`/board?error=${encodeURIComponent("Tester request is not open")}`);
   }
   if (request.user_id === profile.id) {
@@ -84,14 +88,22 @@ export async function joinTesterRequest(formData: FormData) {
     redirect(`/requests/${requestId}?error=${encodeURIComponent(error.message)}`);
   }
 
+  const filled = request.testers_filled + 1;
+  const slotsFull = filled >= request.testers_needed;
+  let nextStatus: "open" | "in_progress" = slotsFull ? "in_progress" : "open";
+  if (request.type === "combo" && slotsFull) {
+    const { count } = await admin
+      .from("reviews")
+      .select("*", { count: "exact", head: true })
+      .eq("request_id", requestId);
+    nextStatus = (count ?? 0) > 0 ? "in_progress" : "open";
+  }
+
   await admin
     .from("requests")
     .update({
-      testers_filled: request.testers_filled + 1,
-      status:
-        request.testers_filled + 1 >= request.testers_needed
-          ? "in_progress"
-          : "open",
+      testers_filled: filled,
+      status: nextStatus,
     })
     .eq("id", requestId);
 

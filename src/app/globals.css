@@ -4,8 +4,8 @@
   --ink: #0b1f3a;
   --blue: #1e4fd8;
   --credit: #ffc53d;
-  --paper: #f7f9fc;
-  --mist: #e8eef8;
+  --paper: #ffffff;
+  --mist: #eef2f9;
   --flag: #c1443b;
   --border: color-mix(in srgb, var(--ink) 12%, transparent);
   --focus: color-mix(in srgb, var(--blue) 45%, transparent);
@@ -41,11 +41,40 @@ body {
   line-height: 1.5;
   color: var(--ink);
   background-color: var(--paper);
+}
+
+.atmosphere {
   background-image:
-    radial-gradient(ellipse 90% 55% at 50% -10%, color-mix(in srgb, var(--blue) 14%, transparent), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 100% 20%, color-mix(in srgb, var(--credit) 12%, transparent), transparent 55%),
-    linear-gradient(180deg, #ffffff 0%, var(--paper) 40%, var(--mist) 100%);
-  background-attachment: fixed;
+    radial-gradient(
+      ellipse 80% 50% at 10% -10%,
+      color-mix(in srgb, var(--mist) 90%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 90% 0%,
+      color-mix(in srgb, var(--blue) 6%, transparent),
+      transparent 50%
+    ),
+    linear-gradient(
+      to bottom,
+      transparent,
+      transparent
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 47px,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 47px,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 48px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 47px,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 47px,
+      color-mix(in srgb, var(--ink) 3.5%, transparent) 48px
+    );
+  background-color: var(--paper);
 }
 
 h1,
@@ -54,7 +83,7 @@ h3,
 .font-display {
   font-family: var(--font-archivo), sans-serif;
   line-height: 1.15;
-  letter-spacing: 0.015em;
+  letter-spacing: 0.02em;
 }
 
 .font-mono,
@@ -94,18 +123,12 @@ h3,
   border: 1px solid transparent;
   font-weight: 500;
   font-size: 15px;
-  transition: background-color 120ms ease, border-color 120ms ease, transform 120ms ease;
+  transition: background-color 120ms ease, border-color 120ms ease;
 }
 
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .btn:hover:not(:disabled) {
-    transform: translateY(-1px);
-  }
 }
 
 .btn-primary {
@@ -118,7 +141,7 @@ h3,
 }
 
 .btn-secondary {
-  background: #fff;
+  background: var(--paper);
   color: var(--ink);
   border-color: var(--border);
 }
@@ -128,9 +151,116 @@ h3,
 }
 
 .btn-danger {
-  background: #fff;
+  background: var(--paper);
   color: var(--flag);
   border-color: color-mix(in srgb, var(--flag) 35%, transparent);
+}
+
+.track-merge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.1rem;
+  padding: 0.55rem 0 0;
+  border: none;
+  background: transparent;
+}
+
+.track-merge-active {
+  border: none;
+  background: transparent;
+}
+
+.track-merge .btn {
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.track-side {
+  position: relative;
+  z-index: 1;
+}
+
+.track-both {
+  position: relative;
+  z-index: 1;
+  font-weight: 600;
+  transform: translateY(-0.7rem);
+}
+
+.track-join {
+  display: inline-flex;
+  align-items: flex-end;
+  color: var(--ink);
+  opacity: 0.2;
+  width: 1.5rem;
+  margin-bottom: 0.95rem;
+  transition: opacity 140ms ease, color 140ms ease;
+}
+
+.track-join-lit {
+  color: var(--blue);
+  opacity: 0.55;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  color: var(--ink);
+  opacity: 0.45;
+  transition: opacity 120ms ease, background-color 120ms ease, color 120ms ease;
+}
+
+.icon-btn:hover {
+  opacity: 1;
+  color: var(--flag);
+  background: color-mix(in srgb, var(--flag) 8%, transparent);
+}
+
+.library-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 0.7rem 0.85rem;
+  font-size: 13px;
+  text-align: left;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.library-chip:hover {
+  border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
+  background: var(--mist);
+}
+
+.library-chip-add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: var(--mist);
+  color: var(--blue);
+  flex-shrink: 0;
+}
+
+.cost-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--mist);
+  padding: 0.9rem 1rem;
 }
 
 .field {
@@ -150,7 +280,7 @@ h3,
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 6px;
-  background: #fff;
+  background: var(--paper);
   color: var(--ink);
   padding: 0.7rem 0.8rem;
   font: inherit;
@@ -170,7 +300,7 @@ h3,
 }
 
 .well {
-  background: color-mix(in srgb, #fff 70%, var(--mist));
+  background: var(--mist);
   border: 1px solid var(--border);
   border-radius: 6px;
 }
@@ -180,8 +310,62 @@ h3,
 }
 
 .surface {
-  background: color-mix(in srgb, #fff 88%, transparent);
+  background: color-mix(in srgb, var(--paper) 92%, white);
   border: 1px solid var(--border);
   border-radius: 6px;
-  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+.trust {
+  font-size: 15px;
+  color: color-mix(in srgb, var(--ink) 78%, transparent);
+}
+
+.answer-chip {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 0.45rem 0.75rem;
+  font-size: 13px;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    transform 140ms ease;
+}
+
+.answer-chip:hover {
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--border));
+  background: var(--mist);
+}
+
+.answer-chip-active {
+  border-color: var(--blue);
+  background: color-mix(in srgb, var(--blue) 8%, var(--paper));
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-fade-in {
+    animation: fade-up 280ms ease-out;
+  }
+
+  .answer-chip:active {
+    transform: translateY(1px);
+  }
+
+  .library-chip:active {
+    transform: translateY(1px);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

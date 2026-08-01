@@ -17,7 +17,11 @@ export function stripeConfigured() {
 
 export {
   CREDIT_PACKS,
+  PRO_PRICE_ENV,
   PRO_PRICE_EUR,
+  EUR_PER_CREDIT,
+  eurForCredits,
   getCreditPack,
+  getStripePriceId,
   type CreditPackId,
 } from "@/lib/pricing";
