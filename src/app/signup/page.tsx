@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signUpWithEmail } from "@/actions/auth";
+import { GoogleIcon } from "@/components/icons";
 
 type Props = {
   searchParams: Promise<{
@@ -22,9 +23,6 @@ export default async function SignupPage({ searchParams }: Props) {
         <h1 className="mt-3 font-display text-[28px] font-semibold">
           Create account
         </h1>
-        <p className="mt-2 text-[14px] text-ink/70">
-          Early cohort — invite code if you have one.
-        </p>
 
         {params.error ? (
           <p className="mt-4 rounded-[6px] border border-flag/40 bg-flag/5 px-3 py-2 text-[13px] text-flag">
@@ -91,6 +89,7 @@ export default async function SignupPage({ searchParams }: Props) {
           href={`/auth/google?next=${encodeURIComponent(next)}`}
           className="btn btn-secondary mt-3 w-full"
         >
+          <GoogleIcon />
           Continue with Google
         </a>
 

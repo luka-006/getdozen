@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signInWithEmail } from "@/actions/auth";
+import { GoogleIcon } from "@/components/icons";
 
 type Props = {
   searchParams: Promise<{
@@ -78,6 +79,7 @@ export default async function LoginPage({ searchParams }: Props) {
           href={`/auth/google?next=${encodeURIComponent(next)}`}
           className="btn btn-secondary mt-3 w-full"
         >
+          <GoogleIcon />
           Continue with Google
         </a>
 

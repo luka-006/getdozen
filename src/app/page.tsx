@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { DayStrip } from "@/components/day-strip";
 import { DozenMark } from "@/components/dozen-mark";
+import { HeroClosedTest } from "@/components/hero-closed-test";
 import { getSessionUser } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
@@ -9,8 +9,6 @@ import type { ShippedApp } from "@/lib/types";
 export default async function HomePage() {
   const user = await getSessionUser();
   if (user) redirect("/board");
-
-  const filled = Array.from({ length: 14 }, (_, i) => i < 7);
 
   let wall: ShippedApp[] = [];
   try {
@@ -54,19 +52,7 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="surface w-full max-w-md space-y-5 p-5 sm:p-6">
-          <div className="flex items-baseline justify-between gap-3">
-            <p className="font-display text-[18px] font-semibold">Closed test</p>
-            <p className="font-mono text-[13px] text-ink/60">7 of 14 days</p>
-          </div>
-          <DayStrip days={filled} label="7 of 14 days" />
-          <div className="space-y-2 border-t border-border pt-4">
-            <div className="flex justify-between text-[13px]">
-              <span className="text-ink/60">Testers in</span>
-              <span className="font-mono">9 / 12</span>
-            </div>
-          </div>
-        </div>
+        <HeroClosedTest />
       </section>
 
       {wall.length > 0 ? (
@@ -87,10 +73,13 @@ export default async function HomePage() {
                   href={app.app_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex items-baseline justify-between gap-4 border-b border-border py-4 hover:bg-mist/60"
+                  className="flex items-center justify-between gap-4 border-b border-border py-4 hover:bg-mist/60"
                 >
-                  <span className="font-medium">{app.app_name}</span>
-                  <span className="font-mono text-[12px] text-ink/50">
+                  <span className="flex min-w-0 items-center gap-2.5">
+                    <DozenMark className="h-6 w-6 shrink-0" title="Dozen" />
+                    <span className="truncate font-medium">{app.app_name}</span>
+                  </span>
+                  <span className="shrink-0 font-mono text-[12px] text-ink/50">
                     {new Date(app.launched_at).toLocaleDateString()}
                   </span>
                 </a>
