@@ -1,6 +1,8 @@
 type Props = {
   className?: string;
   title?: string;
+  /** One subtle yellow-cell tick on load (landing hero). */
+  tick?: boolean;
 };
 
 const BLUE = "#2B7FFF";
@@ -37,7 +39,7 @@ const CELLS: Array<{ c: number; r: number; yellow?: boolean; soft?: boolean }> =
 /**
  * Dozen mark — blocky D (blue cells + one credit-yellow tick).
  */
-export function DozenMark({ className = "h-8 w-8", title }: Props) {
+export function DozenMark({ className = "h-8 w-8", title, tick }: Props) {
   const cell = 3.05;
   const gap = 0.7;
   const cols = 7;
@@ -60,12 +62,14 @@ export function DozenMark({ className = "h-8 w-8", title }: Props) {
         const x = ox + c * (cell + gap);
         const y = oy + r * (cell + gap);
         const fill = yellow ? YELLOW : BLUE;
+        const tickClass = yellow && tick ? "dozen-tick" : undefined;
         if (soft) {
           const R = 1.55;
           return (
             <path
               key={`${c}-${r}`}
               fill={fill}
+              className={tickClass}
               d={[
                 `M${x + rx} ${y}`,
                 `H${x + cell - rx}`,
@@ -90,6 +94,7 @@ export function DozenMark({ className = "h-8 w-8", title }: Props) {
             height={cell}
             rx={rx}
             fill={fill}
+            className={tickClass}
           />
         );
       })}

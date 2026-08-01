@@ -41,8 +41,12 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/api/stripe") ||
     path === "/wall" ||
     path === "/pricing" ||
-    path.startsWith("/profile/") ||
-    path === "/setup";
+    path.startsWith("/profile/");
+
+  // Setup exposes env/schema recon — only allow in non-production.
+  if (path === "/setup" && process.env.NODE_ENV === "production") {
+    return NextResponse.redirect(new URL("/board", request.url));
+  }
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();

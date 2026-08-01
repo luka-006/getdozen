@@ -186,6 +186,9 @@ h3,
   z-index: 1;
   font-weight: 600;
   transform: translateY(-0.7rem);
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .track-join {
@@ -367,5 +370,26 @@ h3,
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes dozen-tick {
+  0% {
+    opacity: 0.25;
+  }
+  35% {
+    opacity: 1;
+  }
+  55% {
+    opacity: 0.4;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .dozen-tick {
+    animation: dozen-tick 900ms ease-out 200ms 1 both;
   }
 }

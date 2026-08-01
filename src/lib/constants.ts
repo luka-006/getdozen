@@ -56,6 +56,9 @@ export const REQUEST_EXPIRY_DAYS = 30;
 export const CREDIT_EXPIRY_MONTHS = 6;
 export const LAUNCH_BONUS_DAYS = 14;
 export const FOCUS_TAGS = ["Everything", "UX", "Market", "Technical"] as const;
+export const PLATFORMS = ["web", "ios", "android"] as const;
+export type Platform = (typeof PLATFORMS)[number];
+export const FIRST_REVIEW_GIFT = 1;
 
 export const QUESTION_LIBRARY = [
   {

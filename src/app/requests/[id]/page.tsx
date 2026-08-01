@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { joinTesterRequest } from "@/actions/testers";
 import { DayStrip } from "@/components/day-strip";
+import { PackProgress } from "@/components/pack-progress";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -68,12 +69,33 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
   }
 
   let hasReview = false;
+  let reviewConfirmed = false;
   if (row.type === "feedback" || row.type === "combo") {
-    const { count } = await supabase
+    const { data: reviewRows } = await supabase
       .from("reviews")
-      .select("*", { count: "exact", head: true })
-      .eq("request_id", id);
-    hasReview = (count ?? 0) > 0;
+      .select("id, confirm_status")
+      .eq("request_id", id)
+      .limit(5);
+    hasReview = (reviewRows?.length ?? 0) > 0;
+    reviewConfirmed = (reviewRows ?? []).some(
+      (r) => r.confirm_status === "confirmed",
+    );
+  }
+
+  let peerNotes: { body: string; rating: number | null }[] = [];
+  if (
+    !isOwner &&
+    (row.type === "feedback" || row.type === "combo") &&
+    row.status === "open" &&
+    !hasReview
+  ) {
+    const { data: notes } = await supabase
+      .from("profile_reviews")
+      .select("body, rating")
+      .eq("to_user_id", row.user_id)
+      .order("created_at", { ascending: false })
+      .limit(3);
+    peerNotes = (notes ?? []) as { body: string; rating: number | null }[];
   }
 
   return (
@@ -195,6 +217,29 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         ) : null}
       </div>
 
+      {peerNotes.length > 0 ? (
+        <section className="mt-8">
+          <h2 className="font-display text-[20px] font-semibold">
+            Notes on this maker
+          </h2>
+          <p className="mt-1 text-[13px] text-ink/60">
+            From peers who already worked with them.
+          </p>
+          <ul className="mt-4 space-y-3">
+            {peerNotes.map((note, i) => (
+              <li key={i} className="border-b border-border py-3 text-[14px]">
+                <p className="text-ink/80">{note.body}</p>
+                {note.rating ? (
+                  <p className="mt-1 font-mono text-[12px] text-ink/50">
+                    {note.rating}/5
+                  </p>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {!isOwner &&
       (row.type === "tester" || row.type === "combo") &&
       row.status === "open" ? (
@@ -225,6 +270,17 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             Start commitment
           </button>
         </form>
+      ) : null}
+
+      {isOwner && row.type === "combo" ? (
+        <PackProgress
+          hasReview={hasReview}
+          reviewConfirmed={reviewConfirmed}
+          testersFilled={row.testers_filled}
+          testersNeeded={row.testers_needed}
+          expiresAt={row.expires_at}
+          creditCost={Number(row.credit_cost)}
+        />
       ) : null}
 
       {isOwner && (row.type === "tester" || row.type === "combo") ? (

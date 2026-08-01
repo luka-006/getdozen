@@ -23,7 +23,7 @@ export default async function SignupPage({ searchParams }: Props) {
           Create account
         </h1>
         <p className="mt-2 text-[14px] text-ink/70">
-          Create your account.
+          Early cohort — invite code if you have one.
         </p>
 
         {params.error ? (
@@ -70,6 +70,16 @@ export default async function SignupPage({ searchParams }: Props) {
               required
               minLength={8}
               autoComplete="new-password"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="invite_code">Invite code</label>
+            <input
+              id="invite_code"
+              name="invite_code"
+              className="input"
+              autoComplete="off"
+              placeholder="Optional unless gated"
             />
           </div>
           <button type="submit" className="btn btn-primary w-full">

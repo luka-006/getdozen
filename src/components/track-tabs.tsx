@@ -8,7 +8,7 @@ type Props = {
   variant?: "board" | "post";
 };
 
-/** Soft arc pointing up into Both. */
+/** Soft arc pointing up into Dozen pack. */
 function JoinArc({
   side,
   lit,
@@ -16,8 +16,8 @@ function JoinArc({
   side: "left" | "right";
   lit: boolean;
 }) {
-  // Left arc: rises from Testers toward Both.
-  // Right arc: rises from Feedback toward Both (mirrored).
+  // Left arc: rises from Testers toward Dozen pack.
+  // Right arc: rises from Feedback toward Dozen pack (mirrored).
   const path =
     side === "left"
       ? "M2 16 C8 16 10 5 20 4"
@@ -81,7 +81,7 @@ export function TrackTabs({ active, variant = "board" }: Props) {
           className={`${btn("combo")} track-both`}
           title="Testers + feedback pack"
         >
-          Both
+          Dozen pack
         </Link>
         <JoinArc side="right" lit={comboLit} />
         <Link href={href("feedback")} className={`${btn("feedback")} track-side`}>

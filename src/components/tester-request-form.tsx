@@ -5,6 +5,7 @@ import {
   emptyRequestFormState,
   type RequestFormState,
 } from "@/lib/request-form";
+import { PlatformField } from "@/components/platform-field";
 import { StarIcon } from "@/components/icons";
 import { TESTER_COST } from "@/lib/constants";
 import { randomDescriptionExample, TESTER_COUNT_OPTIONS } from "@/lib/placeholders";
@@ -87,6 +88,7 @@ export function TesterRequestForm({ action }: Props) {
           placeholder={descriptionPlaceholder}
         />
       </div>
+      <PlatformField defaultValue="android" />
       <div className="field">
         <label htmlFor="opt_in_link">
           Play Console opt-in link

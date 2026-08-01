@@ -124,7 +124,12 @@ export function ReviewForm({
 
       <div key={current.id} className="space-y-2 motion-fade-in">
         {current.is_core ? (
-          <p className="text-[13px] text-ink/55">Core question</p>
+          <p className="text-[13px] text-ink/55">
+            Core question
+            {index === 0
+              ? " — mention a concrete UI element (button, screen, menu…)"
+              : ""}
+          </p>
         ) : null}
         {current.is_proof ? (
           <p className="text-[13px] text-ink/55">

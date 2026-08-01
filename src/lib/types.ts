@@ -25,6 +25,7 @@ export type Profile = {
   reviews_given: number;
   bugs_found?: number;
   rating_avg: number;
+  rating_count: number;
   is_ramped: boolean;
   is_pro: boolean;
   daily_review_count: number;
@@ -69,6 +70,8 @@ export type RequestRow = {
   opt_in_link: string | null;
   test_focus: string | null;
   test_start_date: string | null;
+  is_demo?: boolean;
+  platform?: string | null;
 };
 
 export type Question = {

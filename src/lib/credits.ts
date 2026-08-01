@@ -2,6 +2,7 @@ import {
   AUTO_CONFIRM_HOURS,
   BOUNTY_MULTIPLIER,
   creditCostForQuestionCount,
+  FIRST_REVIEW_GIFT,
   RAMP_RATE,
   RAMP_REVIEW_COUNT,
   SIGNUP_BONUS,
@@ -85,6 +86,27 @@ export async function spendCredits(params: {
     p_ref_id: params.refId ?? null,
   });
   if (error) throw new Error(error.message);
+}
+
+/** One-time +1 credit when a reviewer's first review is confirmed. */
+export async function maybeGiftFirstReview(userId: string, reviewId: string) {
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from("credit_ledger")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("reason", "first_review_gift")
+    .maybeSingle();
+  if (existing) return false;
+
+  await appendLedger({
+    userId,
+    amount: FIRST_REVIEW_GIFT,
+    reason: "first_review_gift",
+    refId: reviewId,
+    status: "available",
+  });
+  return true;
 }
 
 export function autoConfirmAt(from = new Date()): string {

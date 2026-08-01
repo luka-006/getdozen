@@ -102,7 +102,16 @@ export async function POST(request: Request) {
           session.metadata?.profile_id || session.client_reference_id || "";
         if (!profileId) break;
 
+        // Only grant when Stripe confirms payment (skip unpaid async methods).
+        if (
+          session.mode === "payment" &&
+          session.payment_status !== "paid"
+        ) {
+          break;
+        }
+
         if (session.metadata?.kind === "credits") {
+          if (session.payment_status !== "paid") break;
           const credits = Number(session.metadata.credits ?? 0);
           if (credits > 0) {
             await grantCredits(profileId, credits, session.id);

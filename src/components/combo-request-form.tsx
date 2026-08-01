@@ -5,6 +5,7 @@ import {
   emptyRequestFormState,
   type RequestFormState,
 } from "@/lib/request-form";
+import { PlatformField } from "@/components/platform-field";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
 import { COMBO_PACKS, type ComboPackId } from "@/lib/constants";
@@ -111,6 +112,7 @@ export function ComboRequestForm({ balance, action }: Props) {
           placeholder={descriptionPlaceholder}
         />
       </div>
+      <PlatformField defaultValue="android" />
       <div className="field">
         <label htmlFor="opt_in_link">
           Play Console opt-in link

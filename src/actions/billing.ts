@@ -13,6 +13,7 @@ import {
   PRO_PRICE_EUR,
   stripeConfigured,
 } from "@/lib/stripe";
+import { safeInternalPath } from "@/lib/safe-path";
 
 function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -105,7 +106,7 @@ export async function purchaseCreditPack(formData: FormData) {
 
 export async function purchaseCreditsAmount(formData: FormData) {
   const profile = await requireProfile();
-  const returnTo = String(formData.get("return_to") ?? "/wallet");
+  const returnTo = safeInternalPath(formData.get("return_to"), "/wallet");
   const credits = Math.ceil(Number(formData.get("credits") ?? 0));
 
   if (!Number.isFinite(credits) || credits < 1 || credits > 500) {

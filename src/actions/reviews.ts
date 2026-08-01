@@ -12,10 +12,16 @@ import {
   appendLedger,
   autoConfirmAt,
   earnAmountForReview,
+  maybeGiftFirstReview,
 } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { answersTooSimilar, countWords, normalizeAnswer } from "@/lib/utils";
+import {
+  answersTooSimilar,
+  countWords,
+  mentionsConcreteUi,
+  normalizeAnswer,
+} from "@/lib/utils";
 
 function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
@@ -131,8 +137,17 @@ export async function submitReview(formData: FormData) {
     }
   }
 
+  const coreQ1 = questions.find((q) => q.is_core && q.position === 0);
+  if (coreQ1 && !mentionsConcreteUi(answers[coreQ1.id] ?? "")) {
+    redirect(
+      `/requests/${requestId}/review?error=${encodeURIComponent(
+        "First answer: name a concrete UI element (button, screen, menu…)",
+      )}`,
+    );
+  }
+
   const floor = minSecondsForQuestionCount(request.question_count);
-  const isDemo = String(request.app_name).startsWith("Demo ");
+  const isDemo = Boolean(request.is_demo);
   if (!isDemo && timeSpent < floor) {
     redirect(`/requests/${requestId}/review?error=${encodeURIComponent("This review was completed unrealistically fast")}`);
   }
@@ -226,6 +241,7 @@ export async function submitReview(formData: FormData) {
       .single();
 
     if (reviewer) {
+      const wasFirst = Number(reviewer.reviews_given) === 0;
       await admin
         .from("profiles")
         .update({
@@ -241,6 +257,9 @@ export async function submitReview(formData: FormData) {
           rating_count: reviewer.rating_count + 1,
         })
         .eq("id", profile.id);
+      if (wasFirst) {
+        await maybeGiftFirstReview(profile.id, review.id);
+      }
     }
 
     const testersFull =
@@ -326,6 +345,7 @@ export async function confirmReview(formData: FormData) {
     .single();
 
   if (reviewer) {
+    const wasFirst = Number(reviewer.reviews_given) === 0;
     const ratingCount = reviewer.rating_count + (rating >= 1 && rating <= 5 ? 1 : 0);
     const ratingAvg =
       rating >= 1 && rating <= 5
@@ -347,12 +367,35 @@ export async function confirmReview(formData: FormData) {
         rating_count: ratingCount,
       })
       .eq("id", review.reviewer_id);
+
+    if (wasFirst) {
+      await maybeGiftFirstReview(review.reviewer_id, reviewId);
+    }
   }
 
-  await admin
+  const { data: ownedRequestFull } = await admin
     .from("requests")
-    .update({ status: "completed" })
-    .eq("id", review.request_id);
+    .select("id, type, testers_filled, testers_needed")
+    .eq("id", review.request_id)
+    .single();
+
+  if (ownedRequestFull?.type === "combo") {
+    const testersFull =
+      Number(ownedRequestFull.testers_filled) >=
+      Number(ownedRequestFull.testers_needed);
+    await admin
+      .from("requests")
+      .update({
+        status: testersFull ? "completed" : "open",
+        claimed_at: new Date().toISOString(),
+      })
+      .eq("id", review.request_id);
+  } else {
+    await admin
+      .from("requests")
+      .update({ status: "completed" })
+      .eq("id", review.request_id);
+  }
 
   revalidatePath("/wallet");
   revalidatePath(`/reviews/${reviewId}/confirm`);

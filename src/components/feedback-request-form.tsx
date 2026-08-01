@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { purchaseCreditsAmount } from "@/actions/billing";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
+import { PlatformField } from "@/components/platform-field";
 import { FOCUS_TAGS } from "@/lib/constants";
 import { randomDescriptionExample } from "@/lib/placeholders";
 import {
@@ -98,6 +99,7 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             placeholder={descriptionPlaceholder}
           />
         </div>
+        <PlatformField />
         <div className="field">
           <label htmlFor="focus_tag">Focus</label>
           <select

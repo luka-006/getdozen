@@ -50,7 +50,15 @@ export default async function LoginPage({ searchParams }: Props) {
             />
           </div>
           <div className="field">
-            <label htmlFor="password">Password</label>
+            <div className="flex items-baseline justify-between gap-3">
+              <label htmlFor="password">Password</label>
+              <Link
+                href="/login/forgot"
+                className="text-[12px] text-ink/55 hover:text-blue"
+              >
+                Forgot?
+              </Link>
+            </div>
             <input
               id="password"
               name="password"

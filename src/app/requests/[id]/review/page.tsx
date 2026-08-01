@@ -48,7 +48,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
     }
   }
 
-  const isDemo = String(request.app_name).startsWith("Demo ");
+  const isDemo = Boolean(request.is_demo);
   const proofHint = isDemo ? "test" : null;
   const loginHint =
     credentials ??
