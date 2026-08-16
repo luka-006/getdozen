@@ -10,12 +10,34 @@ export const TURNSTILE_DUMMY = {
   token: "XXXX.DUMMY.TOKEN.XXXX",
 } as const;
 
+export type TurnstileAction = "login" | "signup" | "reset" | "waitlist";
+
+type SiteverifyResult = {
+  success?: boolean;
+  action?: string;
+  hostname?: string;
+  "error-codes"?: string[];
+};
+
 export function turnstileSiteKey() {
   return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
 }
 
 function turnstileSecret() {
-  return process.env.TURNSTILE_SECRET_KEY?.trim() ?? "";
+  return (
+    process.env.TURNSTILE_SECRET?.trim() ||
+    process.env.TURNSTILE_SECRET_KEY?.trim() ||
+    ""
+  );
+}
+
+export function turnstileHostnames() {
+  return new Set(
+    (process.env.TURNSTILE_HOSTNAMES ?? "")
+      .split(",")
+      .map((hostname) => hostname.trim())
+      .filter(Boolean),
+  );
 }
 
 export function honeypotTripped(formData: FormData) {
@@ -24,15 +46,20 @@ export function honeypotTripped(formData: FormData) {
 
 export async function verifyTurnstile(
   token: string,
-  ip?: string | null,
-  secret = turnstileSecret(),
+  options: {
+    ip?: string | null;
+    secret?: string;
+    expectedAction?: string;
+    expectedHostnames?: Set<string>;
+  } = {},
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const secret = options.secret ?? turnstileSecret();
   if (!secret) {
     return { ok: true };
   }
 
   const trimmed = token.trim();
-  if (!trimmed) {
+  if (!trimmed || trimmed.length > 2048) {
     return { ok: false, error: "Confirm you are not a bot." };
   }
 
@@ -40,17 +67,36 @@ export async function verifyTurnstile(
     secret,
     response: trimmed,
   });
-  const ipValue = ip?.split(",")[0]?.trim();
+  const ipValue = options.ip?.split(",")[0]?.trim();
   if (ipValue) body.set("remoteip", ipValue);
 
-  const res = await fetch(TURNSTILE_SITEVERIFY, {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body,
-  });
+  let result: SiteverifyResult;
+  try {
+    const res = await fetch(TURNSTILE_SITEVERIFY, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      signal: AbortSignal.timeout(10_000),
+      body,
+    });
+    if (!res.ok) {
+      return { ok: false, error: "Bot check failed. Try again." };
+    }
+    result = (await res.json()) as SiteverifyResult;
+  } catch {
+    return { ok: false, error: "Bot check failed. Try again." };
+  }
 
-  const data = (await res.json()) as { success?: boolean };
-  if (!data.success) {
+  if (!result.success) {
+    return { ok: false, error: "Bot check failed. Try again." };
+  }
+  if (options.expectedAction && result.action !== options.expectedAction) {
+    return { ok: false, error: "Bot check failed. Try again." };
+  }
+  if (
+    options.expectedHostnames &&
+    options.expectedHostnames.size > 0 &&
+    (!result.hostname || !options.expectedHostnames.has(result.hostname))
+  ) {
     return { ok: false, error: "Bot check failed. Try again." };
   }
   return { ok: true };
@@ -59,10 +105,15 @@ export async function verifyTurnstile(
 export async function checkBotGuard(
   formData: FormData,
   ip?: string | null,
+  expectedAction?: TurnstileAction,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   if (honeypotTripped(formData)) {
     return { ok: false, error: "Could not submit just now. Try again." };
   }
   const token = String(formData.get("cf-turnstile-response") ?? "");
-  return verifyTurnstile(token, ip);
+  return verifyTurnstile(token, {
+    ip,
+    expectedAction,
+    expectedHostnames: turnstileHostnames(),
+  });
 }

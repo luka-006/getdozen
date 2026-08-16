@@ -71,7 +71,7 @@ export default async function LoginPage({ searchParams }: Props) {
               autoComplete="current-password"
             />
           </div>
-          <Captcha />
+          <Captcha action="login" />
           <button type="submit" className="btn btn-primary w-full">
             Sign in
           </button>

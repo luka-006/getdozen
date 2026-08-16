@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Script from "next/script";
+import type { TurnstileAction } from "@/lib/bot-guard";
 
 declare global {
   interface Window {
@@ -10,17 +11,25 @@ declare global {
         el: HTMLElement,
         opts: {
           sitekey: string;
+          action?: string;
           callback: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
         },
       ) => string;
+      reset: (id: string) => void;
       remove: (id: string) => void;
     };
   }
 }
 
-export function Captcha() {
+export function Captcha({
+  action,
+  resetSignal,
+}: {
+  action: TurnstileAction;
+  resetSignal?: string | number | null;
+}) {
   const hostRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const widgetId = useRef<string | null>(null);
@@ -31,6 +40,7 @@ export function Captcha() {
     if (widgetId.current) return;
     widgetId.current = window.turnstile.render(hostRef.current, {
       sitekey: siteKey,
+      action,
       callback: (token) => {
         if (inputRef.current) inputRef.current.value = token;
       },
@@ -51,7 +61,15 @@ export function Captcha() {
         widgetId.current = null;
       }
     };
-  }, [siteKey]);
+  }, [siteKey, action]);
+
+  useEffect(() => {
+    if (resetSignal == null || resetSignal === "" || resetSignal === 0) return;
+    if (widgetId.current && window.turnstile) {
+      window.turnstile.reset(widgetId.current);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }, [resetSignal]);
 
   return (
     <>

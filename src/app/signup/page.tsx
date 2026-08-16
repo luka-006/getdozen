@@ -81,7 +81,7 @@ export default async function SignupPage({ searchParams }: Props) {
               placeholder="Optional unless gated"
             />
           </div>
-          <Captcha />
+          <Captcha action="signup" />
           <button type="submit" className="btn btn-primary w-full">
             Create account
           </button>

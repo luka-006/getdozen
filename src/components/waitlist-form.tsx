@@ -19,12 +19,14 @@ export function WaitlistForm({
   const [email, setEmail] = useState(initialEmail);
   const [error, setError] = useState<string | null>(notice);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [captchaNonce, setCaptchaNonce] = useState(0);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
   async function onEmail(formData: FormData, stayOnCode = false) {
     setError(null);
     if (!stayOnCode) setPhase("sending");
     const result = await requestWaitlistCode(formData);
+    setCaptchaNonce((n) => n + 1);
     if (!result.ok) {
       setError(result.error);
       setPhase(stayOnCode ? "code" : "idle");
@@ -118,7 +120,7 @@ export function WaitlistForm({
           ))}
         </div>
         {error ? <p className="text-[13px] text-flag">{error}</p> : null}
-        <Captcha />
+        <Captcha action="waitlist" resetSignal={captchaNonce} />
         <p className="text-[13px] text-ink/50">
           {phase === "confirming"
             ? "Confirming…"
@@ -162,7 +164,7 @@ export function WaitlistForm({
           disabled={phase === "sending"}
         />
       </div>
-      <Captcha />
+      <Captcha action="waitlist" resetSignal={captchaNonce} />
       {error ? <p className="text-[13px] text-flag">{error}</p> : null}
       <button
         type="submit"

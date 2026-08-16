@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { checkBotGuard } from "@/lib/bot-guard";
+import { checkBotGuard, type TurnstileAction } from "@/lib/bot-guard";
 
 export async function requestIp() {
   const h = await headers();
@@ -15,8 +15,9 @@ export async function assertHuman(
   formData: FormData,
   failPath: string,
   extra: Record<string, string> = {},
+  expectedAction?: TurnstileAction,
 ) {
-  const result = await checkBotGuard(formData, await requestIp());
+  const result = await checkBotGuard(formData, await requestIp(), expectedAction);
   if (result.ok) return;
   const query = new URLSearchParams({ ...extra, error: result.error });
   redirect(`${failPath}?${query.toString()}`);

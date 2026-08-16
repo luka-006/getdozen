@@ -22,7 +22,7 @@ export async function requestWaitlistCode(formData: FormData) {
     return { ok: false as const, error: "Enter a valid email." };
   }
 
-  const guard = await checkBotGuard(formData, await requestIp());
+  const guard = await checkBotGuard(formData, await requestIp(), "waitlist");
   if (!guard.ok) {
     return { ok: false as const, error: guard.error };
   }

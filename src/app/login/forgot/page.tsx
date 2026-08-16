@@ -40,7 +40,7 @@ export default async function ForgotPasswordPage({ searchParams }: Props) {
               autoComplete="email"
             />
           </div>
-          <Captcha />
+          <Captcha action="reset" />
           <button type="submit" className="btn btn-primary w-full">
             Send reset link
           </button>
