@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { requestPasswordReset } from "@/actions/auth";
+import { Captcha } from "@/components/captcha";
 
 type Props = {
   searchParams: Promise<{ error?: string }>;
@@ -39,6 +40,7 @@ export default async function ForgotPasswordPage({ searchParams }: Props) {
               autoComplete="email"
             />
           </div>
+          <Captcha />
           <button type="submit" className="btn btn-primary w-full">
             Send reset link
           </button>

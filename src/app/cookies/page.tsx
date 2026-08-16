@@ -35,6 +35,11 @@ export default function CookiesPage() {
           <strong>Host / security cookies</strong> set by Vercel or Cloudflare
           solely to deliver the site (for example bot or TLS cookies).
         </li>
+        <li>
+          <strong>Cloudflare Turnstile</strong> — a short-lived challenge
+          cookie used only on account and waitlist forms to stop bots. It is
+          not used for advertising.
+        </li>
       </ul>
       <p>
         These fall under the “strictly necessary” exception. Legal basis for

@@ -96,7 +96,10 @@ export default function PrivacyPage() {
           <strong>Google</strong> — only if you choose “Continue with Google”.
         </li>
         <li>
-          <strong>Cloudflare</strong> — DNS for getdozen.dev.
+          <strong>Cloudflare</strong> — DNS for getdozen.dev, and Turnstile
+          bot checks on sign-in, signup, password reset, and waitlist forms.
+          Turnstile is used only to tell humans from automated clients
+          (legitimate interests, Art. 6(1)(f)).
         </li>
       </ul>
       <p>

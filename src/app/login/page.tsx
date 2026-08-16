@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { signInWithEmail } from "@/actions/auth";
+import { Captcha } from "@/components/captcha";
 import { GoogleIcon } from "@/components/icons";
 
 type Props = {
@@ -70,6 +71,7 @@ export default async function LoginPage({ searchParams }: Props) {
               autoComplete="current-password"
             />
           </div>
+          <Captcha />
           <button type="submit" className="btn btn-primary w-full">
             Sign in
           </button>

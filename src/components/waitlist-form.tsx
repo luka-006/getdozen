@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { confirmWaitlistCode, requestWaitlistCode } from "@/actions/waitlist";
+import { Captcha } from "@/components/captcha";
 
 type Phase = "idle" | "sending" | "code" | "confirming" | "joined";
 
@@ -117,6 +118,7 @@ export function WaitlistForm({
           ))}
         </div>
         {error ? <p className="text-[13px] text-flag">{error}</p> : null}
+        <Captcha />
         <p className="text-[13px] text-ink/50">
           {phase === "confirming"
             ? "Confirming…"
@@ -126,8 +128,9 @@ export function WaitlistForm({
           type="button"
           className="text-[13px] text-blue"
           disabled={phase === "confirming"}
-          onClick={() => {
-            const formData = new FormData();
+          onClick={(event) => {
+            const form = event.currentTarget.form;
+            const formData = form ? new FormData(form) : new FormData();
             formData.set("email", email);
             void onEmail(formData, true);
           }}
@@ -159,6 +162,7 @@ export function WaitlistForm({
           disabled={phase === "sending"}
         />
       </div>
+      <Captcha />
       {error ? <p className="text-[13px] text-flag">{error}</p> : null}
       <button
         type="submit"

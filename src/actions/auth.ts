@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
+import { assertHuman } from "@/lib/assert-human";
 import { isLaunchOpen } from "@/lib/launch";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
@@ -10,6 +11,7 @@ export async function signInWithEmail(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = safeInternalPath(formData.get("next"), "/board");
+  await assertHuman(formData, "/login", { next });
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -29,6 +31,7 @@ export async function signUpWithEmail(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "").trim();
   const invite = String(formData.get("invite_code") ?? "").trim();
   const next = safeInternalPath(formData.get("next"), "/board");
+  await assertHuman(formData, "/signup", { next });
 
   const requiredCodes = (process.env.INVITE_CODES ?? "")
     .split(",")
@@ -94,6 +97,7 @@ export async function signOut() {
 }
 
 export async function requestPasswordReset(formData: FormData) {
+  await assertHuman(formData, "/login/forgot");
   const email = String(formData.get("email") ?? "").trim();
   const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();

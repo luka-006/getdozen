@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { signUpWithEmail } from "@/actions/auth";
+import { Captcha } from "@/components/captcha";
 import { GoogleIcon } from "@/components/icons";
 
 type Props = {
@@ -80,6 +81,7 @@ export default async function SignupPage({ searchParams }: Props) {
               placeholder="Optional unless gated"
             />
           </div>
+          <Captcha />
           <button type="submit" className="btn btn-primary w-full">
             Create account
           </button>

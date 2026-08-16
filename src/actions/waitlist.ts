@@ -1,7 +1,9 @@
 "use server";
 
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
+import { requestIp } from "@/lib/assert-human";
 import { otpSendError, verifyEmailOtp } from "@/lib/auth-otp";
+import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -18,6 +20,11 @@ export async function requestWaitlistCode(formData: FormData) {
   const email = normalizeWaitlistEmail(formData.get("email"));
   if (!email) {
     return { ok: false as const, error: "Enter a valid email." };
+  }
+
+  const guard = await checkBotGuard(formData, await requestIp());
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
   }
 
   try {

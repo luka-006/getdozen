@@ -313,6 +313,7 @@ h3,
 }
 
 .surface {
+  position: relative;
   background: color-mix(in srgb, var(--paper) 92%, white);
   border: 1px solid var(--border);
   border-radius: 6px;
@@ -322,6 +323,14 @@ h3,
 .trust {
   font-size: 15px;
   color: color-mix(in srgb, var(--ink) 78%, transparent);
+}
+
+.hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .answer-chip {
