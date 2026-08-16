@@ -2,13 +2,54 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { HeroClosedTest } from "@/components/hero-closed-test";
+import { WaitlistForm } from "@/components/waitlist-form";
 import { getSessionUser } from "@/lib/auth";
+import { isLaunchOpen } from "@/lib/launch";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ waitlist?: string }>;
+}) {
   const user = await getSessionUser();
-  if (user) redirect("/board");
+  if (isLaunchOpen() && user) redirect("/board");
+
+  if (!isLaunchOpen()) {
+    const query = await searchParams;
+    const notice =
+      query.waitlist === "expired"
+        ? "That email link was already used. Request a new code."
+        : null;
+
+    return (
+      <div className="atmosphere">
+        <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
+          <div className="max-w-xl space-y-5">
+            <div className="flex items-center gap-3">
+              <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />
+              <p className="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]">
+                Dozen
+              </p>
+            </div>
+            <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
+              12 testers. Structured answers.
+            </h1>
+            <p className="trust text-[16px] leading-relaxed">
+              Closed Play tests. Other makers. No farms.
+            </p>
+            <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
+          </div>
+
+          <div className="w-full max-w-md space-y-6">
+            <WaitlistForm notice={notice} />
+            <HeroClosedTest />
+          </div>
+        </section>
+      </div>
+    );
+  }
 
   let wall: ShippedApp[] = [];
   try {
@@ -34,10 +75,10 @@ export default async function HomePage() {
             </p>
           </div>
           <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
-            12 real testers. Real answers.
+            12 testers. Structured answers.
           </h1>
           <p className="trust text-[16px] leading-relaxed">
-            Real devices. Real people. No fakes.
+            Closed Play tests. Other makers. No farms.
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link
@@ -60,7 +101,7 @@ export default async function HomePage() {
           <div className="mx-auto w-full max-w-6xl px-4 py-14">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <h2 className="font-display text-[24px] font-semibold">
-                Apps that used a Dozen
+                Apps that used Dozen
               </h2>
               <Link href="/wall" className="text-[13px] text-blue">
                 Wall
@@ -88,24 +129,6 @@ export default async function HomePage() {
           </div>
         </section>
       ) : null}
-
-      <section className="border-t border-border bg-mist/60">
-        <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-4">
-          {(
-            [
-              ["Testers", "14-day Play closed tests."],
-              ["Feedback", "Structured reviews."],
-              ["Bugs", "Paid when marked valid."],
-              ["Language", "Native listing checks."],
-            ] as const
-          ).map(([title, body]) => (
-            <div key={title} className="space-y-1">
-              <h2 className="font-display text-[18px] font-semibold">{title}</h2>
-              <p className="text-[14px] text-ink/70">{body}</p>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

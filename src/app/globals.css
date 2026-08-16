@@ -388,21 +388,30 @@ h3,
   }
 }
 
+.hero-day-cube-pop {
+  animation: hero-cube-pop 220ms ease-out;
+}
+
+.hero-day-cube-lit {
+  animation: hero-cube-bounce 520ms ease-in-out 1 alternate;
+}
+
+.hero-test-celebrate {
+  animation: hero-card-celebrate 650ms ease-out;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .dozen-tick {
     animation: dozen-tick 900ms ease-out 200ms 1 both;
   }
+}
 
-  .hero-day-cube-pop {
-    animation: hero-cube-pop 220ms ease-out;
-  }
-
-  .hero-day-cube-lit {
-    animation: hero-cube-bounce 520ms ease-in-out infinite alternate;
-  }
-
+@media (prefers-reduced-motion: reduce) {
+  .hero-day-cube-pop,
+  .hero-day-cube-lit,
   .hero-test-celebrate {
-    animation: hero-card-celebrate 650ms ease-out;
+    animation-duration: 1ms;
+    animation-iteration-count: 1;
   }
 }
 
@@ -438,5 +447,31 @@ h3,
   }
   100% {
     border-color: var(--border);
+  }
+}
+
+.waitlist-card {
+  animation: fade-up 320ms ease-out;
+}
+
+.waitlist-joined {
+  animation: waitlist-pop 520ms ease-out;
+}
+
+.waitlist-cube {
+  animation: hero-cube-pop 280ms ease-out both;
+}
+
+@keyframes waitlist-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  70% {
+    transform: translateY(-2px) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

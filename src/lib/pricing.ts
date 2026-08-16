@@ -50,3 +50,40 @@ export function eurForCredits(credits: number) {
   if (pack) return pack.amountEur;
   return Math.round(credits * EUR_PER_CREDIT * 100) / 100;
 }
+
+export type CreditOffer = {
+  packId: string;
+  credits: number;
+  amountCents: number;
+};
+
+const CUSTOM_PACK = /^custom_(\d+)$/;
+const MAX_CUSTOM_CREDITS = 500;
+
+/** Server-only catalog lookup. Never trust a client-supplied credit count. */
+export function resolveCreditOffer(packId: string): CreditOffer | null {
+  const named = getCreditPack(packId);
+  if (named) {
+    return {
+      packId: named.id,
+      credits: named.credits,
+      amountCents: Math.round(named.amountEur * 100),
+    };
+  }
+
+  const custom = packId.match(CUSTOM_PACK);
+  if (!custom) return null;
+  const credits = Number(custom[1]);
+  if (!Number.isInteger(credits) || credits < 1 || credits > MAX_CUSTOM_CREDITS) {
+    return null;
+  }
+  return {
+    packId,
+    credits,
+    amountCents: Math.round(eurForCredits(credits) * 100),
+  };
+}
+
+export function proAmountCents() {
+  return Math.round(PRO_PRICE_EUR * 100);
+}

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { getProfile } from "@/lib/auth";
+import { isLaunchOpen } from "@/lib/launch";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -24,7 +26,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Dozen",
-  description: "12 testers who tell you what's wrong with your app.",
+  description: "12 testers. Structured answers. Opening soon.",
 };
 
 export default async function RootLayout({
@@ -40,8 +42,9 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
-        <SiteHeader profile={profile} />
+        <SiteHeader profile={profile} waitlistLock={!isLaunchOpen()} />
         <main className="flex-1">{children}</main>
+        <SiteFooter />
       </body>
     </html>
   );

@@ -2,26 +2,46 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { appendLedger } from "@/lib/credits";
 import { getStripe } from "@/lib/stripe";
+import {
+  fulfillmentFromCheckout,
+  shouldActivateSubscription,
+} from "@/lib/stripe-fulfillment";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
-async function alreadyProcessed(eventId: string) {
+async function claimEvent(eventId: string, type: string) {
   const admin = createAdminClient();
-  const { data } = await admin
-    .from("stripe_events")
-    .select("id")
-    .eq("id", eventId)
-    .maybeSingle();
-  return Boolean(data);
+  const { error } = await admin.from("stripe_events").insert({ id: eventId, type });
+  if (!error) return true;
+  if (error.code === "23505") return false;
+  throw new Error(error.message);
 }
 
-async function markProcessed(eventId: string, type: string) {
+async function releaseEvent(eventId: string) {
   const admin = createAdminClient();
-  await admin.from("stripe_events").insert({ id: eventId, type });
+  await admin.from("stripe_events").delete().eq("id", eventId);
 }
 
-async function grantCredits(profileId: string, credits: number, sessionId: string) {
+async function claimSessionGrant(params: {
+  sessionId: string;
+  profileId: string;
+  kind: "credits" | "pro";
+  credits: number | null;
+}) {
+  const admin = createAdminClient();
+  const { error } = await admin.from("stripe_session_grants").insert({
+    session_id: params.sessionId,
+    profile_id: params.profileId,
+    kind: params.kind,
+    credits: params.credits,
+  });
+  if (!error) return true;
+  if (error.code === "23505") return false;
+  throw new Error(error.message);
+}
+
+async function grantCredits(profileId: string, credits: number) {
   await appendLedger({
     userId: profileId,
     amount: credits,
@@ -43,12 +63,13 @@ async function grantCredits(profileId: string, credits: number, sessionId: strin
       purchased_credits: Number(profile?.purchased_credits ?? 0) + credits,
     })
     .eq("id", profileId);
-
-  // Store session id in ledger reason uniqueness via stripe_events only.
-  void sessionId;
 }
 
-async function activatePro(profileId: string, subscriptionId: string, customerId: string) {
+async function activatePro(
+  profileId: string,
+  subscriptionId: string,
+  customerId: string,
+) {
   const admin = createAdminClient();
   await admin
     .from("profiles")
@@ -66,6 +87,41 @@ async function deactivatePro(subscriptionId: string) {
     .from("profiles")
     .update({ is_pro: false, stripe_subscription_id: null })
     .eq("stripe_subscription_id", subscriptionId);
+}
+
+async function fulfillCheckout(session: Stripe.Checkout.Session) {
+  const decision = fulfillmentFromCheckout({
+    id: session.id,
+    mode: session.mode,
+    payment_status: session.payment_status,
+    currency: session.currency,
+    amount_total: session.amount_total,
+    client_reference_id: session.client_reference_id,
+    metadata: session.metadata,
+    subscription: session.subscription,
+    customer: session.customer,
+  });
+
+  if (decision.kind === "skip") return;
+
+  const claimed = await claimSessionGrant({
+    sessionId: decision.sessionId,
+    profileId: decision.profileId,
+    kind: decision.kind,
+    credits: decision.kind === "credits" ? decision.credits : null,
+  });
+  if (!claimed) return;
+
+  if (decision.kind === "credits") {
+    await grantCredits(decision.profileId, decision.credits);
+    return;
+  }
+
+  await activatePro(
+    decision.profileId,
+    decision.subscriptionId,
+    decision.customerId,
+  );
 }
 
 export async function POST(request: Request) {
@@ -90,62 +146,30 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: message }, { status: 400 });
   }
 
-  if (await alreadyProcessed(event.id)) {
+  const claimed = await claimEvent(event.id, event.type);
+  if (!claimed) {
     return NextResponse.json({ ok: true, duplicate: true });
   }
 
   try {
     switch (event.type) {
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const profileId =
-          session.metadata?.profile_id || session.client_reference_id || "";
-        if (!profileId) break;
-
-        // Only grant when Stripe confirms payment (skip unpaid async methods).
-        if (
-          session.mode === "payment" &&
-          session.payment_status !== "paid"
-        ) {
-          break;
-        }
-
-        if (session.metadata?.kind === "credits") {
-          if (session.payment_status !== "paid") break;
-          const credits = Number(session.metadata.credits ?? 0);
-          if (credits > 0) {
-            await grantCredits(profileId, credits, session.id);
-          }
-        }
-
-        if (session.metadata?.kind === "pro" || session.mode === "subscription") {
-          const subscriptionId =
-            typeof session.subscription === "string"
-              ? session.subscription
-              : session.subscription?.id;
-          const customerId =
-            typeof session.customer === "string"
-              ? session.customer
-              : session.customer?.id;
-          if (subscriptionId && customerId) {
-            await activatePro(profileId, subscriptionId, customerId);
-          }
-        }
+      case "checkout.session.completed":
+      case "checkout.session.async_payment_succeeded": {
+        await fulfillCheckout(event.data.object as Stripe.Checkout.Session);
         break;
       }
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         const profileId = sub.metadata?.profile_id;
-        if (!profileId) break;
-        const active = ["active", "trialing"].includes(sub.status);
-        const admin = createAdminClient();
-        await admin
-          .from("profiles")
-          .update({
-            is_pro: active,
-            stripe_subscription_id: active ? sub.id : null,
-          })
-          .eq("id", profileId);
+        if (profileId && shouldActivateSubscription(sub.status)) {
+          const customerId =
+            typeof sub.customer === "string" ? sub.customer : sub.customer;
+          if (typeof customerId === "string") {
+            await activatePro(profileId, sub.id, customerId);
+          }
+        } else if (profileId) {
+          await deactivatePro(sub.id);
+        }
         break;
       }
       case "customer.subscription.deleted": {
@@ -156,9 +180,8 @@ export async function POST(request: Request) {
       default:
         break;
     }
-
-    await markProcessed(event.id, event.type);
   } catch (err) {
+    await releaseEvent(event.id);
     const message = err instanceof Error ? err.message : "Webhook handler failed";
     return NextResponse.json({ error: message }, { status: 500 });
   }

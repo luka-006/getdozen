@@ -5,7 +5,28 @@ import { DozenMark } from "@/components/dozen-mark";
 import { MobileNav } from "@/components/mobile-nav";
 import type { Profile } from "@/lib/types";
 
-export function SiteHeader({ profile }: { profile: Profile | null }) {
+export function SiteHeader({
+  profile,
+  waitlistLock,
+}: {
+  profile: Profile | null;
+  waitlistLock?: boolean;
+}) {
+  if (waitlistLock && !profile?.is_admin) {
+    return (
+      <header className="sticky top-0 z-20 border-b border-border bg-paper/95 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl items-center px-4 py-3">
+          <Link href="/" className="flex items-center gap-2.5 text-ink">
+            <DozenMark className="h-8 w-8 shrink-0" />
+            <span className="font-display text-[18px] font-semibold tracking-[0.03em]">
+              Dozen
+            </span>
+          </Link>
+        </div>
+      </header>
+    );
+  }
+
   const links = profile
     ? [
         { href: "/board", label: "Board" },

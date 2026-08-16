@@ -1,30 +1,55 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { SITE_ORIGIN } from "@/lib/app-url";
+import { isLaunchOpen } from "@/lib/launch";
 import { safeInternalPath } from "@/lib/safe-path";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { markWaitlistConfirmed } from "@/lib/waitlist";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = safeInternalPath(searchParams.get("next"), "/board");
+  const oauthError = searchParams.get("error");
+  const oauthErrorDescription = searchParams.get("error_description");
+  const cookieStore = await cookies();
+  let next = safeInternalPath(
+    searchParams.get("next") ?? cookieStore.get("dozen_auth_next")?.value,
+    isLaunchOpen() ? "/board" : "/waitlist/confirmed",
+  );
 
-  if (searchParams.get("error")) {
+  if (oauthError) {
     const description =
-      searchParams.get("error_description") ??
-      searchParams.get("error") ??
-      "Google sign-in was cancelled";
+      oauthErrorDescription ?? oauthError ?? "Google sign-in was cancelled";
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(description)}`,
+      `${SITE_ORIGIN}/login?error=${encodeURIComponent(description)}`,
     );
   }
 
   if (!code) {
+    if (!isLaunchOpen() || next.startsWith("/waitlist")) {
+      return NextResponse.redirect(`${SITE_ORIGIN}/auth/confirm?error=expired`);
+    }
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent("Auth callback missing code")}`,
+      `${SITE_ORIGIN}/login?error=${encodeURIComponent("Auth callback missing code")}`,
     );
   }
 
-  const cookieStore = await cookies();
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = (forwardedHost ?? new URL(origin).host).split(",")[0].trim();
+  const safeHost =
+    host === "getdozen.dev" ||
+    host === "www.getdozen.dev" ||
+    host.endsWith(".vercel.app")
+      ? host
+      : "getdozen.dev";
+
+  const pendingCookies: {
+    name: string;
+    value: string;
+    options?: Parameters<NextResponse["cookies"]["set"]>[2];
+  }[] = [];
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -36,18 +61,65 @@ export async function GET(request: Request) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             cookieStore.set(name, value, options);
+            pendingCookies.push({ name, value, options });
           });
         },
       },
     },
   );
 
-  const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
+    if (!isLaunchOpen() || next.startsWith("/waitlist")) {
+      return NextResponse.redirect(`${SITE_ORIGIN}/auth/confirm?error=expired`);
+    }
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      `${SITE_ORIGIN}/login?error=${encodeURIComponent(error.message)}`,
     );
   }
 
-  return NextResponse.redirect(`${origin}${next}`);
+  if (data.user) {
+    try {
+      const admin = createAdminClient();
+      const { data: existing } = await admin
+        .from("profiles")
+        .select("id, is_admin")
+        .eq("id", data.user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        const name =
+          data.user.user_metadata?.full_name ||
+          data.user.user_metadata?.name ||
+          data.user.email?.split("@")[0] ||
+          "Maker";
+        await admin.from("profiles").insert({
+          id: data.user.id,
+          email: data.user.email ?? "",
+          display_name: String(name).slice(0, 40),
+        });
+      }
+
+      if (data.user.email && (!isLaunchOpen() || next.startsWith("/waitlist"))) {
+        await markWaitlistConfirmed(data.user.email);
+      }
+
+      if (!isLaunchOpen() && !existing?.is_admin) {
+        next = "/waitlist/confirmed";
+        await supabase.auth.signOut();
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
+  const redirectResponse = NextResponse.redirect(`https://${safeHost}${next}`);
+  redirectResponse.cookies.set("dozen_auth_next", "", {
+    path: "/",
+    maxAge: 0,
+  });
+  pendingCookies.forEach(({ name, value, options }) => {
+    redirectResponse.cookies.set(name, value, options);
+  });
+  return redirectResponse;
 }

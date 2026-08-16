@@ -65,8 +65,8 @@ export default async function TestersPage({ searchParams }: Props) {
       <div className="mt-8 space-y-6">
         {rows.length === 0 ? (
           <p className="text-ink/65">
-            No commitments yet. Join a closed test from the board, opt in with a
-            real device, and check in every other day.
+            No commitments yet. Join a closed test from the board, opt in with
+            your device, and check in every other day.
           </p>
         ) : (
           rows.map((commitment) => {

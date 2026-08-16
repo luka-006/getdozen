@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { resolveAppUrlFromHeaders } from "@/lib/app-url";
+import { isLaunchOpen } from "@/lib/launch";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
 
@@ -18,6 +20,10 @@ export async function signInWithEmail(formData: FormData) {
 }
 
 export async function signUpWithEmail(formData: FormData) {
+  if (!isLaunchOpen()) {
+    redirect("/");
+  }
+
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const displayName = String(formData.get("display_name") ?? "").trim();
@@ -34,6 +40,7 @@ export async function signUpWithEmail(formData: FormData) {
     );
   }
 
+  const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
     email,
@@ -42,7 +49,7 @@ export async function signUpWithEmail(formData: FormData) {
       data: {
         full_name: displayName || email.split("@")[0],
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(next)}`,
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -55,7 +62,7 @@ export async function signUpWithEmail(formData: FormData) {
 
 export async function signInWithGoogle(formData: FormData) {
   const next = safeInternalPath(formData.get("next"), "/board");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
@@ -88,7 +95,7 @@ export async function signOut() {
 
 export async function requestPasswordReset(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/login?message=Password+reset+sent.+Check+email.+Then+sign+in.")}`,

@@ -5,18 +5,25 @@ import { requireProfile } from "@/lib/auth";
 import { canPurchaseCredits } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
-  getCreditPack,
   getStripe,
   getStripePriceId,
-  eurForCredits,
   PRO_PRICE_ENV,
   PRO_PRICE_EUR,
   stripeConfigured,
 } from "@/lib/stripe";
+import { resolveCreditOffer } from "@/lib/pricing";
+import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { safeInternalPath } from "@/lib/safe-path";
 
-function siteUrl() {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+function checkoutIntegrationId(flow: string) {
+  const suffix = Array.from({ length: 8 }, () =>
+    String.fromCharCode(97 + Math.floor(Math.random() * 26)),
+  ).join("");
+  return `dozen_${flow}_${suffix}`;
+}
+
+async function siteUrl() {
+  return resolveAppUrlFromHeaders();
 }
 
 async function ensureStripeCustomer(profile: {
@@ -49,14 +56,13 @@ async function ensureStripeCustomer(profile: {
 
 export async function purchaseCreditPack(formData: FormData) {
   const profile = await requireProfile();
-  const packId = String(formData.get("pack_id") ?? "");
-  const pack = getCreditPack(packId);
+  const offer = resolveCreditOffer(String(formData.get("pack_id") ?? ""));
 
-  if (!pack) {
+  if (!offer) {
     redirect(`/wallet?error=${encodeURIComponent("Unknown credit pack")}`);
   }
 
-  const check = canPurchaseCredits(profile, pack.credits);
+  const check = canPurchaseCredits(profile, offer.credits);
   if (!check.ok) {
     redirect(`/wallet?error=${encodeURIComponent(check.error)}`);
   }
@@ -67,34 +73,33 @@ export async function purchaseCreditPack(formData: FormData) {
 
   const stripe = getStripe()!;
   const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
+  const baseUrl = await siteUrl();
 
-  // Always price_data so 1 credit = €1 in app stays source of truth
-  // (Dashboard STRIPE_PRICE_CREDITS_* may still be old €2/€9/€25 prices).
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer: customerId,
     client_reference_id: profile.id,
+    integration_identifier: checkoutIntegrationId("credits"),
     metadata: {
       kind: "credits",
       profile_id: profile.id,
-      credits: String(pack.credits),
-      pack_id: pack.id,
+      pack_id: offer.packId,
     },
     line_items: [
       {
         quantity: 1,
         price_data: {
           currency: "eur",
-          unit_amount: Math.round(pack.amountEur * 100),
+          unit_amount: offer.amountCents,
           product_data: {
-            name: `Dozen ${pack.label}`,
-            description: `${pack.credits} credits · €1 each`,
+            name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
+            description: `${offer.credits} credits`,
           },
         },
       },
     ],
-    success_url: `${siteUrl()}/wallet?message=${encodeURIComponent("Payment received. Credits appear after Stripe confirms.")}`,
-    cancel_url: `${siteUrl()}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
+    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
+    cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
   });
 
   if (!session.url) {
@@ -127,33 +132,37 @@ export async function purchaseCreditsAmount(formData: FormData) {
     profile as typeof profile & { stripe_customer_id?: string | null },
   );
 
-  const amountEur = eurForCredits(credits);
+  const offer = resolveCreditOffer(`custom_${credits}`);
+  if (!offer) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Pick a valid credit amount")}`);
+  }
+  const baseUrl = await siteUrl();
 
   const session = await stripe.checkout.sessions.create({
     mode: "payment",
     customer: customerId,
     client_reference_id: profile.id,
+    integration_identifier: checkoutIntegrationId("credits_custom"),
     metadata: {
       kind: "credits",
       profile_id: profile.id,
-      credits: String(credits),
-      pack_id: `custom_${credits}`,
+      pack_id: offer.packId,
     },
     line_items: [
       {
         quantity: 1,
         price_data: {
           currency: "eur",
-          unit_amount: Math.round(amountEur * 100),
+          unit_amount: offer.amountCents,
           product_data: {
-            name: `Dozen ${credits} credit${credits === 1 ? "" : "s"}`,
-            description: `${credits} credits · €1 each`,
+            name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
+            description: `${offer.credits} credits`,
           },
         },
       },
     ],
-    success_url: `${siteUrl()}/wallet?message=${encodeURIComponent("Payment received. Credits appear after Stripe confirms.")}`,
-    cancel_url: `${siteUrl()}${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Checkout cancelled")}`,
+    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
+    cancel_url: `${baseUrl}${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Checkout cancelled")}`,
   });
 
   if (!session.url) {
@@ -178,10 +187,12 @@ export async function startProSubscription() {
   const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
 
   const proPriceId = getStripePriceId(PRO_PRICE_ENV);
+  const baseUrl = await siteUrl();
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
     customer: customerId,
     client_reference_id: profile.id,
+    integration_identifier: checkoutIntegrationId("pro"),
     metadata: {
       kind: "pro",
       profile_id: profile.id,
@@ -208,8 +219,8 @@ export async function startProSubscription() {
             },
           },
     ],
-    success_url: `${siteUrl()}/wallet?message=${encodeURIComponent("Pro is activating. Refresh in a moment.")}`,
-    cancel_url: `${siteUrl()}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
+    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Pro is activating. Refresh in a moment.")}`,
+    cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
   });
 
   if (!session.url) {
@@ -237,9 +248,10 @@ export async function openBillingPortal() {
     redirect(`/wallet?error=${encodeURIComponent("No billing customer yet")}`);
   }
 
+  const baseUrl = await siteUrl();
   const portal = await stripe.billingPortal.sessions.create({
     customer: data.stripe_customer_id,
-    return_url: `${siteUrl()}/wallet`,
+    return_url: `${baseUrl}/wallet`,
   });
 
   redirect(portal.url);

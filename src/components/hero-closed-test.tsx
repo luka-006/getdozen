@@ -1,18 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const TOTAL_DAYS = 14;
 const TOTAL_TESTERS = 12;
 const FILL_MS = 160;
+const FILL_MS_REDUCED = 70;
 const CELEBRATE_MS = 1600;
-const HOLD_MS = 900;
 
-type Phase = "filling" | "celebrate" | "hold";
+type Phase = "idle" | "filling" | "celebrate" | "done";
 
 export function HeroClosedTest() {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [filled, setFilled] = useState(0);
-  const [phase, setPhase] = useState<Phase>("filling");
+  const [phase, setPhase] = useState<Phase>("idle");
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -24,30 +25,45 @@ export function HeroClosedTest() {
   }, []);
 
   useEffect(() => {
-    if (reduceMotion) {
-      setFilled(TOTAL_DAYS);
-      setPhase("hold");
+    const el = rootRef.current;
+    if (!el) return;
+
+    const start = () => {
+      setPhase((current) => (current === "idle" ? "filling" : current));
+    };
+
+    if (typeof IntersectionObserver === "undefined") {
+      start();
       return;
     }
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          start();
+          io.disconnect();
+        }
+      },
+      { threshold: 0.35, rootMargin: "40px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (phase === "idle" || phase === "done") return;
 
     if (phase === "filling") {
       if (filled >= TOTAL_DAYS) {
         setPhase("celebrate");
         return;
       }
-      const t = window.setTimeout(() => setFilled((n) => n + 1), FILL_MS);
+      const step = reduceMotion ? FILL_MS_REDUCED : FILL_MS;
+      const t = window.setTimeout(() => setFilled((n) => n + 1), step);
       return () => window.clearTimeout(t);
     }
 
-    if (phase === "celebrate") {
-      const t = window.setTimeout(() => setPhase("hold"), CELEBRATE_MS);
-      return () => window.clearTimeout(t);
-    }
-
-    const t = window.setTimeout(() => {
-      setFilled(0);
-      setPhase("filling");
-    }, HOLD_MS);
+    const t = window.setTimeout(() => setPhase("done"), CELEBRATE_MS);
     return () => window.clearTimeout(t);
   }, [filled, phase, reduceMotion]);
 
@@ -56,11 +72,14 @@ export function HeroClosedTest() {
     Math.round((filled / TOTAL_DAYS) * TOTAL_TESTERS),
   );
   const dayLabel =
-    phase === "celebrate" ? "14 of 14 — done" : `${filled} of ${TOTAL_DAYS} days`;
+    phase === "celebrate" || phase === "done"
+      ? "14 of 14 — done"
+      : `${filled} of ${TOTAL_DAYS} days`;
   const celebrating = phase === "celebrate";
 
   return (
     <div
+      ref={rootRef}
       className={`surface w-full max-w-md space-y-5 p-5 sm:p-6 ${
         celebrating ? "hero-test-celebrate" : ""
       }`}
@@ -72,7 +91,7 @@ export function HeroClosedTest() {
 
       <div className="flex flex-wrap items-center gap-3">
         <div
-          className="flex gap-1"
+          className="grid grid-cols-7 gap-1.5 sm:flex sm:gap-1"
           role="img"
           aria-label={dayLabel}
         >
@@ -82,7 +101,7 @@ export function HeroClosedTest() {
             return (
               <span
                 key={i}
-                className={`hero-day-cube inline-block h-2.5 w-2.5 rounded-[2px] ${
+                className={`hero-day-cube inline-block h-3 w-3 rounded-[2px] sm:h-2.5 sm:w-2.5 ${
                   on
                     ? `bg-blue${celebrating ? " hero-day-cube-lit" : ""}${
                         justFilled ? " hero-day-cube-pop" : ""
@@ -109,14 +128,11 @@ export function HeroClosedTest() {
               celebrating ? "text-blue font-medium" : ""
             }`}
           >
-            {celebrating ? `${TOTAL_TESTERS} / ${TOTAL_TESTERS}` : `${testers} / ${TOTAL_TESTERS}`}
+            {celebrating || phase === "done"
+              ? `${TOTAL_TESTERS} / ${TOTAL_TESTERS}`
+              : `${testers} / ${TOTAL_TESTERS}`}
           </span>
         </div>
-        {celebrating ? (
-          <p className="text-[13px] text-blue motion-fade-in">
-            Full cohort checked in.
-          </p>
-        ) : null}
       </div>
     </div>
   );
