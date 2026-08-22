@@ -12,6 +12,7 @@ import {
   PLATFORMS,
   REQUEST_EXPIRY_DAYS,
   TESTER_COST,
+  TESTER_DURATION_OPTIONS,
   getComboPack,
 } from "@/lib/constants";
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
@@ -46,6 +47,12 @@ const testerSchema = z.object({
   platform: z.enum(PLATFORMS).default("android"),
   opt_in_link: z.string().url(),
   testers_needed: z.number().int().min(1).max(100).default(12),
+  duration_days: z.coerce
+    .number()
+    .int()
+    .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
+      message: "Pick a test length",
+    }),
   test_focus: z.string().min(10).max(1000),
   test_start_date: z.string().min(8),
 });
@@ -64,6 +71,7 @@ const FIELD_LABELS: Record<string, string> = {
   proof_answer: "Proof answer",
   opt_in_link: "Opt-in link",
   testers_needed: "Testers needed",
+  duration_days: "Test length",
   test_focus: "What to focus on",
   test_start_date: "Start date",
   combo_pack: "Pack",
@@ -295,6 +303,7 @@ export async function createTesterRequest(
     platform: formData.get("platform") || "android",
     opt_in_link: formData.get("opt_in_link"),
     testers_needed: Number(formData.get("testers_needed") ?? 12),
+    duration_days: Number(formData.get("duration_days") ?? 14),
     test_focus: formData.get("test_focus"),
     test_start_date: formData.get("test_start_date"),
   });
@@ -326,6 +335,7 @@ export async function createTesterRequest(
       platform: data.platform,
       credit_cost: totalCost,
       testers_needed: data.testers_needed,
+      duration_days: data.duration_days,
       opt_in_link: data.opt_in_link,
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
@@ -378,6 +388,12 @@ export async function createComboRequest(
       opt_in_link: z.string().url(),
       test_focus: z.string().min(10).max(1000),
       test_start_date: z.string().min(8),
+      duration_days: z.coerce
+        .number()
+        .int()
+        .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
+          message: "Pick a test length",
+        }),
       test_credentials: z.string().max(500).optional(),
       custom_questions: z.array(customQuestionSchema),
       proof_question: z.string().min(8).max(300),
@@ -391,6 +407,7 @@ export async function createComboRequest(
       opt_in_link: formData.get("opt_in_link"),
       test_focus: formData.get("test_focus"),
       test_start_date: formData.get("test_start_date"),
+      duration_days: Number(formData.get("duration_days") ?? 14),
       test_credentials:
         String(formData.get("test_credentials") ?? "") || undefined,
       custom_questions: parseCustomQuestions(formData.get("custom_questions")),
@@ -433,6 +450,7 @@ export async function createComboRequest(
       platform: data.platform,
       credit_cost: pack.credits,
       testers_needed: pack.testers,
+      duration_days: data.duration_days,
       question_count: pack.questions,
       opt_in_link: data.opt_in_link,
       test_focus: data.test_focus,

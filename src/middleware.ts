@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isLaunchOpen } from "@/lib/launch";
+import { isPublicSeoPath } from "@/lib/seo";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -38,6 +39,7 @@ export async function middleware(request: NextRequest) {
   const isLegal =
     path === "/privacy" ||
     path === "/terms" ||
+    path.startsWith("/terms/") ||
     path === "/cookies" ||
     path === "/legal";
   const isPublic =
@@ -48,7 +50,10 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/api/stripe") ||
     path === "/wall" ||
     path === "/pricing" ||
-    path.startsWith("/profile/");
+    path === "/blog" ||
+    path.startsWith("/blog/") ||
+    path.startsWith("/profile/") ||
+    isPublicSeoPath(path);
 
   if (path === "/setup" && process.env.NODE_ENV === "production") {
     return NextResponse.redirect(new URL("/board", request.url));
@@ -58,12 +63,15 @@ export async function middleware(request: NextRequest) {
     const waitlistOpen =
       path === "/" ||
       isLegal ||
+      path === "/blog" ||
+      path.startsWith("/blog/") ||
       path.startsWith("/waitlist") ||
       path.startsWith("/auth") ||
       path === "/login" ||
       path.startsWith("/login/") ||
       path.startsWith("/api/cron") ||
-      path.startsWith("/api/stripe");
+      path.startsWith("/api/stripe") ||
+      isPublicSeoPath(path);
 
     if (path === "/signup" || path.startsWith("/auth/google")) {
       return NextResponse.redirect(new URL("/", request.url));
@@ -104,6 +112,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|apple-icon|opengraph-image|twitter-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };

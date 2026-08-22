@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LegalDoc, LegalH } from "@/components/legal-doc";
 import { LEGAL, hasFullLegalIdentity } from "@/lib/legal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Legal · Dozen",
+export const metadata: Metadata = pageMetadata({
+  title: "Legal",
   description: "Service-provider information for Dozen.",
-};
+  path: "/legal",
+});
 
 export default function LegalPage() {
   return (
@@ -70,7 +73,11 @@ export default function LegalPage() {
         Where prices are shown, they are in euro and are the amount payable
         unless a tax line is shown separately. There is no shipping. Payment
         is processed by Stripe. Credit packs and Pro are listed on the site
-        before you pay.
+        before you pay. Paying is also covered by the{" "}
+        <Link className="text-blue" href="/terms/payment">
+          payment terms
+        </Link>
+        .
       </p>
 
       <LegalH>Complaints</LegalH>

@@ -36,7 +36,21 @@ export default async function SignupPage({ searchParams }: Props) {
           </p>
         ) : null}
 
-        <form action={signUpWithEmail} className="mt-8 space-y-4">
+        <a
+          href={`/auth/google?next=${encodeURIComponent(next)}`}
+          className="btn btn-secondary relative z-10 mt-8 w-full"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </a>
+
+        <div className="mt-5 flex items-center gap-3 text-[12px] text-ink/45">
+          <span className="h-px flex-1 bg-border" />
+          or email
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form action={signUpWithEmail} className="mt-5 space-y-4">
           <input type="hidden" name="next" value={next} />
           <div className="field">
             <label htmlFor="display_name">Display name</label>
@@ -86,14 +100,6 @@ export default async function SignupPage({ searchParams }: Props) {
             Create account
           </button>
         </form>
-
-        <a
-          href={`/auth/google?next=${encodeURIComponent(next)}`}
-          className="btn btn-secondary mt-3 w-full"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </a>
 
         <p className="mt-6 text-center text-[13px] text-ink/70">
           Already have an account?{" "}

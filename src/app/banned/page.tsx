@@ -1,3 +1,12 @@
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Account banned",
+  description: "This Dozen account was banned.",
+  path: "/banned",
+  index: false,
+});
+
 export default function BannedPage() {
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-16">

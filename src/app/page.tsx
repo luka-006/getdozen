@@ -2,11 +2,20 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { HeroClosedTest } from "@/components/hero-closed-test";
+import { HomeJsonLd } from "@/components/home-json-ld";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
+import { pageMetadata, SITE_DESCRIPTION } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
+
+export const metadata = pageMetadata({
+  title: "Dozen",
+  description: SITE_DESCRIPTION,
+  path: "/",
+  absoluteTitle: true,
+});
 
 export default async function HomePage({
   searchParams,
@@ -25,6 +34,7 @@ export default async function HomePage({
 
     return (
       <div className="atmosphere">
+        <HomeJsonLd />
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
           <div className="max-w-xl space-y-5">
             <div className="flex items-center gap-3">
@@ -34,12 +44,21 @@ export default async function HomePage({
               </p>
             </div>
             <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
-              12 testers. Structured answers.
+              Test apps. Earn. Get feedback.
             </h1>
             <p className="trust text-[16px] leading-relaxed">
-              Closed Play tests. Other makers. No farms.
+              Earn by testing other makers' apps. Post yours and get structured feedback.
             </p>
             <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
+            <p className="text-[13px] text-ink/60">
+              <Link href="/blog/why-12-testers" className="text-blue">
+                Why 12 testers
+              </Link>
+              {" · "}
+              <Link href="/blog" className="text-blue">
+                Blog
+              </Link>
+            </p>
           </div>
 
           <div className="w-full max-w-md space-y-6">
@@ -66,6 +85,7 @@ export default async function HomePage({
 
   return (
     <div className="atmosphere">
+      <HomeJsonLd />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
         <div className="max-w-xl space-y-5">
           <div className="flex items-center gap-3">
@@ -75,10 +95,10 @@ export default async function HomePage({
             </p>
           </div>
           <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
-            12 testers. Structured answers.
+            Test apps. Earn. Get feedback.
           </h1>
           <p className="trust text-[16px] leading-relaxed">
-            Closed Play tests. Other makers. No farms.
+            Earn by testing other makers' apps. Post yours and get structured feedback.
           </p>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link
@@ -89,6 +109,12 @@ export default async function HomePage({
             </Link>
             <Link href="/signup?next=/board" className="btn btn-secondary">
               Earn
+            </Link>
+            <Link
+              href="/blog/why-12-testers"
+              className="btn btn-secondary"
+            >
+              Why 12 testers
             </Link>
           </div>
         </div>

@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDoc, LegalH } from "@/components/legal-doc";
 import { LEGAL } from "@/lib/legal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Cookies · Dozen",
+export const metadata: Metadata = pageMetadata({
+  title: "Cookies",
   description: "Cookie use on getdozen.dev.",
-};
+  path: "/cookies",
+});
 
 export default function CookiesPage() {
   return (
@@ -16,8 +18,8 @@ export default function CookiesPage() {
         Directive) and the GDPR apply. Consent is required before any
         non-essential cookie is stored. Dozen currently sets{" "}
         <strong>only strictly necessary cookies</strong>. There is no
-        analytics, advertising, or social-pixel cookie, so we do not show a
-        consent banner.
+        analytics, advertising, or social-pixel cookie. A short notice on
+        first visit explains this; you can dismiss it with OK.
       </p>
 
       <LegalH>What we set</LegalH>
@@ -37,7 +39,8 @@ export default function CookiesPage() {
         </li>
         <li>
           <strong>Cloudflare Turnstile</strong> — a short-lived challenge
-          cookie used only on account and waitlist forms to stop bots. It is
+          cookie used only on account, waitlist, and bug-report forms to stop
+          bots. It is
           not used for advertising.
         </li>
       </ul>

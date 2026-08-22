@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { TrackTabs } from "@/components/track-tabs";
-import { PLATFORMS } from "@/lib/constants";
+import { DayStrip } from "@/components/day-strip";
+import { PLATFORMS, TESTER_DAYS } from "@/lib/constants";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { testerCubes } from "@/lib/tester-progress";
 import { formatCredits, formatWaitLabel, waitHours } from "@/lib/utils";
 import type { Profile, RequestRow } from "@/lib/types";
 
@@ -55,12 +57,19 @@ export default async function BoardPage({ searchParams }: Props) {
   if (type === "language") {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-8">
-        <BoardHeader />
+        <BoardHeader post={false} />
         <TrackTabs active="language" />
-        <p className="mt-10 text-ink/70">Coming soon.</p>
-        <Link href="/requests/new" className="btn btn-primary mt-6">
-          Post request
-        </Link>
+        <div className="mt-10 max-w-[40rem] space-y-3 text-[15px] text-ink/75">
+          <p>
+            Language reviews are not open yet. This track is for store listing
+            copy — title, description, and screenshots — checked by native
+            speakers.
+          </p>
+          <p>
+            Testers and Feedback are live. Switch tabs above to join a test or
+            leave a review.
+          </p>
+        </div>
       </div>
     );
   }
@@ -109,6 +118,18 @@ export default async function BoardPage({ searchParams }: Props) {
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
+  const { data: myCommitments } =
+    type === "feedback"
+      ? { data: [] }
+      : await supabase
+          .from("tester_commitments")
+          .select("request_id, opted_in_at, status, duration_days")
+          .eq("tester_id", me.id);
+
+  const myByRequest = new Map(
+    (myCommitments ?? []).map((c) => [c.request_id, c]),
+  );
+
   const sorted = [...rows].sort((a, b) => {
     const aPro = profileMap.get(a.user_id)?.is_pro ? 1 : 0;
     const bPro = profileMap.get(b.user_id)?.is_pro ? 1 : 0;
@@ -137,7 +158,7 @@ export default async function BoardPage({ searchParams }: Props) {
       {helpPeer ? (
         <Link
           href={`/requests/${helpPeer.id}`}
-          className="mt-6 block border-b border-border py-4 hover:bg-mist"
+          className="board-row mt-6 block"
         >
           <p className="text-[12px] uppercase tracking-[0.06em] text-ink/45">
             Help a peer
@@ -209,12 +230,38 @@ export default async function BoardPage({ searchParams }: Props) {
             const platform = request.platform
               ? PLATFORM_LABEL[request.platform] ?? request.platform
               : null;
+            const duration =
+              type === "feedback"
+                ? null
+                : request.duration_days ?? TESTER_DAYS;
+            const payout =
+              Number(request.bounty_multiplier) > 1
+                ? formatCredits(
+                    Number(request.credit_cost) *
+                      Number(request.bounty_multiplier),
+                  )
+                : null;
+            const mine = duration ? myByRequest.get(request.id) : undefined;
+            const cubes = duration
+              ? mine
+                ? testerCubes({
+                    durationDays: mine.duration_days ?? duration,
+                    optedInAt: mine.opted_in_at,
+                    status: mine.status,
+                  })
+                : {
+                    total: duration,
+                    filled: 0,
+                    label: `0 of ${duration} days`,
+                  }
+              : null;
             return (
               <Link
                 key={request.id}
                 href={`/requests/${request.id}`}
-                className="grid grid-cols-[1fr_auto] items-center gap-4 border-b border-border px-1 py-4 hover:bg-mist"
+                className="board-row"
               >
+                <div className="grid grid-cols-[1fr_auto] items-center gap-4">
                 <div className="min-w-0 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="font-medium">{request.app_name}</span>
@@ -227,8 +274,13 @@ export default async function BoardPage({ searchParams }: Props) {
                       </span>
                     ) : null}
                     {Number(request.bounty_multiplier) > 1 ? (
-                      <span className="font-mono text-[12px] text-blue">
+                      <span className="rounded-[6px] bg-mist px-1.5 py-0.5 font-mono text-[12px] text-blue">
                         {request.bounty_multiplier}×
+                      </span>
+                    ) : null}
+                    {payout ? (
+                      <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-[12px] text-ink">
+                        {payout}
                       </span>
                     ) : null}
                     {owner?.is_pro ? (
@@ -250,16 +302,23 @@ export default async function BoardPage({ searchParams }: Props) {
                     {type === "feedback"
                       ? ` · ${request.question_count}q`
                       : type === "combo"
-                        ? ` · ${request.testers_filled}/${request.testers_needed} testers · ${request.question_count}q`
-                        : ` · ${request.testers_filled}/${request.testers_needed} testers`}
-                    {Number(request.bounty_multiplier) > 1
-                      ? ` · ${formatCredits(Number(request.credit_cost) * Number(request.bounty_multiplier))} payout`
-                      : ""}
+                        ? ` · ${request.testers_filled}/${request.testers_needed} testers · ${request.question_count}q · ${duration}d`
+                        : ` · ${request.testers_filled}/${request.testers_needed} testers · ${duration}d`}
                   </p>
                 </div>
                 <div className="text-right">
                   <p className="font-mono text-[13px] text-ink/80">{wait}</p>
                 </div>
+                </div>
+                {cubes ? (
+                  <div className="mt-3">
+                    <DayStrip
+                      total={cubes.total}
+                      filled={cubes.filled}
+                      label={cubes.label}
+                    />
+                  </div>
+                ) : null}
               </Link>
             );
           })
@@ -269,15 +328,17 @@ export default async function BoardPage({ searchParams }: Props) {
   );
 }
 
-function BoardHeader() {
+function BoardHeader({ post = true }: { post?: boolean }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
         <h1 className="font-display text-[32px] font-semibold">Board</h1>
       </div>
-      <Link href="/requests/new" className="btn btn-primary">
-        Post
-      </Link>
+      {post ? (
+        <Link href="/requests/new" className="btn btn-primary">
+          Post
+        </Link>
+      ) : null}
     </div>
   );
 }

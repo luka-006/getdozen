@@ -10,7 +10,7 @@ export const TURNSTILE_DUMMY = {
   token: "XXXX.DUMMY.TOKEN.XXXX",
 } as const;
 
-export type TurnstileAction = "login" | "signup" | "reset" | "waitlist";
+export type TurnstileAction = "login" | "signup" | "reset" | "waitlist" | "bug";
 
 type SiteverifyResult = {
   success?: boolean;
@@ -111,6 +111,9 @@ export async function checkBotGuard(
     return { ok: false, error: "Could not submit just now. Try again." };
   }
   const token = String(formData.get("cf-turnstile-response") ?? "");
+  if (process.env.NODE_ENV === "development" && !token.trim()) {
+    return { ok: true };
+  }
   return verifyTurnstile(token, {
     ip,
     expectedAction,

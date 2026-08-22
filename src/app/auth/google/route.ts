@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { resolveAppUrl } from "@/lib/app-url";
+import { resolveRequestOrigin } from "@/lib/app-url";
 import { safeInternalPath } from "@/lib/safe-path";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const next = safeInternalPath(searchParams.get("next"), "/board");
-  const siteUrl = resolveAppUrl(request);
-  // Path only — no query string (allowlist + GoTrue are picky).
+  const siteUrl = resolveRequestOrigin(request);
   const redirectTo = `${siteUrl}/auth/callback`;
   const cookieStore = await cookies();
   const pendingCookies: {
@@ -49,7 +48,7 @@ export async function GET(request: Request) {
   if (error || !data.url) {
     const message = error?.message ?? "Google sign-in failed";
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(message)}`,
+      `${siteUrl}/login?error=${encodeURIComponent(message)}`,
     );
   }
 
@@ -58,11 +57,12 @@ export async function GET(request: Request) {
     path: "/",
     httpOnly: true,
     sameSite: "lax",
-    secure: true,
+    secure: siteUrl.startsWith("https://"),
     maxAge: 60 * 10,
   });
+  const secure = siteUrl.startsWith("https://");
   pendingCookies.forEach(({ name, value, options }) => {
-    response.cookies.set(name, value, options);
+    response.cookies.set(name, value, { ...options, secure });
   });
   return response;
 }

@@ -9,11 +9,19 @@ import { FeedbackRequestForm } from "@/components/feedback-request-form";
 import { TesterRequestForm } from "@/components/tester-request-form";
 import { TrackTabs } from "@/components/track-tabs";
 import { requireProfile } from "@/lib/auth";
+import { pageMetadata } from "@/lib/seo";
 import { formatCredits } from "@/lib/utils";
 
 type Props = {
   searchParams: Promise<{ type?: string; error?: string }>;
 };
+
+export const metadata = pageMetadata({
+  title: "Post request",
+  description: "Post a tester or feedback request on Dozen.",
+  path: "/requests/new",
+  index: false,
+});
 
 export default async function NewRequestPage({ searchParams }: Props) {
   const profile = await requireProfile();

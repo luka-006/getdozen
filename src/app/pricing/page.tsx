@@ -1,5 +1,13 @@
 import Link from "next/link";
 import { CREDIT_PACKS, EUR_PER_CREDIT, PRO_PRICE_EUR } from "@/lib/pricing";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Pricing",
+  description:
+    "Credit packs and Pro on Dozen. Buy credits to post tester and feedback requests.",
+  path: "/pricing",
+});
 
 export default function PricingPage() {
   return (
@@ -63,9 +71,13 @@ export default function PricingPage() {
         </div>
       </section>
 
-      <p className="mt-10 text-[13px]">
+      <p className="mt-10 text-[13px] text-ink/65">
         <Link href="/signup" className="text-blue">
           Create account
+        </Link>
+        {" · "}
+        <Link href="/terms/payment" className="text-blue">
+          Payment terms
         </Link>
       </p>
     </div>

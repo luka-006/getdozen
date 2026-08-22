@@ -14,6 +14,7 @@ import {
 import { appendLedger } from "@/lib/credits";
 import { hashEmail } from "@/lib/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { clampTesterDuration } from "@/lib/tester-progress";
 import { isLaunchBonusActive } from "@/lib/utils";
 
 export async function joinTesterRequest(formData: FormData) {
@@ -72,20 +73,50 @@ export async function joinTesterRequest(formData: FormData) {
     redirect(`/requests/${requestId}?error=${encodeURIComponent("That Google account is already linked to another profile")}`);
   }
 
-  const completesAt = new Date();
-  completesAt.setDate(completesAt.getDate() + TESTER_DAYS);
+  const { data: existing } = await admin
+    .from("tester_commitments")
+    .select("id, status")
+    .eq("request_id", requestId)
+    .eq("tester_id", profile.id)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status === "active") {
+      redirect("/testers?message=You're already on this test.");
+    }
+    if (existing.status === "completed") {
+      redirect(`/requests/${requestId}?error=${encodeURIComponent("You already finished this test")}`);
+    }
+    redirect(`/requests/${requestId}?error=${encodeURIComponent("You already used a slot on this test")}`);
+  }
+
+  const duration = clampTesterDuration(request.duration_days ?? TESTER_DAYS);
+  const optedInAt = new Date();
+  const completesAt = new Date(optedInAt);
+  completesAt.setDate(completesAt.getDate() + duration);
 
   const { error } = await admin.from("tester_commitments").insert({
     request_id: requestId,
     tester_id: profile.id,
     google_email: googleEmail,
     google_email_hash: emailHash,
+    opted_in_at: optedInAt.toISOString(),
     completes_at: completesAt.toISOString(),
-    checkin_days: Array.from({ length: 14 }, () => false),
+    duration_days: duration,
+    checkin_days: Array.from({ length: duration }, () => false),
   });
 
   if (error) {
-    redirect(`/requests/${requestId}?error=${encodeURIComponent(error.message)}`);
+    const alreadyJoined =
+      error.code === "23505" ||
+      error.message.includes("tester_commitments_request_id_tester_id_key");
+    redirect(
+      `/requests/${requestId}?error=${encodeURIComponent(
+        alreadyJoined
+          ? "You're already on this test"
+          : "Could not start this test. Try again.",
+      )}`,
+    );
   }
 
   const filled = request.testers_filled + 1;
@@ -132,13 +163,16 @@ export async function submitCheckin(formData: FormData) {
     redirect(`/testers?error=${encodeURIComponent("Commitment not found")}`);
   }
 
+  const days = [...(commitment.checkin_days as boolean[])];
+  const duration = clampTesterDuration(
+    commitment.duration_days ?? days.length ?? TESTER_DAYS,
+  );
   const start = new Date(commitment.opted_in_at);
   const dayIndex = Math.min(
-    13,
+    duration - 1,
     Math.max(0, Math.floor((Date.now() - start.getTime()) / (24 * 60 * 60 * 1000))),
   );
-
-  const days = [...(commitment.checkin_days as boolean[])];
+  while (days.length < duration) days.push(false);
   if (days[dayIndex]) {
     redirect(`/testers?error=${encodeURIComponent("Check-in already recorded for today")}`);
   }
@@ -189,8 +223,13 @@ export async function completeTesterCommitment(formData: FormData) {
   if (commitment.status !== "active") {
     redirect(`/testers?error=${encodeURIComponent("Commitment is closed")}`);
   }
+  const duration = clampTesterDuration(
+    commitment.duration_days ?? TESTER_DAYS,
+  );
   if (new Date(commitment.completes_at) > new Date()) {
-    redirect(`/testers?error=${encodeURIComponent("Day 14 has not been reached yet")}`);
+    redirect(
+      `/testers?error=${encodeURIComponent(`Day ${duration} has not been reached yet`)}`,
+    );
   }
   if (commitment.checkins_missed > MAX_MISSED_CHECKINS) {
     redirect(`/testers?error=${encodeURIComponent("Too many missed check-ins. Commitment voided.")}`);
@@ -228,9 +267,12 @@ export async function voidStaleCommitments() {
     const start = new Date(c.opted_in_at).getTime();
     const elapsedDays = Math.floor((Date.now() - start) / (24 * 60 * 60 * 1000));
     const days = [...(c.checkin_days as boolean[])];
+    const duration = clampTesterDuration(
+      c.duration_days ?? days.length ?? TESTER_DAYS,
+    );
     let missed = 0;
 
-    for (let i = 0; i < Math.min(elapsedDays, 14); i += 1) {
+    for (let i = 0; i < Math.min(elapsedDays, duration); i += 1) {
       // Every other day check-in expected: days 0,2,4,...
       if (i % 2 === 0 && !days[i]) missed += 1;
     }

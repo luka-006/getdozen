@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { requestPasswordReset } from "@/actions/auth";
 import { Captcha } from "@/components/captcha";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Reset password",
+  description: "Reset your Dozen password.",
+  path: "/login/forgot",
+  index: false,
+});
 
 type Props = {
   searchParams: Promise<{ error?: string }>;

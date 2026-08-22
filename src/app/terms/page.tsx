@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDoc, LegalH } from "@/components/legal-doc";
 import { LEGAL } from "@/lib/legal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms · Dozen",
+export const metadata: Metadata = pageMetadata({
+  title: "Terms",
   description: "Terms of use for Dozen.",
-};
+  path: "/terms",
+});
 
 export default function TermsPage() {
   return (
@@ -43,7 +45,12 @@ export default function TermsPage() {
         service except as a refund we owe you under these terms or the law.
         Pack prices and Pro are shown in euro before payment. Stripe handles
         the charge. Credits are added only after Stripe confirms payment to
-        our server — never because the browser returned from checkout.
+        our server — never because the browser returned from checkout. Full
+        payment rules:{" "}
+        <Link className="text-blue" href="/terms/payment">
+          payment terms
+        </Link>
+        .
       </p>
 
       <LegalH>Withdrawal (EU / Croatian consumers)</LegalH>

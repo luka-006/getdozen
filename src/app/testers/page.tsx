@@ -3,13 +3,15 @@ import {
   submitCheckin,
   voidStaleCommitments,
 } from "@/actions/testers";
-import { DayStrip } from "@/components/day-strip";
+import { DayStrip, StatusChip } from "@/components/day-strip";
 import { requireProfile } from "@/lib/auth";
 import {
   MAX_CONCURRENT_COMMITMENTS,
   MAX_CONCURRENT_COMMITMENTS_PRO,
+  TESTER_DAYS,
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
+import { testerCubes, testerJoinedLabel } from "@/lib/tester-progress";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 import Link from "next/link";
 
@@ -74,6 +76,14 @@ export default async function TestersPage({ searchParams }: Props) {
             const canComplete =
               commitment.status === "active" &&
               new Date(commitment.completes_at) <= new Date();
+            const cubes = testerCubes({
+              durationDays:
+                commitment.duration_days ??
+                request?.duration_days ??
+                TESTER_DAYS,
+              optedInAt: commitment.opted_in_at,
+              status: commitment.status,
+            });
 
             return (
               <article
@@ -85,68 +95,89 @@ export default async function TestersPage({ searchParams }: Props) {
                     <h2 className="font-display text-[18px] font-semibold">
                       {request?.app_name ?? "App"}
                     </h2>
-                    <p className="text-[13px] text-ink/60">
-                      Status: {commitment.status} · completes{" "}
+                    <p className="mt-1 text-[13px] text-ink/60">
+                      {testerJoinedLabel(commitment.opted_in_at)} · completes{" "}
                       <span className="font-mono">
                         {new Date(commitment.completes_at).toLocaleDateString()}
                       </span>
                     </p>
                   </div>
-                  {request?.opt_in_link ? (
-                    <a
-                      href={request.opt_in_link}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[13px] text-blue"
-                    >
-                      Opt-in link
-                    </a>
-                  ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <StatusChip status={commitment.status} />
+                    {request?.opt_in_link ? (
+                      <a
+                        href={request.opt_in_link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[13px] text-blue"
+                      >
+                        Opt-in link
+                      </a>
+                    ) : null}
+                  </div>
                 </div>
 
                 <DayStrip
-                  days={commitment.checkin_days ?? []}
-                  label={`${commitment.checkins_completed} of 14 days`}
+                  total={cubes.total}
+                  filled={cubes.filled}
+                  label={cubes.label}
                 />
 
                 {commitment.status === "active" ? (
-                  <form action={submitCheckin} className="space-y-3">
-                    <input type="hidden" name="commitment_id" value={commitment.id} />
-                    <div className="field">
-                      <label htmlFor={`checkin-${commitment.id}`}>
-                        Check-in: what did you see in the app today?
-                      </label>
-                      <textarea
-                        id={`checkin-${commitment.id}`}
-                        name="prompt_answer"
-                        className="textarea"
-                        required
+                  <details className="tester-fold" open={Boolean(query.error)}>
+                    <summary>Check in</summary>
+                    <form action={submitCheckin} className="tester-fold-body">
+                      <input
+                        type="hidden"
+                        name="commitment_id"
+                        value={commitment.id}
                       />
-                    </div>
-                    <button type="submit" className="btn btn-primary">
-                      Save check-in
-                    </button>
-                  </form>
+                      <div className="field">
+                        <label htmlFor={`checkin-${commitment.id}`}>
+                          What did you see in the app today?
+                        </label>
+                        <textarea
+                          id={`checkin-${commitment.id}`}
+                          name="prompt_answer"
+                          className="textarea"
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Save check-in
+                      </button>
+                    </form>
+                  </details>
                 ) : null}
 
                 {canComplete ? (
-                  <form action={completeTesterCommitment} className="space-y-3">
-                    <input type="hidden" name="commitment_id" value={commitment.id} />
-                    <div className="field">
-                      <label htmlFor={`final-${commitment.id}`}>
-                        Day 14 structured review
-                      </label>
-                      <textarea
-                        id={`final-${commitment.id}`}
-                        name="final_notes"
-                        className="textarea"
-                        required
+                  <details className="tester-fold" open>
+                    <summary>Finish test</summary>
+                    <form
+                      action={completeTesterCommitment}
+                      className="tester-fold-body"
+                    >
+                      <input
+                        type="hidden"
+                        name="commitment_id"
+                        value={commitment.id}
                       />
-                    </div>
-                    <button type="submit" className="btn btn-primary">
-                      Complete commitment
-                    </button>
-                  </form>
+                      <div className="field">
+                        <label htmlFor={`final-${commitment.id}`}>
+                          Day {cubes.total} structured review
+                        </label>
+                        <textarea
+                          id={`final-${commitment.id}`}
+                          name="final_notes"
+                          className="textarea"
+                          required
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary">
+                        Complete commitment
+                      </button>
+                    </form>
+                  </details>
                 ) : null}
               </article>
             );

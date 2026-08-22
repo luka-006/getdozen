@@ -10,6 +10,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 
+function idOf(value: string | { id?: string } | null | undefined): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  return value.id ?? "";
+}
+
 async function claimEvent(eventId: string, type: string) {
   const admin = createAdminClient();
   const { error } = await admin.from("stripe_events").insert({ id: eventId, type });
@@ -114,6 +120,14 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
 
   if (decision.kind === "credits") {
     await grantCredits(decision.profileId, decision.credits);
+    const customerId = idOf(session.customer);
+    if (customerId) {
+      const admin = createAdminClient();
+      await admin
+        .from("profiles")
+        .update({ stripe_customer_id: customerId })
+        .eq("id", decision.profileId);
+    }
     return;
   }
 
@@ -161,12 +175,9 @@ export async function POST(request: Request) {
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         const profileId = sub.metadata?.profile_id;
-        if (profileId && shouldActivateSubscription(sub.status)) {
-          const customerId =
-            typeof sub.customer === "string" ? sub.customer : sub.customer;
-          if (typeof customerId === "string") {
-            await activatePro(profileId, sub.id, customerId);
-          }
+        const customerId = idOf(sub.customer);
+        if (profileId && shouldActivateSubscription(sub.status) && customerId) {
+          await activatePro(profileId, sub.id, customerId);
         } else if (profileId) {
           await deactivatePro(sub.id);
         }

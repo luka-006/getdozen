@@ -8,7 +8,7 @@ import {
 import { PlatformField } from "@/components/platform-field";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
-import { COMBO_PACKS, type ComboPackId } from "@/lib/constants";
+import { COMBO_PACKS, TESTER_DURATION_OPTIONS, type ComboPackId } from "@/lib/constants";
 import { randomDescriptionExample } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -153,6 +153,25 @@ export function ComboRequestForm({ balance, action }: Props) {
           className="input font-mono"
           required
         />
+      </div>
+      <div className="field">
+        <label htmlFor="duration_days">
+          Test length
+          <RequiredMark />
+        </label>
+        <select
+          id="duration_days"
+          name="duration_days"
+          className="select font-mono"
+          defaultValue="14"
+          required
+        >
+          {TESTER_DURATION_OPTIONS.map((n) => (
+            <option key={n} value={n}>
+              {n} days
+            </option>
+          ))}
+        </select>
       </div>
       <div className="field">
         <label htmlFor="test_credentials">

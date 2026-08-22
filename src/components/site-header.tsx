@@ -15,12 +15,15 @@ export function SiteHeader({
   if (waitlistLock && !profile?.is_admin) {
     return (
       <header className="sticky top-0 z-20 border-b border-border bg-paper/95 backdrop-blur-md">
-        <div className="mx-auto flex w-full max-w-6xl items-center px-4 py-3">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2.5 text-ink">
             <DozenMark className="h-8 w-8 shrink-0" />
             <span className="font-display text-[18px] font-semibold tracking-[0.03em]">
               Dozen
             </span>
+          </Link>
+          <Link href="/blog" className="text-[13px] text-ink/80 hover:text-blue">
+            Blog
           </Link>
         </div>
       </header>
@@ -37,6 +40,7 @@ export function SiteHeader({
       ]
     : [
         { href: "/pricing", label: "Pricing" },
+        { href: "/blog", label: "Blog" },
         { href: "/wall", label: "Wall" },
       ];
 
@@ -69,7 +73,6 @@ export function SiteHeader({
         <div className="flex items-center gap-3">
           {profile ? (
             <>
-              <MobileNav links={links} />
               <Link href="/wallet" className="shrink-0" title="Wallet">
                 <CreditBadge
                   value={profile.credits}
@@ -83,16 +86,17 @@ export function SiteHeader({
               >
                 <Avatar name={profile.display_name} url={profile.avatar_url} />
               </Link>
+              <MobileNav links={links} />
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <MobileNav links={links} />
-              <Link href="/login" className="btn btn-secondary min-h-9 px-3 text-[13px]">
+              <Link href="/login" className="btn btn-secondary min-h-9 shrink-0 whitespace-nowrap px-3 text-[13px]">
                 Sign in
               </Link>
-              <Link href="/signup" className="btn btn-primary min-h-9 px-3 text-[13px]">
+              <Link href="/signup" className="btn btn-primary min-h-9 shrink-0 whitespace-nowrap px-3 text-[13px]">
                 Join
               </Link>
+              <MobileNav links={links} />
             </div>
           )}
         </div>

@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { joinTesterRequest } from "@/actions/testers";
-import { DayStrip } from "@/components/day-strip";
+import { TesterProgressRow } from "@/components/day-strip";
 import { PackProgress } from "@/components/pack-progress";
 import { requireProfile } from "@/lib/auth";
+import { pageMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { TESTER_DAYS } from "@/lib/constants";
 import { decryptCredentials } from "@/lib/crypto";
 import { formatCredits, formatWait } from "@/lib/utils";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
@@ -14,6 +17,27 @@ type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("requests")
+    .select("app_name")
+    .eq("id", id)
+    .single();
+  const name = data?.app_name?.trim() || "Request";
+  return pageMetadata({
+    title: name,
+    description: `${name} on Dozen.`,
+    path: `/requests/${id}`,
+    index: false,
+  });
+}
 
 export default async function RequestDetailPage({ params, searchParams }: Props) {
   const profile = await requireProfile();
@@ -59,13 +83,36 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
   }
 
   let commitments: TesterCommitment[] = [];
-  if (isOwner && (row.type === "tester" || row.type === "combo")) {
-    const { data } = await supabase
-      .from("tester_commitments")
-      .select("*")
-      .eq("request_id", id)
-      .order("created_at");
-    commitments = (data ?? []) as TesterCommitment[];
+  let testerNames = new Map<string, string>();
+  let myCommitment: TesterCommitment | null = null;
+  if (row.type === "tester" || row.type === "combo") {
+    if (isOwner) {
+      const admin = createAdminClient();
+      const { data } = await admin
+        .from("tester_commitments")
+        .select("*")
+        .eq("request_id", id)
+        .order("opted_in_at", { ascending: true });
+      commitments = (data ?? []) as TesterCommitment[];
+      const testerIds = [...new Set(commitments.map((c) => c.tester_id))];
+      if (testerIds.length) {
+        const { data: testers } = await admin
+          .from("profiles")
+          .select("id, display_name")
+          .in("id", testerIds);
+        testerNames = new Map(
+          (testers ?? []).map((t) => [t.id, t.display_name]),
+        );
+      }
+    } else {
+      const { data } = await supabase
+        .from("tester_commitments")
+        .select("*")
+        .eq("request_id", id)
+        .eq("tester_id", profile.id)
+        .maybeSingle();
+      myCommitment = (data as TesterCommitment | null) ?? null;
+    }
   }
 
   let hasReview = false;
@@ -159,6 +206,12 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               </dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Test length</dt>
+              <dd className="font-mono">
+                {row.duration_days ?? TESTER_DAYS} days
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
               <dt className="text-ink/60">Questions</dt>
               <dd className="font-mono">{row.question_count}</dd>
             </div>
@@ -181,6 +234,12 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dt className="text-ink/60">Testers</dt>
               <dd className="font-mono">
                 {row.testers_filled} / {row.testers_needed}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Test length</dt>
+              <dd className="font-mono">
+                {row.duration_days ?? TESTER_DAYS} days
               </dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-border py-2">
@@ -242,7 +301,8 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
       {!isOwner &&
       (row.type === "tester" || row.type === "combo") &&
-      row.status === "open" ? (
+      row.status === "open" &&
+      !myCommitment ? (
         <form action={joinTesterRequest} className="mt-8 space-y-4">
           <input type="hidden" name="request_id" value={row.id} />
           <div className="field">
@@ -272,6 +332,16 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </form>
       ) : null}
 
+      {!isOwner && myCommitment?.status === "active" ? (
+        <p className="mt-8 text-[13px] text-ink/70">
+          You are already on this test.{" "}
+          <Link href="/testers" className="text-blue">
+            Open My tests
+          </Link>{" "}
+          to check in.
+        </p>
+      ) : null}
+
       {isOwner && row.type === "combo" ? (
         <PackProgress
           hasReview={hasReview}
@@ -283,18 +353,48 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         />
       ) : null}
 
-      {isOwner && (row.type === "tester" || row.type === "combo") ? (
+      {(row.type === "tester" || row.type === "combo") ? (
         <section className="mt-10 space-y-4">
-          <h2 className="font-display text-[24px] font-semibold">Tester progress</h2>
-          {commitments.length === 0 ? (
-            <p className="text-ink/65">No testers yet.</p>
+          <h2 className="font-display text-[24px] font-semibold">
+            Tester progress
+          </h2>
+          <p className="text-[13px] text-ink/60">
+            Each tester starts their own {row.duration_days ?? TESTER_DAYS}-day
+            clock on the day they join.
+          </p>
+          {isOwner ? (
+            commitments.length === 0 ? (
+              <p className="text-[13px] text-ink/55">No testers yet.</p>
+            ) : (
+              commitments.map((c) => (
+                <TesterProgressRow
+                  key={c.id}
+                  name={testerNames.get(c.tester_id) ?? "Tester"}
+                  href={`/profile/${c.tester_id}`}
+                  optedInAt={c.opted_in_at}
+                  durationDays={
+                    c.duration_days ?? row.duration_days ?? TESTER_DAYS
+                  }
+                  status={c.status}
+                />
+              ))
+            )
+          ) : myCommitment ? (
+            <TesterProgressRow
+              name="You"
+              optedInAt={myCommitment.opted_in_at}
+              durationDays={
+                myCommitment.duration_days ??
+                row.duration_days ??
+                TESTER_DAYS
+              }
+              status={myCommitment.status}
+            />
           ) : (
-            commitments.map((c) => (
-              <div key={c.id} className="border-b border-border py-3">
-                <p className="text-[13px] text-ink/60">{c.status}</p>
-                <DayStrip days={c.checkin_days ?? []} />
-              </div>
-            ))
+            <p className="text-[13px] text-ink/55">
+              Join to start your own {row.duration_days ?? TESTER_DAYS}-day
+              clock. Later testers do not share this one.
+            </p>
           )}
         </section>
       ) : null}

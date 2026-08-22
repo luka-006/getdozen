@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Script from "next/script";
 import type { TurnstileAction } from "@/lib/bot-guard";
 
@@ -12,6 +12,8 @@ declare global {
         opts: {
           sitekey: string;
           action?: string;
+          size?: "normal" | "compact" | "flexible";
+          retry?: "auto" | "never";
           callback: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
@@ -33,23 +35,33 @@ export function Captcha({
   const hostRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const widgetId = useRef<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
+  function failWidget() {
+    if (inputRef.current) inputRef.current.value = "";
+    if (widgetId.current && window.turnstile) {
+      window.turnstile.remove(widgetId.current);
+      widgetId.current = null;
+    }
+    setFailed(true);
+  }
+
   function renderWidget() {
-    if (!siteKey || !hostRef.current || !window.turnstile) return;
+    if (failed || !siteKey || !hostRef.current || !window.turnstile) return;
     if (widgetId.current) return;
     widgetId.current = window.turnstile.render(hostRef.current, {
       sitekey: siteKey,
       action,
+      size: "compact",
+      retry: "never",
       callback: (token) => {
         if (inputRef.current) inputRef.current.value = token;
       },
       "expired-callback": () => {
         if (inputRef.current) inputRef.current.value = "";
       },
-      "error-callback": () => {
-        if (inputRef.current) inputRef.current.value = "";
-      },
+      "error-callback": () => failWidget(),
     });
   }
 
@@ -61,7 +73,7 @@ export function Captcha({
         widgetId.current = null;
       }
     };
-  }, [siteKey, action]);
+  }, [siteKey, action, failed]);
 
   useEffect(() => {
     if (resetSignal == null || resetSignal === "" || resetSignal === 0) return;
@@ -81,13 +93,23 @@ export function Captcha({
       </div>
       {siteKey ? (
         <>
-          <Script
-            src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-            strategy="afterInteractive"
-            onLoad={renderWidget}
-          />
+          {!failed ? (
+            <Script
+              src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+              strategy="afterInteractive"
+              onLoad={renderWidget}
+              onError={() => failWidget()}
+            />
+          ) : null}
           <input type="hidden" name="cf-turnstile-response" ref={inputRef} />
-          <div ref={hostRef} className="pt-1" />
+          {failed ? (
+            <p className="rounded-[6px] border border-border bg-mist px-3 py-2 text-[12px] text-ink/70">
+              Bot check could not load (ad blocker or network). Turn those off
+              and refresh, or use Google sign-in.
+            </p>
+          ) : (
+            <div ref={hostRef} className="captcha-host pt-1" />
+          )}
         </>
       ) : null}
     </>

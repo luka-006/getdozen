@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { signOut } from "@/actions/auth";
 import { deleteProfileReview } from "@/actions/profile-reviews";
 import { Avatar } from "@/components/avatar";
@@ -8,6 +9,7 @@ import { ProfileNameEditor } from "@/components/profile-name-editor";
 import { ProfileReviewForm } from "@/components/profile-review-form";
 import { getProfile } from "@/lib/auth";
 import { haveInteracted } from "@/lib/profile-reviews";
+import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatCredits } from "@/lib/utils";
@@ -16,6 +18,26 @@ type Props = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ error?: string; message?: string }>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", id)
+    .single();
+  const name = data?.display_name?.trim() || "Profile";
+  return pageMetadata({
+    title: name,
+    description: `${name} on Dozen.`,
+    path: `/profile/${id}`,
+  });
+}
 
 export default async function ProfilePage({ params, searchParams }: Props) {
   const { id } = await params;

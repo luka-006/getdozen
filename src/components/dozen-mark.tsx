@@ -1,3 +1,15 @@
+import {
+  DOZEN_MARK_BLUE as BLUE,
+  DOZEN_MARK_CELL,
+  DOZEN_MARK_CELLS as CELLS,
+  DOZEN_MARK_COLS,
+  DOZEN_MARK_GAP,
+  DOZEN_MARK_ROWS,
+  DOZEN_MARK_RX,
+  DOZEN_MARK_VIEW,
+  DOZEN_MARK_YELLOW as YELLOW,
+} from "@/lib/dozen-mark-data";
+
 type Props = {
   className?: string;
   title?: string;
@@ -5,50 +17,19 @@ type Props = {
   tick?: boolean;
 };
 
-const BLUE = "#2B7FFF";
-const YELLOW = "#FFC53D";
-
-/** Cell positions for the blocky D (col, row). Yellow accent at (0,3). */
-const CELLS: Array<{ c: number; r: number; yellow?: boolean; soft?: boolean }> = [
-  // top bar
-  { c: 0, r: 0 },
-  { c: 1, r: 0 },
-  { c: 2, r: 0 },
-  { c: 3, r: 0 },
-  { c: 4, r: 0 },
-  // stem
-  { c: 0, r: 1 },
-  { c: 0, r: 2 },
-  { c: 0, r: 3, yellow: true },
-  { c: 0, r: 4 },
-  { c: 0, r: 5 },
-  // right curve
-  { c: 5, r: 1 },
-  { c: 6, r: 2 },
-  { c: 6, r: 3 },
-  { c: 5, r: 4 },
-  { c: 6, r: 4 },
-  // bottom bar (excl. stem)
-  { c: 1, r: 5 },
-  { c: 2, r: 5 },
-  { c: 3, r: 5 },
-  { c: 4, r: 5 },
-  { c: 5, r: 5, soft: true },
-];
-
 /**
  * Dozen mark — blocky D (blue cells + one credit-yellow tick).
  */
 export function DozenMark({ className = "h-8 w-8", title, tick }: Props) {
-  const cell = 3.05;
-  const gap = 0.7;
-  const cols = 7;
-  const rows = 6;
+  const cell = DOZEN_MARK_CELL;
+  const gap = DOZEN_MARK_GAP;
+  const cols = DOZEN_MARK_COLS;
+  const rows = DOZEN_MARK_ROWS;
   const gridW = cols * cell + (cols - 1) * gap;
   const gridH = rows * cell + (rows - 1) * gap;
-  const ox = (32 - gridW) / 2;
-  const oy = (32 - gridH) / 2;
-  const rx = 0.72;
+  const ox = (DOZEN_MARK_VIEW - gridW) / 2;
+  const oy = (DOZEN_MARK_VIEW - gridH) / 2;
+  const rx = DOZEN_MARK_RX;
 
   return (
     <svg

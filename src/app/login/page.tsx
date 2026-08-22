@@ -25,7 +25,9 @@ export default async function LoginPage({ searchParams }: Props) {
           Dozen
         </p>
         <h1 className="mt-3 font-display text-[28px] font-semibold">Sign in</h1>
-        <p className="mt-2 text-[14px] text-ink/70">Email or Google.</p>
+        <p className="mt-2 text-[14px] text-ink/70">
+          Google, or email and password. Sign-in does not send an email.
+        </p>
 
         {params.error ? (
           <p className="mt-4 rounded-[6px] border border-flag/40 bg-flag/5 px-3 py-2 text-[13px] text-flag">
@@ -38,7 +40,21 @@ export default async function LoginPage({ searchParams }: Props) {
           </p>
         ) : null}
 
-        <form action={signInWithEmail} className="mt-8 space-y-4">
+        <a
+          href={`/auth/google?next=${encodeURIComponent(next)}`}
+          className="btn btn-secondary relative z-10 mt-8 w-full"
+        >
+          <GoogleIcon />
+          Continue with Google
+        </a>
+
+        <div className="mt-5 flex items-center gap-3 text-[12px] text-ink/45">
+          <span className="h-px flex-1 bg-border" />
+          or email
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form action={signInWithEmail} className="mt-5 space-y-4">
           <input type="hidden" name="next" value={next} />
           <div className="field">
             <label htmlFor="email">Email</label>
@@ -76,14 +92,6 @@ export default async function LoginPage({ searchParams }: Props) {
             Sign in
           </button>
         </form>
-
-        <a
-          href={`/auth/google?next=${encodeURIComponent(next)}`}
-          className="btn btn-secondary mt-3 w-full"
-        >
-          <GoogleIcon />
-          Continue with Google
-        </a>
 
         <p className="mt-6 text-center text-[13px] text-ink/70">
           New here?{" "}

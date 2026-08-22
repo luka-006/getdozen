@@ -81,6 +81,26 @@ export function PenIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+export function BugIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M8 6.5 6 4M16 6.5 18 4" />
+      <path d="M5 10h14M5 14h14" />
+      <rect x="8" y="6" width="8" height="12" rx="4" />
+      <path d="M9 18.5 7 21M15 18.5l2 2.5" />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg

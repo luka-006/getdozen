@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LegalDoc, LegalH } from "@/components/legal-doc";
 import { LEGAL } from "@/lib/legal";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy · Dozen",
+export const metadata: Metadata = pageMetadata({
+  title: "Privacy",
   description: "How Dozen processes personal data under the GDPR.",
-};
+  path: "/privacy",
+});
 
 export default function PrivacyPage() {
   return (
@@ -54,6 +56,11 @@ export default function PrivacyPage() {
           <strong>Security:</strong> IP address and basic request metadata
           processed by our host for abuse prevention and delivery.
         </li>
+        <li>
+          <strong>Bug reports:</strong> what you type in the report form, the
+          page you were on, and an email if you add one. We store these and
+          email them to the operator so we can fix the product.
+        </li>
       </ul>
 
       <LegalH>Why, and on what legal basis</LegalH>
@@ -93,11 +100,16 @@ export default function PrivacyPage() {
           <strong>Vercel</strong> — hosting and delivery of this website.
         </li>
         <li>
+          <strong>FormSubmit</strong> — sending bug-report emails to the
+          operator.
+        </li>
+        <li>
           <strong>Google</strong> — only if you choose “Continue with Google”.
         </li>
         <li>
           <strong>Cloudflare</strong> — DNS for getdozen.dev, and Turnstile
-          bot checks on sign-in, signup, password reset, and waitlist forms.
+          bot checks on sign-in, signup, password reset, waitlist, and bug
+          report forms.
           Turnstile is used only to tell humans from automated clients
           (legitimate interests, Art. 6(1)(f)).
         </li>
@@ -162,7 +174,8 @@ export default function PrivacyPage() {
 
       <LegalH>Cookies</LegalH>
       <p>
-        Only cookies needed to run the site and keep you signed in. Details:{" "}
+        Only cookies needed to run the site and keep you signed in. A short
+        notice explains this on first visit. Details:{" "}
         <Link className="text-blue" href="/cookies">
           cookie notice
         </Link>

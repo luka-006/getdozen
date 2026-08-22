@@ -1,7 +1,14 @@
 import Link from "next/link";
 import { getProfile } from "@/lib/auth";
+import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
+
+export const metadata = pageMetadata({
+  title: "Wall",
+  description: "Apps that used Dozen for testing and feedback.",
+  path: "/wall",
+});
 
 export default async function WallPage() {
   const profile = await getProfile();

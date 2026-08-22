@@ -6,20 +6,55 @@ import { canPurchaseCredits } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   getStripe,
+  stripeConfigured,
+} from "@/lib/stripe";
+import {
   getStripePriceId,
   PRO_PRICE_ENV,
   PRO_PRICE_EUR,
-  stripeConfigured,
-} from "@/lib/stripe";
-import { resolveCreditOffer } from "@/lib/pricing";
+  resolveCreditOffer,
+} from "@/lib/pricing";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
+import { stripeCheckoutLegal } from "@/lib/checkout-legal";
+import {
+  CREDIT_PAYMENT_LINKS,
+  PRO_PAYMENT_LINK,
+  stripePaymentLinkUrl,
+} from "@/lib/stripe-payment-links";
 import { safeInternalPath } from "@/lib/safe-path";
+import type Stripe from "stripe";
 
 function checkoutIntegrationId(flow: string) {
   const suffix = Array.from({ length: 8 }, () =>
     String.fromCharCode(97 + Math.floor(Math.random() * 26)),
   ).join("");
   return `dozen_${flow}_${suffix}`;
+}
+
+async function createCheckoutSession(
+  params: Stripe.Checkout.SessionCreateParams,
+) {
+  const stripe = getStripe()!;
+  const legal = stripeCheckoutLegal();
+  try {
+    return await stripe.checkout.sessions.create({
+      ...params,
+      ...legal,
+    });
+  } catch {
+    try {
+      return await stripe.checkout.sessions.create({
+        ...params,
+        branding_settings: legal.branding_settings,
+        managed_payments: legal.managed_payments,
+      });
+    } catch {
+      return stripe.checkout.sessions.create({
+        ...params,
+        managed_payments: legal.managed_payments,
+      });
+    }
+  }
 }
 
 async function siteUrl() {
@@ -71,42 +106,56 @@ export async function purchaseCreditPack(formData: FormData) {
     redirect(`/wallet?error=${encodeURIComponent("Stripe not configured yet. Add STRIPE_SECRET_KEY to .env.local.")}`);
   }
 
-  const stripe = getStripe()!;
-  const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
+  const customerId = await ensureStripeCustomer(
+    profile as typeof profile & { stripe_customer_id?: string | null },
+  );
   const baseUrl = await siteUrl();
 
-  const session = await stripe.checkout.sessions.create({
-    mode: "payment",
-    customer: customerId,
-    client_reference_id: profile.id,
-    integration_identifier: checkoutIntegrationId("credits"),
-    metadata: {
-      kind: "credits",
-      profile_id: profile.id,
-      pack_id: offer.packId,
-    },
-    line_items: [
-      {
-        quantity: 1,
-        price_data: {
-          currency: "eur",
-          unit_amount: offer.amountCents,
-          product_data: {
-            name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
-            description: `${offer.credits} credits`,
+  let session: Stripe.Checkout.Session | null = null;
+  try {
+    session = await createCheckoutSession({
+      mode: "payment",
+      customer: customerId,
+      client_reference_id: profile.id,
+      integration_identifier: checkoutIntegrationId(offer.packId),
+      metadata: {
+        kind: "credits",
+        profile_id: profile.id,
+        pack_id: offer.packId,
+      },
+      line_items: [
+        {
+          quantity: 1,
+          price_data: {
+            currency: "eur",
+            unit_amount: offer.amountCents,
+            product_data: {
+              name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
+              description: `${offer.credits} credits`,
+            },
           },
         },
-      },
-    ],
-    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
-    cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
-  });
+      ],
+      success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
+      cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
+    });
+  } catch {
+    session = null;
+  }
 
-  if (!session.url) {
+  if (session?.url) redirect(session.url);
+
+  const link = CREDIT_PAYMENT_LINKS[offer.packId];
+  if (!link) {
     redirect(`/wallet?error=${encodeURIComponent("Could not start checkout")}`);
   }
 
-  redirect(session.url);
+  redirect(
+    stripePaymentLinkUrl(link, {
+      profileId: profile.id,
+      email: profile.email,
+    }),
+  );
 }
 
 export async function purchaseCreditsAmount(formData: FormData) {
@@ -127,7 +176,6 @@ export async function purchaseCreditsAmount(formData: FormData) {
     redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Stripe not configured yet")}`);
   }
 
-  const stripe = getStripe()!;
   const customerId = await ensureStripeCustomer(
     profile as typeof profile & { stripe_customer_id?: string | null },
   );
@@ -138,7 +186,7 @@ export async function purchaseCreditsAmount(formData: FormData) {
   }
   const baseUrl = await siteUrl();
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await createCheckoutSession({
     mode: "payment",
     customer: customerId,
     client_reference_id: profile.id,
@@ -183,51 +231,60 @@ export async function startProSubscription() {
     redirect(`/wallet?error=${encodeURIComponent("Stripe not configured yet. Add STRIPE_SECRET_KEY to .env.local.")}`);
   }
 
-  const stripe = getStripe()!;
-  const customerId = await ensureStripeCustomer(profile as typeof profile & { stripe_customer_id?: string | null });
-
-  const proPriceId = getStripePriceId(PRO_PRICE_ENV);
+  const customerId = await ensureStripeCustomer(
+    profile as typeof profile & { stripe_customer_id?: string | null },
+  );
   const baseUrl = await siteUrl();
-  const session = await stripe.checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    client_reference_id: profile.id,
-    integration_identifier: checkoutIntegrationId("pro"),
-    metadata: {
-      kind: "pro",
-      profile_id: profile.id,
-    },
-    subscription_data: {
+  const proPriceId = getStripePriceId(PRO_PRICE_ENV);
+
+  let session: Stripe.Checkout.Session | null = null;
+  try {
+    session = await createCheckoutSession({
+      mode: "subscription",
+      customer: customerId,
+      client_reference_id: profile.id,
+      integration_identifier: checkoutIntegrationId("pro"),
       metadata: {
+        kind: "pro",
         profile_id: profile.id,
       },
-    },
-    line_items: [
-      proPriceId
-        ? { quantity: 1, price: proPriceId }
-        : {
-            quantity: 1,
-            price_data: {
-              currency: "eur",
-              unit_amount: Math.round(PRO_PRICE_EUR * 100),
-              recurring: { interval: "month" },
-              product_data: {
-                name: "Dozen Pro",
-                description:
-                  "5 concurrent tester slots, board boost, 48-hour review guarantee",
+      subscription_data: {
+        metadata: {
+          profile_id: profile.id,
+        },
+      },
+      line_items: [
+        proPriceId
+          ? { quantity: 1, price: proPriceId }
+          : {
+              quantity: 1,
+              price_data: {
+                currency: "eur",
+                unit_amount: Math.round(PRO_PRICE_EUR * 100),
+                recurring: { interval: "month" },
+                product_data: {
+                  name: "Dozen Pro",
+                  description:
+                    "5 concurrent tester slots, board boost, 48-hour review guarantee",
+                },
               },
             },
-          },
-    ],
-    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Pro is activating. Refresh in a moment.")}`,
-    cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
-  });
-
-  if (!session.url) {
-    redirect(`/wallet?error=${encodeURIComponent("Could not start checkout")}`);
+      ],
+      success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Pro lands after Stripe confirms.")}`,
+      cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
+    });
+  } catch {
+    session = null;
   }
 
-  redirect(session.url);
+  if (session?.url) redirect(session.url);
+
+  redirect(
+    stripePaymentLinkUrl(PRO_PAYMENT_LINK, {
+      profileId: profile.id,
+      email: profile.email,
+    }),
+  );
 }
 
 export async function openBillingPortal() {

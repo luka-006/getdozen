@@ -31,6 +31,12 @@ export default async function AdminPage({ searchParams }: Props) {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  const { data: siteBugs } = await admin
+    .from("site_bug_reports")
+    .select("id, summary, details, email, page, created_at")
+    .order("created_at", { ascending: false })
+    .limit(50);
+
   const { data: recentUsers } = await admin
     .from("profiles")
     .select("id, display_name, email, is_banned, created_at, reviews_given")
@@ -44,6 +50,28 @@ export default async function AdminPage({ searchParams }: Props) {
       {query.message ? (
         <p className="mt-4 text-[13px]">{query.message}</p>
       ) : null}
+
+      <section className="mt-8">
+        <h2 className="font-display text-[24px] font-semibold">Site bugs</h2>
+        <div className="mt-4 border-t border-border">
+          {(siteBugs ?? []).length === 0 ? (
+            <p className="py-6 text-ink/65">No site bug reports yet.</p>
+          ) : (
+            (siteBugs ?? []).map((bug) => (
+              <div key={bug.id} className="border-b border-border py-3">
+                <p className="font-medium">{bug.summary}</p>
+                <p className="mt-1 whitespace-pre-wrap text-[13px] text-ink/75">
+                  {bug.details}
+                </p>
+                <p className="mt-1 font-mono text-[12px] text-ink/55">
+                  {bug.page} · {bug.email || "no email"} ·{" "}
+                  {new Date(bug.created_at).toLocaleString()}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </section>
 
       <section className="mt-8">
         <h2 className="font-display text-[24px] font-semibold">Open reports</h2>

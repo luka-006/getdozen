@@ -6,13 +6,13 @@ export const LEGAL = {
   email:
     process.env.LEGAL_EMAIL?.trim() ||
     process.env.NEXT_PUBLIC_LEGAL_EMAIL?.trim() ||
-    "hello@getdozen.dev",
+    "info@getdozen.dev",
   operatorName: process.env.LEGAL_OPERATOR_NAME?.trim() || "",
   address: process.env.LEGAL_ADDRESS?.trim() || "",
   oib: process.env.LEGAL_OIB?.trim() || "",
   vatId: process.env.LEGAL_VAT_ID?.trim() || "",
   register: process.env.LEGAL_REGISTER?.trim() || "",
-  updated: "16 August 2026",
+  updated: "22 August 2026",
   azopUrl: "https://azop.hr",
   azopEmail: "azop@azop.hr",
   azopAddress: "Ulica Metela Ožegovića 16, 10000 Zagreb",

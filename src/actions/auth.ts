@@ -16,7 +16,10 @@ export async function signInWithEmail(formData: FormData) {
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    redirect(`/login?error=${encodeURIComponent(error.message)}&next=${encodeURIComponent(next)}`);
+    const hint = /invalid login credentials/i.test(error.message)
+      ? "Wrong email or password. If you joined with Google, use Continue with Google — or Forgot to set a password."
+      : error.message;
+    redirect(`/login?error=${encodeURIComponent(hint)}&next=${encodeURIComponent(next)}`);
   }
   redirect(next);
 }
@@ -45,7 +48,7 @@ export async function signUpWithEmail(formData: FormData) {
 
   const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -56,8 +59,18 @@ export async function signUpWithEmail(formData: FormData) {
     },
   });
 
+  const identityCount = data.user?.identities?.length ?? null;
+
   if (error) {
     redirect(`/signup?error=${encodeURIComponent(error.message)}`);
+  }
+
+  // Existing confirmed users (e.g. Google-only) return 200 with empty identities
+  // and no confirmation email.
+  if (data.user && identityCount === 0) {
+    redirect(
+      `/login?error=${encodeURIComponent("This email already has an account. Sign in with Google, or use Forgot to set a password.")}`,
+    );
   }
 
   redirect("/login?message=Check your email to confirm your account");

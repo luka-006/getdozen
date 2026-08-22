@@ -7,7 +7,7 @@ import {
 } from "@/lib/request-form";
 import { PlatformField } from "@/components/platform-field";
 import { StarIcon } from "@/components/icons";
-import { TESTER_COST } from "@/lib/constants";
+import { TESTER_COST, TESTER_DURATION_OPTIONS } from "@/lib/constants";
 import { randomDescriptionExample, TESTER_COUNT_OPTIONS } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -119,6 +119,25 @@ export function TesterRequestForm({ action }: Props) {
           {TESTER_COUNT_OPTIONS.map((n) => (
             <option key={n} value={n}>
               {n} testers · {n * TESTER_COST} credits
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="field">
+        <label htmlFor="duration_days">
+          Test length
+          <RequiredMark />
+        </label>
+        <select
+          id="duration_days"
+          name="duration_days"
+          className="select font-mono"
+          defaultValue="14"
+          required
+        >
+          {TESTER_DURATION_OPTIONS.map((n) => (
+            <option key={n} value={n}>
+              {n} days
             </option>
           ))}
         </select>

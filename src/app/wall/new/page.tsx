@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { addShippedApp } from "@/actions/shipped";
 import { requireProfile } from "@/lib/auth";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata({
+  title: "Add app",
+  description: "Add a shipped app to the Dozen wall.",
+  path: "/wall/new",
+  index: false,
+});
 
 type Props = {
   searchParams: Promise<{ error?: string }>;

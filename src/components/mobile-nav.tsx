@@ -12,12 +12,15 @@ export function MobileNav({ links }: { links: NavLink[] }) {
     <div className="sm:hidden">
       <button
         type="button"
-        className="btn btn-secondary min-h-9 px-3 text-[13px]"
+        className="nav-burger"
         aria-expanded={open}
         aria-controls="mobile-nav"
+        aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((value) => !value)}
       >
-        {open ? "Close" : "Menu"}
+        <span />
+        <span />
+        <span />
       </button>
       {open ? (
         <nav

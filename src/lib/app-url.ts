@@ -6,9 +6,10 @@ const ALLOWED_HOSTS = new Set([
   "www.getdozen.dev",
 ]);
 
-function hostAllowed(host: string): boolean {
+export function isAllowedAppHost(host: string): boolean {
   const bare = host.toLowerCase().split(":")[0] ?? "";
   if (ALLOWED_HOSTS.has(bare)) return true;
+  if (bare === "localhost" || bare === "127.0.0.1") return true;
   // Preview deploys still need to round-trip OAuth on their own host.
   return bare.endsWith(".vercel.app");
 }
@@ -19,16 +20,21 @@ function hostAllowed(host: string): boolean {
  */
 export function resolveAppUrl(request?: Request): string {
   if (request) {
-    return originFromHeaders({
-      host: request.headers.get("x-forwarded-host"),
-      proto: request.headers.get("x-forwarded-proto"),
-      fallbackUrl: request.url,
-    });
+    return resolveRequestOrigin(request);
   }
 
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
   if (fromEnv && !/localhost|127\.0\.0\.1/i.test(fromEnv)) return fromEnv;
   return SITE_ORIGIN;
+}
+
+export function resolveRequestOrigin(request: Request): string {
+  const url = new URL(request.url);
+  return originFromHeaders({
+    host: request.headers.get("x-forwarded-host") ?? url.host,
+    proto: request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", ""),
+    fallbackUrl: request.url,
+  });
 }
 
 /** For Server Actions — read host from the incoming request headers. */
@@ -49,7 +55,7 @@ function originFromHeaders(opts: {
 }): string {
   if (opts.host) {
     const host = opts.host.split(",")[0]?.trim();
-    if (host && hostAllowed(host)) {
+    if (host && isAllowedAppHost(host)) {
       const proto =
         (opts.proto ?? "https").split(",")[0]?.trim() || "https";
       return `${proto}://${host}`;
@@ -59,7 +65,7 @@ function originFromHeaders(opts: {
     try {
       const origin = new URL(opts.fallbackUrl).origin;
       const host = new URL(opts.fallbackUrl).host;
-      if (hostAllowed(host)) return origin;
+      if (isAllowedAppHost(host)) return origin;
     } catch {
       // fall through
     }

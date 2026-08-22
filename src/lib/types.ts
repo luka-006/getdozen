@@ -72,6 +72,7 @@ export type RequestRow = {
   test_start_date: string | null;
   is_demo?: boolean;
   platform?: string | null;
+  duration_days?: number | null;
 };
 
 export type Question = {
@@ -109,6 +110,7 @@ export type TesterCommitment = {
   checkin_days: boolean[];
   status: CommitmentStatus;
   completes_at: string;
+  duration_days?: number;
   final_review_id: string | null;
   created_at: string;
 };

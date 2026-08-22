@@ -1,18 +1,19 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { SITE_ORIGIN } from "@/lib/app-url";
+import { resolveRequestOrigin } from "@/lib/app-url";
 import { isLaunchOpen } from "@/lib/launch";
 import { safeInternalPath } from "@/lib/safe-path";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { markWaitlistConfirmed } from "@/lib/waitlist";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
   const oauthError = searchParams.get("error");
   const oauthErrorDescription = searchParams.get("error_description");
   const cookieStore = await cookies();
+  const appOrigin = resolveRequestOrigin(request);
   let next = safeInternalPath(
     searchParams.get("next") ?? cookieStore.get("dozen_auth_next")?.value,
     isLaunchOpen() ? "/board" : "/waitlist/confirmed",
@@ -22,27 +23,18 @@ export async function GET(request: Request) {
     const description =
       oauthErrorDescription ?? oauthError ?? "Google sign-in was cancelled";
     return NextResponse.redirect(
-      `${SITE_ORIGIN}/login?error=${encodeURIComponent(description)}`,
+      `${appOrigin}/login?error=${encodeURIComponent(description)}`,
     );
   }
 
   if (!code) {
     if (!isLaunchOpen() || next.startsWith("/waitlist")) {
-      return NextResponse.redirect(`${SITE_ORIGIN}/auth/confirm?error=expired`);
+      return NextResponse.redirect(`${appOrigin}/auth/confirm?error=expired`);
     }
     return NextResponse.redirect(
-      `${SITE_ORIGIN}/login?error=${encodeURIComponent("Auth callback missing code")}`,
+      `${appOrigin}/login?error=${encodeURIComponent("Auth callback missing code")}`,
     );
   }
-
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const host = (forwardedHost ?? new URL(origin).host).split(",")[0].trim();
-  const safeHost =
-    host === "getdozen.dev" ||
-    host === "www.getdozen.dev" ||
-    host.endsWith(".vercel.app")
-      ? host
-      : "getdozen.dev";
 
   const pendingCookies: {
     name: string;
@@ -71,10 +63,10 @@ export async function GET(request: Request) {
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
     if (!isLaunchOpen() || next.startsWith("/waitlist")) {
-      return NextResponse.redirect(`${SITE_ORIGIN}/auth/confirm?error=expired`);
+      return NextResponse.redirect(`${appOrigin}/auth/confirm?error=expired`);
     }
     return NextResponse.redirect(
-      `${SITE_ORIGIN}/login?error=${encodeURIComponent(error.message)}`,
+      `${appOrigin}/login?error=${encodeURIComponent(error.message)}`,
     );
   }
 
@@ -113,13 +105,14 @@ export async function GET(request: Request) {
     }
   }
 
-  const redirectResponse = NextResponse.redirect(`https://${safeHost}${next}`);
+  const redirectResponse = NextResponse.redirect(`${appOrigin}${next}`);
   redirectResponse.cookies.set("dozen_auth_next", "", {
     path: "/",
     maxAge: 0,
   });
+  const secure = appOrigin.startsWith("https://");
   pendingCookies.forEach(({ name, value, options }) => {
-    redirectResponse.cookies.set(name, value, options);
+    redirectResponse.cookies.set(name, value, { ...options, secure });
   });
   return redirectResponse;
 }
