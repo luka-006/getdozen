@@ -14,6 +14,10 @@ export const RAMP_RATE = 0.5;
 export const SIGNUP_BONUS = 1;
 export const TESTER_COST = 2;
 export const TESTER_EARN = 2;
+export const MIN_TESTERS = 12;
+export const BUG_REPORT_AWARD = 2;
+export const BOOST_WAIT_DAYS = 3;
+export const BOOST_HOURS = 48;
 
 /** Testers + feedback bundles (cheaper than buying both separately). */
 export const COMBO_PACKS = [
@@ -45,8 +49,14 @@ export type ComboPackId = (typeof COMBO_PACKS)[number]["id"];
 export function getComboPack(id: string) {
   return COMBO_PACKS.find((pack) => pack.id === id) ?? null;
 }
-export const MAX_CONCURRENT_COMMITMENTS = 3;
-export const MAX_CONCURRENT_COMMITMENTS_PRO = 5;
+export const MAX_CONCURRENT_COMMITMENTS = 1;
+export const MAX_CONCURRENT_COMMITMENTS_PRO = 3;
+
+export const PRO_BENEFITS = [
+  "Test up to 3 apps at once (free plan: 1)",
+  "Your posts rank above free accounts on the board",
+  "Pro badge on posts and your profile",
+] as const;
 export const MAX_MISSED_CHECKINS = 3;
 export const TESTER_DAYS = 14;
 export const TESTER_DURATION_OPTIONS = [7, 14, 20, 30] as const;
@@ -106,7 +116,13 @@ export const QUESTION_LIBRARY = [
   },
 ] as const;
 
+/** Poster pays 1 credit per question. */
 export function creditCostForQuestionCount(count: number): number {
+  return Math.max(0, Math.floor(count));
+}
+
+/** Reviewer earn for a finished review (not 1:1 with the poster's spend). */
+export function reviewEarnForQuestionCount(count: number): number {
   if (count <= 15) return 1;
   if (count <= 25) return 1.5;
   return 2;

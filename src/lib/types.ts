@@ -73,6 +73,8 @@ export type RequestRow = {
   is_demo?: boolean;
   platform?: string | null;
   duration_days?: number | null;
+  boosted_until?: string | null;
+  boost_offer_sent_at?: string | null;
 };
 
 export type Question = {

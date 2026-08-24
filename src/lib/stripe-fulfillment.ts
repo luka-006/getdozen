@@ -1,4 +1,4 @@
-import { proAmountCents, resolveCreditOffer } from "./pricing";
+import { boostAmountCents, proAmountCents, resolveCreditOffer } from "./pricing";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -30,12 +30,19 @@ export type ProGrant = {
   sessionId: string;
 };
 
+export type BoostGrant = {
+  kind: "boost";
+  profileId: string;
+  requestId: string;
+  sessionId: string;
+};
+
 export type FulfillmentSkip = {
   kind: "skip";
   reason: string;
 };
 
-export type Fulfillment = CreditGrant | ProGrant | FulfillmentSkip;
+export type Fulfillment = CreditGrant | ProGrant | BoostGrant | FulfillmentSkip;
 
 function isUuid(value: string): boolean {
   return UUID_RE.test(value);
@@ -83,6 +90,20 @@ export function fulfillmentFromCheckout(session: CheckoutLike): Fulfillment {
   if (unpaid) return { kind: "skip", reason: unpaid };
 
   if (session.mode === "payment") {
+    if ((session.metadata?.kind ?? "") === "boost") {
+      const requestId = session.metadata?.request_id?.trim() ?? "";
+      if (!isUuid(requestId)) return { kind: "skip", reason: "request" };
+      if (session.amount_total !== boostAmountCents()) {
+        return { kind: "skip", reason: "amount_mismatch" };
+      }
+      return {
+        kind: "boost",
+        profileId,
+        requestId,
+        sessionId,
+      };
+    }
+
     const offer = resolveCreditOffer(session.metadata?.pack_id ?? "");
     if (!offer) return { kind: "skip", reason: "unknown_pack" };
     if (session.amount_total !== offer.amountCents) {

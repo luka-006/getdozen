@@ -170,6 +170,39 @@ describe("fulfillmentFromCheckout", () => {
     );
     assert.deepEqual(cheap, { kind: "skip", reason: "amount_mismatch" });
   });
+
+  it("grants a board boost only for a paid matching amount", () => {
+    const result = fulfillmentFromCheckout(
+      session({
+        amount_total: 500,
+        metadata: {
+          kind: "boost",
+          profile_id: PROFILE,
+          request_id: PROFILE,
+        },
+      }),
+    );
+    assert.deepEqual(result, {
+      kind: "boost",
+      profileId: PROFILE,
+      requestId: PROFILE,
+      sessionId: "cs_live_abc",
+    });
+  });
+
+  it("skips a cheap boost", () => {
+    const result = fulfillmentFromCheckout(
+      session({
+        amount_total: 100,
+        metadata: {
+          kind: "boost",
+          profile_id: PROFILE,
+          request_id: PROFILE,
+        },
+      }),
+    );
+    assert.deepEqual(result, { kind: "skip", reason: "amount_mismatch" });
+  });
 });
 
 describe("shouldActivateSubscription", () => {

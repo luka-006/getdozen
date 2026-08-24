@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { confirmReview, sendThanks } from "@/actions/reviews";
+import { awardReviewBug, confirmReview, sendThanks } from "@/actions/reviews";
 import { requireProfile } from "@/lib/auth";
+import { BUG_REPORT_AWARD } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatDistanceToNowStrict } from "date-fns";
 
@@ -104,6 +105,13 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
     addSuffix: true,
   });
 
+  const { data: bugAward } = await admin
+    .from("credit_ledger")
+    .select("id")
+    .eq("reason", "review_bug_award")
+    .eq("ref_id", review.id)
+    .maybeSingle();
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <p className="text-[13px] text-ink/55">
@@ -186,6 +194,24 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
           Status: {review.confirm_status}
         </p>
       )}
+
+      {review.confirm_status !== "rejected" ? (
+        bugAward ? (
+          <p className="mt-6 text-[13px] text-ink/60">
+            Awarded {BUG_REPORT_AWARD} credits for a proper bug report
+          </p>
+        ) : (
+          <form action={awardReviewBug} className="mt-6">
+            <input type="hidden" name="review_id" value={review.id} />
+            <button type="submit" className="btn btn-secondary">
+              Award {BUG_REPORT_AWARD} credits
+            </button>
+            <p className="mt-2 text-[12px] text-ink/55">
+              If this review includes a real bug, award 2 credits.
+            </p>
+          </form>
+        )
+      ) : null}
 
       {review.confirm_status === "confirmed" ? (
         <form action={sendThanks} className="mt-8 space-y-3">

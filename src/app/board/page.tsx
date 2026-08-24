@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { TrackTabs } from "@/components/track-tabs";
 import { DayStrip } from "@/components/day-strip";
-import { PLATFORMS, TESTER_DAYS } from "@/lib/constants";
+import { PLATFORMS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/constants";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { testerCubes } from "@/lib/tester-progress";
 import { formatCredits, formatWaitLabel, waitHours } from "@/lib/utils";
+import { isBoostActive } from "@/lib/boost";
 import type { Profile, RequestRow } from "@/lib/types";
 
 type Props = {
@@ -131,6 +132,9 @@ export default async function BoardPage({ searchParams }: Props) {
   );
 
   const sorted = [...rows].sort((a, b) => {
+    const aBoost = isBoostActive(a.boosted_until) ? 1 : 0;
+    const bBoost = isBoostActive(b.boosted_until) ? 1 : 0;
+    if (aBoost !== bBoost) return bBoost - aBoost;
     const aPro = profileMap.get(a.user_id)?.is_pro ? 1 : 0;
     const bPro = profileMap.get(b.user_id)?.is_pro ? 1 : 0;
     if (aPro !== bPro) return bPro - aPro;
@@ -235,11 +239,13 @@ export default async function BoardPage({ searchParams }: Props) {
                 ? null
                 : request.duration_days ?? TESTER_DAYS;
             const payout =
-              Number(request.bounty_multiplier) > 1
-                ? formatCredits(
-                    Number(request.credit_cost) *
-                      Number(request.bounty_multiplier),
-                  )
+              type === "feedback" || type === "combo"
+                ? Number(request.bounty_multiplier) > 1
+                  ? formatCredits(
+                      reviewEarnForQuestionCount(request.question_count) *
+                        Number(request.bounty_multiplier),
+                    )
+                  : null
                 : null;
             const mine = duration ? myByRequest.get(request.id) : undefined;
             const cubes = duration
@@ -283,7 +289,9 @@ export default async function BoardPage({ searchParams }: Props) {
                         {payout}
                       </span>
                     ) : null}
-                    {owner?.is_pro ? (
+                    {isBoostActive(request.boosted_until) ? (
+                      <span className="text-[12px] text-blue">Boost</span>
+                    ) : owner?.is_pro ? (
                       <span className="text-[12px] text-blue">Pro</span>
                     ) : null}
                   </div>

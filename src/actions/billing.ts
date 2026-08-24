@@ -9,6 +9,7 @@ import {
   stripeConfigured,
 } from "@/lib/stripe";
 import {
+  boostAmountCents,
   getStripePriceId,
   PRO_PRICE_ENV,
   PRO_PRICE_EUR,
@@ -16,6 +17,8 @@ import {
 } from "@/lib/pricing";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { stripeCheckoutLegal } from "@/lib/checkout-legal";
+import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
+import { BOOST_HOURS, PRO_BENEFITS } from "@/lib/constants";
 import {
   CREDIT_PAYMENT_LINKS,
   PRO_PAYMENT_LINK,
@@ -264,8 +267,7 @@ export async function startProSubscription() {
                 recurring: { interval: "month" },
                 product_data: {
                   name: "Dozen Pro",
-                  description:
-                    "5 concurrent tester slots, board boost, 48-hour review guarantee",
+                  description: PRO_BENEFITS.join(" · "),
                 },
               },
             },
@@ -312,4 +314,80 @@ export async function openBillingPortal() {
   });
 
   redirect(portal.url);
+}
+
+export async function purchaseBoardBoost(formData: FormData) {
+  const profile = await requireProfile();
+  const requestId = String(formData.get("request_id") ?? "").trim();
+  const returnTo = `/requests/${requestId}`;
+
+  if (!requestId) {
+    redirect(`/board?error=${encodeURIComponent("Missing request")}`);
+  }
+
+  if (!stripeConfigured()) {
+    redirect(
+      `${returnTo}?error=${encodeURIComponent("Stripe not configured yet")}`,
+    );
+  }
+
+  const admin = createAdminClient();
+  const { data: request } = await admin
+    .from("requests")
+    .select("id, user_id, status, created_at, boosted_until")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (!request || request.user_id !== profile.id) {
+    redirect(`${returnTo}?error=${encodeURIComponent("That post is not yours")}`);
+  }
+  if (request.status !== "open") {
+    redirect(`${returnTo}?error=${encodeURIComponent("That post is not open")}`);
+  }
+  if (isBoostActive(request.boosted_until)) {
+    redirect(`${returnTo}?error=${encodeURIComponent("Already on top")}`);
+  }
+  if (!canBuyBoardBoost(request.created_at)) {
+    redirect(
+      `${returnTo}?error=${encodeURIComponent("Boost is available after 3 days on the board")}`,
+    );
+  }
+
+  const customerId = await ensureStripeCustomer(
+    profile as typeof profile & { stripe_customer_id?: string | null },
+  );
+  const baseUrl = await siteUrl();
+
+  const session = await createCheckoutSession({
+    mode: "payment",
+    customer: customerId,
+    client_reference_id: profile.id,
+    integration_identifier: checkoutIntegrationId("boost"),
+    metadata: {
+      kind: "boost",
+      profile_id: profile.id,
+      request_id: request.id,
+    },
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: "eur",
+          unit_amount: boostAmountCents(),
+          product_data: {
+            name: "Dozen board boost",
+            description: `${BOOST_HOURS} hours on top of the board`,
+          },
+        },
+      },
+    ],
+    success_url: `${baseUrl}${returnTo}?message=${encodeURIComponent("Checkout finished. The boost lands after Stripe confirms.")}`,
+    cancel_url: `${baseUrl}${returnTo}?error=${encodeURIComponent("Checkout cancelled")}`,
+  });
+
+  if (!session.url) {
+    redirect(`${returnTo}?error=${encodeURIComponent("Could not start checkout")}`);
+  }
+
+  redirect(session.url);
 }

@@ -42,6 +42,13 @@ export default async function NewRequestPage({ searchParams }: Props) {
           <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-ink">
             {formatCredits(profile.credits)}
           </span>
+          <span>
+            {track === "feedback"
+              ? "1 credit per question"
+              : track === "tester"
+                ? "2 credits per tester · min 12"
+                : "Pack price as listed"}
+          </span>
         </p>
       </div>
 

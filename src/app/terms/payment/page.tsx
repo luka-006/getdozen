@@ -3,7 +3,7 @@ import Link from "next/link";
 import { LegalDoc, LegalH } from "@/components/legal-doc";
 import { CREDIT_EXPIRY_MONTHS } from "@/lib/constants";
 import { LEGAL } from "@/lib/legal";
-import { EUR_PER_CREDIT, PRO_PRICE_EUR } from "@/lib/pricing";
+import { EUR_PER_CREDIT, PRO_PRICE_EUR, BOOST_PRICE_EUR } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -45,6 +45,11 @@ export default function PaymentTermsPage() {
           / month, billed until you cancel. Benefits are shown on the pricing
           and wallet pages at the time you pay.
         </li>
+        <li>
+          <strong>Board boost</strong> — a one-time €{BOOST_PRICE_EUR} pin that
+          puts an open post on top of the board for 48 hours. Offered after a
+          post has waited 3 days.
+        </li>
       </ul>
       <p>
         Credits are not money, not e-money, and not withdrawable except as a
@@ -64,13 +69,13 @@ export default function PaymentTermsPage() {
         Checkout is Stripe-hosted. We do not see or store full card numbers,
         CVC, or expiry. Stripe is the payment service provider. The purchase
         contract is formed when Stripe confirms the payment to our server —
-        not when the browser returns from checkout. Credits and Pro are
-        granted only after that confirmation.
+        not when the browser returns from checkout. Credits, Pro, and board
+        boosts are granted only after that confirmation.
       </p>
       <p>
         If a payment is declined, delayed, or reversed, we do not supply the
-        credits or Pro until funds are confirmed. Chargebacks may freeze or
-        reverse the matching credits or Pro period.
+        credits, Pro, or boost until funds are confirmed. Chargebacks may freeze or
+        reverse the matching credits, Pro period, or boost.
       </p>
 
       <LegalH>Immediate supply and withdrawal</LegalH>

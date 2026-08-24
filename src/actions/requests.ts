@@ -9,6 +9,7 @@ import {
   FOCUS_TAGS,
   MAX_QUESTIONS,
   MIN_QUESTIONS,
+  MIN_TESTERS,
   PLATFORMS,
   REQUEST_EXPIRY_DAYS,
   TESTER_COST,
@@ -46,7 +47,7 @@ const testerSchema = z.object({
   app_description: z.string().min(20).max(2000),
   platform: z.enum(PLATFORMS).default("android"),
   opt_in_link: z.string().url(),
-  testers_needed: z.number().int().min(1).max(100).default(12),
+  testers_needed: z.number().int().min(MIN_TESTERS).max(100).default(MIN_TESTERS),
   duration_days: z.coerce
     .number()
     .int()
@@ -96,6 +97,10 @@ function formatZodError(error: z.ZodError): string {
     if (path[2] === "suggestions") {
       return `Question ${n}: check suggested answers`;
     }
+  }
+
+  if (root === "testers_needed" && issue.code === "too_small") {
+    return `Need at least ${MIN_TESTERS} testers`;
   }
 
   if (issue.code === "too_small" && issue.origin === "string") {
@@ -302,7 +307,7 @@ export async function createTesterRequest(
     app_description: formData.get("app_description"),
     platform: formData.get("platform") || "android",
     opt_in_link: formData.get("opt_in_link"),
-    testers_needed: Number(formData.get("testers_needed") ?? 12),
+    testers_needed: Number(formData.get("testers_needed") ?? MIN_TESTERS),
     duration_days: Number(formData.get("duration_days") ?? 14),
     test_focus: formData.get("test_focus"),
     test_start_date: formData.get("test_start_date"),

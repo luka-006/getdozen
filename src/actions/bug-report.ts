@@ -1,14 +1,17 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { requestIp } from "@/lib/assert-human";
-import { getSessionUser } from "@/lib/auth";
-import { checkBotGuard } from "@/lib/bot-guard";
+import { getSessionUser, requireProfile } from "@/lib/auth";
+import { grantBugReportAward } from "@/lib/bug-award";
+import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import {
   bugMailBrowserPayload,
   parseBugReport,
   saveSiteBugReport,
   sendBugReportEmail,
 } from "@/lib/bug-mail";
+import { checkBotGuard } from "@/lib/bot-guard";
 
 export async function submitBugReport(formData: FormData) {
   const guard = await checkBotGuard(formData, await requestIp(), "bug");
@@ -21,11 +24,24 @@ export async function submitBugReport(formData: FormData) {
   const saved = await saveSiteBugReport(parsed, user?.id ?? null);
   if (!saved.ok) return saved;
 
-  const mailed = await sendBugReportEmail(parsed);
+  const awardUrl = bugAwardClickUrl(saved.id);
+  const mailed = await sendBugReportEmail(parsed, awardUrl);
   if (mailed.ok) return { ok: true as const };
 
   return {
     ok: true as const,
-    mail: bugMailBrowserPayload(parsed),
+    mail: bugMailBrowserPayload(parsed, awardUrl),
   };
+}
+
+export async function awardBugReport(formData: FormData) {
+  const profile = await requireProfile();
+  if (!profile.is_admin) redirect("/board");
+
+  const bugId = String(formData.get("bug_id") ?? "");
+  const result = await grantBugReportAward(bugId);
+  const params = new URLSearchParams();
+  if (bugId) params.set("bug", bugId);
+  params.set("message", result.message);
+  redirect(`/admin?${params.toString()}`);
 }

@@ -14,6 +14,7 @@ import {
   earnAmountForReview,
   maybeGiftFirstReview,
 } from "@/lib/credits";
+import { grantReviewBugAward } from "@/lib/bug-award";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -441,4 +442,13 @@ export async function sendThanks(formData: FormData) {
   });
 
   redirect(`/reviews/${reviewId}/confirm?message=Thanks sent.`);
+}
+
+export async function awardReviewBug(formData: FormData) {
+  const profile = await requireProfile();
+  const reviewId = String(formData.get("review_id") ?? "");
+  const result = await grantReviewBugAward(reviewId, profile.id);
+  const params = new URLSearchParams();
+  params.set(result.ok ? "message" : "error", result.message);
+  redirect(`/reviews/${reviewId}/confirm?${params.toString()}`);
 }

@@ -48,7 +48,7 @@ export default async function TestersPage({ searchParams }: Props) {
       <h1 className="font-display text-[32px] font-semibold">My tests</h1>
       <p className="mt-1 font-mono text-[13px] text-ink/65">
         {activeCount} / {maxSlots}
-        {profile.is_pro ? " · Pro" : ""}
+        {profile.is_pro ? " · Pro" : " · 1 at a time · Pro is 3"}
       </p>
 
       {query.error ? (

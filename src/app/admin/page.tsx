@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { awardBugReport } from "@/actions/bug-report";
 import { requireProfile } from "@/lib/auth";
+import { BUG_REPORT_AWARD } from "@/lib/constants";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 async function banUser(formData: FormData) {
@@ -14,7 +16,7 @@ async function banUser(formData: FormData) {
 }
 
 type Props = {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; bug?: string }>;
 };
 
 export default async function AdminPage({ searchParams }: Props) {
@@ -33,7 +35,9 @@ export default async function AdminPage({ searchParams }: Props) {
 
   const { data: siteBugs } = await admin
     .from("site_bug_reports")
-    .select("id, summary, details, email, page, created_at")
+    .select(
+      "id, summary, details, email, page, created_at, user_id, awarded_at, awarded_credits",
+    )
     .order("created_at", { ascending: false })
     .limit(50);
 
@@ -43,6 +47,8 @@ export default async function AdminPage({ searchParams }: Props) {
     .order("created_at", { ascending: false })
     .limit(30);
 
+  const focusedBug = (siteBugs ?? []).find((bug) => bug.id === query.bug);
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Admin</h1>
@@ -51,24 +57,67 @@ export default async function AdminPage({ searchParams }: Props) {
         <p className="mt-4 text-[13px]">{query.message}</p>
       ) : null}
 
+      {focusedBug && !focusedBug.awarded_at ? (
+        <section
+          id="award"
+          className="mt-8 rounded-[6px] border border-border bg-mist px-4 py-4"
+        >
+          <p className="font-display text-[20px] font-semibold">Award this report</p>
+          <p className="mt-2 font-medium">{focusedBug.summary}</p>
+          <p className="mt-1 whitespace-pre-wrap text-[13px] text-ink/75">
+            {focusedBug.details}
+          </p>
+          <form action={awardBugReport} className="mt-3">
+            <input type="hidden" name="bug_id" value={focusedBug.id} />
+            <button type="submit" className="btn btn-primary">
+              Award {BUG_REPORT_AWARD} credits
+            </button>
+          </form>
+        </section>
+      ) : null}
+
       <section className="mt-8">
         <h2 className="font-display text-[24px] font-semibold">Site bugs</h2>
         <div className="mt-4 border-t border-border">
           {(siteBugs ?? []).length === 0 ? (
             <p className="py-6 text-ink/65">No site bug reports yet.</p>
           ) : (
-            (siteBugs ?? []).map((bug) => (
-              <div key={bug.id} className="border-b border-border py-3">
-                <p className="font-medium">{bug.summary}</p>
-                <p className="mt-1 whitespace-pre-wrap text-[13px] text-ink/75">
-                  {bug.details}
-                </p>
-                <p className="mt-1 font-mono text-[12px] text-ink/55">
-                  {bug.page} · {bug.email || "no email"} ·{" "}
-                  {new Date(bug.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))
+            (siteBugs ?? []).map((bug) => {
+              const highlight = query.bug === bug.id;
+              return (
+                <div
+                  key={bug.id}
+                  id={`bug-${bug.id}`}
+                  className={`border-b border-border py-3 ${
+                    highlight ? "bg-mist/60" : ""
+                  }`}
+                >
+                  <p className="font-medium">{bug.summary}</p>
+                  <p className="mt-1 whitespace-pre-wrap text-[13px] text-ink/75">
+                    {bug.details}
+                  </p>
+                  <p className="mt-1 font-mono text-[12px] text-ink/55">
+                    {bug.page} · {bug.email || "no email"} ·{" "}
+                    {new Date(bug.created_at).toLocaleString()}
+                    {bug.user_id ? "" : " · no account"}
+                  </p>
+                  <div className="mt-2">
+                    {bug.awarded_at ? (
+                      <p className="text-[13px] text-ink/60">
+                        Awarded {bug.awarded_credits ?? BUG_REPORT_AWARD} credits
+                      </p>
+                    ) : (
+                      <form action={awardBugReport}>
+                        <input type="hidden" name="bug_id" value={bug.id} />
+                        <button type="submit" className="btn btn-secondary">
+                          Award {BUG_REPORT_AWARD} credits
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              );
+            })
           )}
         </div>
       </section>

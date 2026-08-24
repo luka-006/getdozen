@@ -48,7 +48,7 @@ export function BugReportButton({ email = "" }: { email?: string }) {
             <div className="space-y-3">
               <p className="font-display text-[16px] font-semibold">Sent</p>
               <p className="text-[13px] text-ink/70">
-                Thanks. We will look at it.
+                Thanks. A proper report can earn 2 credits.
               </p>
               <button
                 type="button"

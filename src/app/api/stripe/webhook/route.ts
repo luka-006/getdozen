@@ -6,6 +6,7 @@ import {
   fulfillmentFromCheckout,
   shouldActivateSubscription,
 } from "@/lib/stripe-fulfillment";
+import { boostedUntilFrom } from "@/lib/boost";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -32,7 +33,7 @@ async function releaseEvent(eventId: string) {
 async function claimSessionGrant(params: {
   sessionId: string;
   profileId: string;
-  kind: "credits" | "pro";
+  kind: "credits" | "pro" | "boost";
   credits: number | null;
 }) {
   const admin = createAdminClient();
@@ -128,6 +129,23 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
         .update({ stripe_customer_id: customerId })
         .eq("id", decision.profileId);
     }
+    return;
+  }
+
+  if (decision.kind === "boost") {
+    const admin = createAdminClient();
+    const { data: request } = await admin
+      .from("requests")
+      .select("id, user_id, status")
+      .eq("id", decision.requestId)
+      .maybeSingle();
+    if (!request || request.user_id !== decision.profileId) return;
+    if (request.status !== "open") return;
+    await admin
+      .from("requests")
+      .update({ boosted_until: boostedUntilFrom() })
+      .eq("id", decision.requestId)
+      .eq("user_id", decision.profileId);
     return;
   }
 

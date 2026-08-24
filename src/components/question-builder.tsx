@@ -150,12 +150,15 @@ export function QuestionBuilder({
             <p className="text-[13px] text-ink/60">
               {needExact
                 ? `Need ${needExact} total (core + yours + proof).`
-                : `${MIN_QUESTIONS}+ total. Optional answer chips.`}
+                : `${MIN_QUESTIONS}+ total · 1 credit each. Adding a question costs +1.`}
             </p>
           </div>
           <button type="button" className="btn btn-secondary" onClick={addQuestion}>
             <PlusIcon />
             Add
+            {showCost ? (
+              <span className="ml-1 text-[12px] font-normal text-ink/55">+1 credit</span>
+            ) : null}
           </button>
         </div>
 
@@ -186,7 +189,9 @@ export function QuestionBuilder({
                 placeholder="Ask one thing (8+ chars)"
               />
               <div className="space-y-2">
-                <p className="text-[12px] text-ink/55">Suggested answers</p>
+                <p className="text-[12px] text-ink/55">
+                  Suggested answers · optional, no extra cost
+                </p>
                 {item.suggestions.map((s, sIndex) => (
                   <input
                     key={sIndex}
@@ -236,6 +241,9 @@ export function QuestionBuilder({
                       onClick={() => addFromLibrary(q)}
                     >
                       <span className="flex-1 text-left">{q}</span>
+                      {showCost ? (
+                        <span className="text-[11px] text-ink/45">+1 credit</span>
+                      ) : null}
                       <span className="library-chip-add">
                         <PlusIcon className="h-3.5 w-3.5" />
                       </span>
@@ -250,6 +258,7 @@ export function QuestionBuilder({
 
       <section className="space-y-3">
         <h2 className="font-display text-[22px] font-semibold">Proof</h2>
+        <p className="text-[12px] text-ink/55">Required · counts as +1 credit</p>
         <div className="field">
           <label htmlFor="proof_question">Question</label>
           <input
@@ -288,7 +297,7 @@ export function QuestionBuilder({
             <span className="inline-flex items-center gap-1 rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-ink">
               {formatCredits(cost)}
             </span>{" "}
-            credits
+            credits · 1 each
           </span>
           {needExact && !exactOk ? (
             <span className="text-[13px] text-flag">

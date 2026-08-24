@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { bugAwardAdminUrl, bugAwardClickUrl } from "./bug-award-token";
 import { bugMailBrowserPayload, parseBugReport } from "./bug-mail";
 
 describe("parseBugReport", () => {
@@ -37,15 +38,35 @@ describe("parseBugReport", () => {
   });
 
   it("builds a browser mail payload after a valid report", () => {
-    const payload = bugMailBrowserPayload({
-      summary: "Board filter does not stick",
-      details: "I chose UX then refreshed and it reset.",
-      email: "maker@example.com",
-      page: "/board",
-    });
+    const award =
+      "https://getdozen.dev/api/admin/award-bug?bug=82b16889-909d-496b-afc8-a7580f4b64ad&sig=abc";
+    const payload = bugMailBrowserPayload(
+      {
+        summary: "Board filter does not stick",
+        details: "I chose UX then refreshed and it reset.",
+        email: "maker@example.com",
+        page: "/board",
+      },
+      award,
+    );
     assert.equal(payload.url.includes("formsubmit.co/ajax/"), true);
     assert.equal(payload.body.page, "/board");
     assert.equal(payload.body.email, "maker@example.com");
+    assert.equal(payload.body.Award, award);
+  });
+
+  it("builds a signed Award click URL when secret is set", () => {
+    process.env.CRON_SECRET = "test-secret";
+    const url = bugAwardClickUrl("82b16889-909d-496b-afc8-a7580f4b64ad");
+    assert.equal(url.includes("/api/admin/award-bug?"), true);
+    assert.equal(url.includes("sig="), true);
+    delete process.env.CRON_SECRET;
+  });
+
+  it("builds an admin Award URL", () => {
+    const url = bugAwardAdminUrl("82b16889-909d-496b-afc8-a7580f4b64ad");
+    assert.equal(url.includes("/admin?bug=82b16889-909d-496b-afc8-a7580f4b64ad"), true);
+    assert.equal(url.endsWith("#award"), true);
   });
 
   it("rejects an open redirect in the page field", () => {

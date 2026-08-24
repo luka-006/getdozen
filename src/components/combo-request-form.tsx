@@ -67,7 +67,8 @@ export function ComboRequestForm({ balance, action }: Props) {
           ))}
         </select>
         <p className="mt-1 text-[13px] text-ink/60">
-          Cheaper than testers + feedback bought separately.
+          Cheaper than testers + feedback bought separately. A bigger pack
+          costs more.
         </p>
       </div>
 

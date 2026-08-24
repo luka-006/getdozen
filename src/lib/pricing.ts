@@ -33,6 +33,7 @@ export const PRO_PRICE_EUR = 12;
 export const PRO_PRICE_ENV = "STRIPE_PRICE_PRO_MONTHLY";
 /** Base rate for custom amounts (packs may discount). */
 export const EUR_PER_CREDIT = 1;
+export const BOOST_PRICE_EUR = 5;
 
 export type CreditPackId = (typeof CREDIT_PACKS)[number]["id"];
 
@@ -86,4 +87,8 @@ export function resolveCreditOffer(packId: string): CreditOffer | null {
 
 export function proAmountCents() {
   return Math.round(PRO_PRICE_EUR * 100);
+}
+
+export function boostAmountCents() {
+  return Math.round(BOOST_PRICE_EUR * 100);
 }

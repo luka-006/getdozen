@@ -7,7 +7,7 @@ import {
 } from "@/lib/request-form";
 import { PlatformField } from "@/components/platform-field";
 import { StarIcon } from "@/components/icons";
-import { TESTER_COST, TESTER_DURATION_OPTIONS } from "@/lib/constants";
+import { MIN_TESTERS, TESTER_COST, TESTER_DURATION_OPTIONS } from "@/lib/constants";
 import { randomDescriptionExample, TESTER_COUNT_OPTIONS } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -30,7 +30,7 @@ export function TesterRequestForm({ action }: Props) {
     action,
     emptyRequestFormState,
   );
-  const [testersNeeded, setTestersNeeded] = useState<number>(12);
+  const [testersNeeded, setTestersNeeded] = useState<number>(MIN_TESTERS);
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
     "What it does",
   );
@@ -122,6 +122,12 @@ export function TesterRequestForm({ action }: Props) {
             </option>
           ))}
         </select>
+        <p className="text-[12px] text-ink/55">
+          {TESTER_COST} credits per tester · minimum {MIN_TESTERS}.
+          {testersNeeded > MIN_TESTERS
+            ? ` +${(testersNeeded - MIN_TESTERS) * TESTER_COST} credits above the minimum.`
+            : " Raising this costs more."}
+        </p>
       </div>
       <div className="field">
         <label htmlFor="duration_days">

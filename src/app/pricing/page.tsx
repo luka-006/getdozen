@@ -1,21 +1,46 @@
 import Link from "next/link";
+import { CustomCreditsBuy } from "@/components/custom-credits-buy";
+import { getProfile } from "@/lib/auth";
+import { canPurchaseCredits } from "@/lib/credits";
+import {
+  COMBO_PACKS,
+  MIN_TESTERS,
+  PRO_BENEFITS,
+  TESTER_COST,
+} from "@/lib/constants";
 import { CREDIT_PACKS, EUR_PER_CREDIT, PRO_PRICE_EUR } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
   title: "Pricing",
   description:
-    "Credit packs and Pro on Dozen. Buy credits to post tester and feedback requests.",
+    "Credit packs, custom amounts, and Pro on Dozen. Buy credits to post tester and feedback requests.",
   path: "/pricing",
 });
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const profile = await getProfile();
+  const customBlocked = profile
+    ? !canPurchaseCredits(profile, 1).ok
+    : false;
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Pricing</h1>
       <p className="mt-1 text-[14px] text-ink/65">
         Base rate €{EUR_PER_CREDIT} / credit. Bigger packs cost less.
       </p>
+
+      <section className="mt-8 space-y-3">
+        <h2 className="font-display text-[22px] font-semibold">How posting works</h2>
+        <ul className="list-disc space-y-1 pl-5 text-[14px] text-ink/70">
+          <li>Feedback: 1 credit per question. 12 questions = 12 credits.</li>
+          <li>
+            Testers: {TESTER_COST} credits per tester, minimum {MIN_TESTERS}.
+          </li>
+          <li>Combo packs keep the prices below — cheaper than buying both.</li>
+        </ul>
+      </section>
 
       <section className="mt-8 space-y-3">
         <h2 className="font-display text-[22px] font-semibold">Credits</h2>
@@ -48,6 +73,46 @@ export default function PricingPage() {
               </div>
             );
           })}
+          {profile ? (
+            <CustomCreditsBuy
+              returnTo="/pricing"
+              blocked={customBlocked}
+            />
+          ) : (
+            <div className="surface flex flex-wrap items-center justify-between gap-4 px-5 py-5">
+              <div>
+                <p className="font-display text-[20px] font-semibold">Custom</p>
+                <p className="mt-1 text-[13px] text-ink/55">
+                  Any amount · €{EUR_PER_CREDIT} each
+                </p>
+              </div>
+              <Link href="/login" className="btn btn-primary">
+                Sign in to buy
+              </Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="mt-10 space-y-3">
+        <h2 className="font-display text-[22px] font-semibold">Combo packs</h2>
+        <div className="space-y-3">
+          {COMBO_PACKS.map((pack) => (
+            <div
+              key={pack.id}
+              className="surface flex flex-wrap items-center justify-between gap-4 px-5 py-5"
+            >
+              <p className="font-display text-[18px] font-semibold">
+                {pack.label}
+              </p>
+              <p className="font-display text-[28px] font-semibold tracking-tight">
+                {pack.credits}
+                <span className="ml-1 font-sans text-[14px] font-normal text-ink/55">
+                  credits
+                </span>
+              </p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -57,9 +122,12 @@ export default function PricingPage() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="font-display text-[20px] font-semibold">Monthly</p>
-              <p className="mt-1 text-[14px] text-ink/65">
-                5 tester slots · board boost · 48h review guarantee
-              </p>
+              <p className="mt-1 text-[14px] text-ink/65">What Pro includes</p>
+              <ul className="mt-3 list-disc space-y-1 pl-5 text-[14px] text-ink/70">
+                {PRO_BENEFITS.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </div>
             <p className="font-display text-[36px] font-semibold tracking-tight">
               €{PRO_PRICE_EUR}
@@ -74,6 +142,10 @@ export default function PricingPage() {
       <p className="mt-10 text-[13px] text-ink/65">
         <Link href="/signup" className="text-blue">
           Create account
+        </Link>
+        {" · "}
+        <Link href="/wallet" className="text-blue">
+          Wallet
         </Link>
         {" · "}
         <Link href="/terms/payment" className="text-blue">

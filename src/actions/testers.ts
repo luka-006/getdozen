@@ -58,7 +58,13 @@ export async function joinTesterRequest(formData: FormData) {
     .eq("status", "active");
 
   if ((count ?? 0) >= maxSlots) {
-    redirect(`/requests/${requestId}?error=${encodeURIComponent(`Max ${maxSlots} concurrent commitments`)}`);
+    redirect(
+      `/requests/${requestId}?error=${encodeURIComponent(
+        profile.is_pro
+          ? `You're already testing ${maxSlots} apps`
+          : `You're already testing ${maxSlots} app. Pro lets you test ${MAX_CONCURRENT_COMMITMENTS_PRO} at once.`,
+      )}`,
+    );
   }
 
   const emailHash = hashEmail(googleEmail);

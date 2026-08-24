@@ -5,6 +5,7 @@ import {
   FIRST_REVIEW_GIFT,
   RAMP_RATE,
   RAMP_REVIEW_COUNT,
+  reviewEarnForQuestionCount,
   SIGNUP_BONUS,
 } from "@/lib/constants";
 import { isLaunchBonusActive } from "@/lib/utils";
@@ -39,7 +40,7 @@ export function earnAmountForReview(
   profile: Pick<Profile, "reviews_given" | "is_ramped">,
   bountyMultiplier = 1,
 ): number {
-  let amount = creditCostForQuestionCount(questionCount) * bountyMultiplier;
+  let amount = reviewEarnForQuestionCount(questionCount) * bountyMultiplier;
   if (!profile.is_ramped && profile.reviews_given < RAMP_REVIEW_COUNT) {
     amount *= RAMP_RATE;
   }
@@ -117,4 +118,8 @@ export function withBounty(base: number, multiplier: number): number {
   return Number((base * (multiplier || 1)).toFixed(2));
 }
 
-export { BOUNTY_MULTIPLIER, creditCostForQuestionCount };
+export {
+  BOUNTY_MULTIPLIER,
+  creditCostForQuestionCount,
+  reviewEarnForQuestionCount,
+};

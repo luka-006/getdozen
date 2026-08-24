@@ -2,20 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { joinTesterRequest } from "@/actions/testers";
+import { purchaseBoardBoost } from "@/actions/billing";
 import { TesterProgressRow } from "@/components/day-strip";
 import { PackProgress } from "@/components/pack-progress";
 import { requireProfile } from "@/lib/auth";
 import { pageMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { TESTER_DAYS } from "@/lib/constants";
+import { BOOST_HOURS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/constants";
 import { decryptCredentials } from "@/lib/crypto";
+import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
+import { BOOST_PRICE_EUR } from "@/lib/pricing";
 import { formatCredits, formatWait } from "@/lib/utils";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; message?: string }>;
 };
 
 export async function generateMetadata({
@@ -159,6 +162,34 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
       {query.error ? (
         <p className="mt-4 text-[13px] text-flag">{query.error}</p>
       ) : null}
+      {query.message ? (
+        <p className="mt-4 text-[13px] text-ink/80">{query.message}</p>
+      ) : null}
+
+      {isOwner && row.status === "open" && isBoostActive(row.boosted_until) ? (
+        <p className="mt-4 text-[13px] text-ink/70">
+          On top of the board until{" "}
+          {new Date(row.boosted_until!).toLocaleString()}
+        </p>
+      ) : null}
+
+      {isOwner &&
+      row.status === "open" &&
+      !isBoostActive(row.boosted_until) &&
+      canBuyBoardBoost(row.created_at) ? (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[6px] border border-border bg-mist px-4 py-3">
+          <p className="text-[13px] text-ink/75">
+            Pin this post to the top of the board for {BOOST_HOURS} hours · €
+            {BOOST_PRICE_EUR}.
+          </p>
+          <form action={purchaseBoardBoost}>
+            <input type="hidden" name="request_id" value={row.id} />
+            <button type="submit" className="btn btn-secondary">
+              Boost €{BOOST_PRICE_EUR}
+            </button>
+          </form>
+        </div>
+      ) : null}
 
       <dl className="mt-6 grid gap-3 text-[15px]">
         <div className="flex justify-between gap-4 border-b border-border py-2">
@@ -184,10 +215,21 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dd className="font-mono">{row.question_count}</dd>
             </div>
             <div className="flex justify-between gap-4 border-b border-border py-2">
-              <dt className="text-ink/60">Credit cost / earn</dt>
+              <dt className="text-ink/60">Posted for</dt>
               <dd>
                 <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
-                  {formatCredits(Number(row.credit_cost) * Number(row.bounty_multiplier))}
+                  {formatCredits(Number(row.credit_cost))}
+                </span>
+              </dd>
+            </div>
+            <div className="flex justify-between gap-4 border-b border-border py-2">
+              <dt className="text-ink/60">Reviewer earn</dt>
+              <dd>
+                <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
+                  {formatCredits(
+                    reviewEarnForQuestionCount(row.question_count) *
+                      Number(row.bounty_multiplier),
+                  )}
                 </span>
                 {Number(row.bounty_multiplier) > 1 ? (
                   <span className="ml-2 text-[13px] text-ink/60">
