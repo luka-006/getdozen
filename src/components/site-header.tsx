@@ -3,6 +3,7 @@ import { Avatar } from "@/components/avatar";
 import { CreditBadge } from "@/components/credit-badge";
 import { DozenMark } from "@/components/dozen-mark";
 import { MobileNav } from "@/components/mobile-nav";
+import { NavLink } from "@/components/nav-link";
 import type { Profile } from "@/lib/types";
 
 export function SiteHeader({
@@ -35,6 +36,7 @@ export function SiteHeader({
         { href: "/board", label: "Board" },
         { href: "/requests/new", label: "Post" },
         { href: "/testers", label: "My tests" },
+        { href: "/blog", label: "Blog" },
         { href: "/wallet", label: "Wallet" },
         { href: `/profile/${profile.id}`, label: "Profile" },
       ]
@@ -59,13 +61,7 @@ export function SiteHeader({
           </Link>
           <nav className="hidden items-center gap-4 sm:flex">
             {links.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="text-[13px] text-ink/80 hover:text-blue"
-              >
-                {link.label}
-              </Link>
+              <NavLink key={link.href} href={link.href} label={link.label} />
             ))}
           </nav>
         </div>

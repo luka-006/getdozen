@@ -1,16 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { DropdownPanel } from "@/components/dropdown-panel";
 
 type NavLink = { href: string; label: string };
 
 export function MobileNav({ links }: { links: NavLink[] }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const pathname = usePathname();
 
   return (
-    <div className="sm:hidden">
+    <div className="relative sm:hidden">
       <button
+        ref={triggerRef}
         type="button"
         className="nav-burger"
         aria-expanded={open}
@@ -22,26 +27,35 @@ export function MobileNav({ links }: { links: NavLink[] }) {
         <span />
         <span />
       </button>
-      {open ? (
-        <nav
-          id="mobile-nav"
-          className="absolute left-0 right-0 top-full border-b border-border bg-white/95 px-4 py-3 shadow-sm backdrop-blur-md"
-        >
-          <ul className="flex flex-col gap-1">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="block rounded-[6px] px-2 py-2 text-[15px] text-ink/85 hover:bg-mist hover:text-blue"
-                  onClick={() => setOpen(false)}
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+      <DropdownPanel
+        open={open}
+        onClose={() => setOpen(false)}
+        ignoreCloseRefs={[triggerRef]}
+        align="end"
+        className="mobile-nav-dropdown"
+      >
+        <nav id="mobile-nav" className="mobile-nav-panel">
+          <ul className="flex flex-col gap-0.5">
+            {links.map((link) => {
+              const active =
+                pathname === link.href ||
+                (link.href !== "/" && pathname.startsWith(`${link.href}/`));
+              return (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className={`mobile-nav-link ${active ? "mobile-nav-link-active" : ""}`}
+                    aria-current={active ? "page" : undefined}
+                    onClick={() => setOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
-      ) : null}
+      </DropdownPanel>
     </div>
   );
 }

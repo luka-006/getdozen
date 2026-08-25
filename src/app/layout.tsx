@@ -4,10 +4,11 @@ import { BugReportButton } from "@/components/bug-report-button";
 import { CookieBanner } from "@/components/cookie-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { SiteJsonLd } from "@/components/site-json-ld";
 import { getProfile } from "@/lib/auth";
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { isLaunchOpen } from "@/lib/launch";
-import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from "@/lib/seo";
 import { DOZEN_MARK_INK } from "@/lib/dozen-mark-data";
 import "./globals.css";
 
@@ -41,15 +42,7 @@ export const metadata: Metadata = {
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
-  keywords: [
-    "Dozen",
-    "app testing",
-    "user feedback",
-    "12 testers",
-    "closed tests",
-    "beta testers",
-    "indie app feedback",
-  ],
+  keywords: [...SITE_KEYWORDS],
   authors: [{ name: SITE_NAME, url: SITE_ORIGIN }],
   icons: {
     icon: [
@@ -88,6 +81,7 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
+        <SiteJsonLd />
         <SiteHeader profile={profile} waitlistLock={!isLaunchOpen()} />
         <main className="flex-1">{children}</main>
         <SiteFooter />

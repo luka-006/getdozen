@@ -4,7 +4,23 @@ import { SITE_ORIGIN } from "@/lib/app-url";
 export const SITE_NAME = "Dozen";
 export const SITE_TAGLINE = "Test apps. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
-  "Earn by testing other makers' apps. Post yours and get structured feedback.";
+  "Earn by testing other makers' apps. Post yours and get structured feedback from real testers — not friends who nod along.";
+
+export const SITE_KEYWORDS = [
+  "Dozen",
+  "app testing",
+  "user feedback",
+  "beta testers",
+  "closed testing",
+  "12 testers",
+  "Play Console closed test",
+  "TestFlight beta",
+  "indie app feedback",
+  "structured feedback",
+  "app review platform",
+  "test apps earn credits",
+  "get app feedback",
+] as const;
 
 export const NO_INDEX: Metadata = {
   robots: { index: false, follow: false },
@@ -85,17 +101,32 @@ export function pageMetadata(opts: {
   index?: boolean;
   /** Skip the root `%s · Dozen` template (home). */
   absoluteTitle?: boolean;
+  keywords?: string[];
+  rss?: boolean;
 }): Metadata {
   const index = opts.index ?? true;
-  const url = opts.path;
+  const canonical = absoluteUrl(opts.path);
+  const keywords = opts.keywords?.length
+    ? opts.keywords
+    : [...SITE_KEYWORDS];
+
   return {
     title: opts.absoluteTitle ? { absolute: opts.title } : opts.title,
     description: opts.description,
-    alternates: { canonical: url },
+    keywords,
+    alternates: {
+      canonical,
+      ...(opts.rss
+        ? { types: { "application/rss+xml": absoluteUrl("/blog/rss.xml") } }
+        : {}),
+    },
     openGraph: {
+      type: "website",
       title: opts.title,
       description: opts.description,
-      url,
+      url: canonical,
+      siteName: SITE_NAME,
+      locale: "en_US",
     },
     twitter: {
       card: "summary_large_image",
@@ -103,7 +134,16 @@ export function pageMetadata(opts: {
       description: opts.description,
     },
     robots: index
-      ? { index: true, follow: true }
+      ? {
+          index: true,
+          follow: true,
+          googleBot: {
+            index: true,
+            follow: true,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+          },
+        }
       : { index: false, follow: false },
   };
 }

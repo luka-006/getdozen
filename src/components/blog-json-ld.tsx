@@ -23,7 +23,9 @@ export function BlogIndexJsonLd({ posts }: { posts: BlogPost[] }) {
       "@type": "Organization",
       name: SITE_NAME,
       url: SITE_ORIGIN,
+      logo: `${SITE_ORIGIN}/icon-96.png`,
     },
+    isPartOf: { "@id": `${SITE_ORIGIN}/#website` },
     blogPost: posts.map((post) => ({
       "@type": "BlogPosting",
       headline: post.title,

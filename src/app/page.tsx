@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { HeroClosedTest } from "@/components/hero-closed-test";
-import { HomeJsonLd } from "@/components/home-json-ld";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
@@ -34,7 +33,6 @@ export default async function HomePage({
 
     return (
       <div className="atmosphere">
-        <HomeJsonLd />
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
           <div className="max-w-xl space-y-5">
             <div className="flex items-center gap-3">
@@ -85,7 +83,6 @@ export default async function HomePage({
 
   return (
     <div className="atmosphere">
-      <HomeJsonLd />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
         <div className="max-w-xl space-y-5">
           <div className="flex items-center gap-3">

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { submitBugReport } from "@/actions/bug-report";
 import { Captcha } from "@/components/captcha";
+import { DropdownPanel } from "@/components/dropdown-panel";
 import { BugIcon } from "@/components/icons";
 
 export function BugReportButton({ email = "" }: { email?: string }) {
@@ -11,6 +12,13 @@ export function BugReportButton({ email = "" }: { email?: string }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [captchaNonce, setCaptchaNonce] = useState(0);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  function close() {
+    setOpen(false);
+    setSent(false);
+    setError(null);
+  }
 
   async function onSubmit(formData: FormData) {
     setError(null);
@@ -42,10 +50,16 @@ export function BugReportButton({ email = "" }: { email?: string }) {
 
   return (
     <div className="bug-report">
-      {open ? (
+      <DropdownPanel
+        open={open}
+        onClose={() => setOpen(false)}
+        ignoreCloseRefs={[triggerRef]}
+        align="end"
+        className="bug-report-dropdown"
+      >
         <div className="surface bug-report-panel p-4">
           {sent ? (
-            <div className="space-y-3">
+            <div className="space-y-3 motion-fade-in">
               <p className="font-display text-[16px] font-semibold">Sent</p>
               <p className="text-[13px] text-ink/70">
                 Thanks. A proper report can earn 2 credits.
@@ -53,17 +67,13 @@ export function BugReportButton({ email = "" }: { email?: string }) {
               <button
                 type="button"
                 className="btn btn-secondary w-full min-h-9 text-[13px]"
-                onClick={() => {
-                  setOpen(false);
-                  setSent(false);
-                  setError(null);
-                }}
+                onClick={close}
               >
                 Close
               </button>
             </div>
           ) : (
-            <form action={onSubmit} className="space-y-3">
+            <form action={onSubmit} className="space-y-3 motion-fade-in">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-display text-[16px] font-semibold">
                   Report a bug
@@ -127,16 +137,19 @@ export function BugReportButton({ email = "" }: { email?: string }) {
             </form>
           )}
         </div>
-      ) : null}
+      </DropdownPanel>
       <button
+        ref={triggerRef}
         type="button"
-        className="bug-report-btn"
+        className={`bug-report-btn ${open ? "bug-report-btn-open" : ""}`}
         aria-expanded={open}
         aria-label="Report a bug"
         onClick={() => {
           setOpen((value) => !value);
-          setSent(false);
-          setError(null);
+          if (open) {
+            setSent(false);
+            setError(null);
+          }
         }}
       >
         <BugIcon className="h-4 w-4" />

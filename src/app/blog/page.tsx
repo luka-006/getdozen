@@ -8,17 +8,21 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = {
   ...pageMetadata({
-    title: "Blog",
+    title: "Blog — testers, closed tests, app feedback",
     description:
       "Human notes on 12 testers, closed tests, and structured app feedback — written for indie makers who actually ship.",
     path: "/blog",
+    rss: true,
+    keywords: [
+      "app testing blog",
+      "beta testing tips",
+      "closed test guide",
+      "tester feedback",
+      "indie app launch",
+      "Play Console testing",
+      "structured user feedback",
+    ],
   }),
-  alternates: {
-    canonical: "/blog",
-    types: {
-      "application/rss+xml": "/blog/rss.xml",
-    },
-  },
 };
 
 export default function BlogIndexPage() {
@@ -41,9 +45,9 @@ export default function BlogIndexPage() {
         </p>
 
         <ul className="mt-10 space-y-6">
-          {posts.map((post) => (
-            <li key={post.slug}>
-              <article className="surface px-5 py-5">
+          {posts.map((post, index) => (
+            <li key={post.slug} className="motion-stagger" style={{ animationDelay: `${index * 40}ms` }}>
+              <article className="surface surface-hover px-5 py-5">
                 <p className="font-mono text-[12px] text-ink/50">
                   {blogDateLabel(post)}
                 </p>

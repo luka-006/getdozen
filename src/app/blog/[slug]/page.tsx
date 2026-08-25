@@ -11,7 +11,7 @@ import {
   relatedBlogPosts,
   renderBlogBody,
 } from "@/lib/blog";
-import { pageMetadata } from "@/lib/seo";
+import { absoluteUrl, pageMetadata } from "@/lib/seo";
 
 type Params = { slug: string };
 
@@ -32,15 +32,23 @@ export async function generateMetadata({
       title: post.title,
       description: post.description,
       path: `/blog/${post.slug}`,
+      keywords: [...post.tags, "Dozen blog", "app testing"],
     }),
     openGraph: {
       type: "article",
       title: post.title,
       description: post.description,
-      url: `/blog/${post.slug}`,
+      url: absoluteUrl(`/blog/${post.slug}`),
       publishedTime: post.publishedAt,
       modifiedTime: post.updatedAt,
       tags: post.tags,
+      siteName: "Dozen",
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.description,
     },
   };
 }

@@ -14,8 +14,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: absoluteUrl(`/blog/${post.slug}`),
     lastModified: new Date(post.updatedAt),
     changeFrequency: "monthly" as const,
-    priority: 0.65,
+    priority: 0.7,
   }));
 
-  return [...pages, ...posts];
+  const feed = {
+    url: absoluteUrl("/blog/rss.xml"),
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.5,
+  };
+
+  return [...pages, feed, ...posts];
 }
