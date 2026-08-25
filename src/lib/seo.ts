@@ -57,6 +57,7 @@ export const ROBOTS_DISALLOW = [
   "/signup",
   "/auth/",
   "/admin",
+  "/admin-console",
   "/wallet",
   "/setup",
   "/banned",

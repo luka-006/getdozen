@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  adminConsolePath,
+  isAdminConsoleInternalPath,
+  isLegacyAdminPath,
+} from "@/lib/admin-console";
 import { isLaunchOpen } from "@/lib/launch";
 import { isPublicSeoPath } from "@/lib/seo";
 
@@ -32,6 +37,23 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const path = request.nextUrl.pathname;
+
+  if (isLegacyAdminPath(path) || isAdminConsoleInternalPath(path)) {
+    return new NextResponse(null, { status: 404 });
+  }
+
+  const consolePath = adminConsolePath();
+  if (
+    consolePath &&
+    consolePath !== "/__console_unconfigured__" &&
+    (path === consolePath || path.startsWith(`${consolePath}/`))
+  ) {
+    const suffix = path.slice(consolePath.length);
+    const url = request.nextUrl.clone();
+    url.pathname = `/admin-console${suffix}`;
+    return NextResponse.rewrite(url);
+  }
+
   const isAuthRoute =
     path.startsWith("/login") ||
     path.startsWith("/signup") ||

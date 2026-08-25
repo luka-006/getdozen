@@ -64,9 +64,11 @@ describe("parseBugReport", () => {
   });
 
   it("builds an admin Award URL", () => {
+    process.env.ADMIN_CONSOLE_PATH = "/ops-secret";
     const url = bugAwardAdminUrl("82b16889-909d-496b-afc8-a7580f4b64ad");
-    assert.equal(url.includes("/admin?bug=82b16889-909d-496b-afc8-a7580f4b64ad"), true);
+    assert.equal(url.includes("/ops-secret?bug="), true);
     assert.equal(url.endsWith("#award"), true);
+    delete process.env.ADMIN_CONSOLE_PATH;
   });
 
   it("rejects an open redirect in the page field", () => {

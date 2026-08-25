@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { adminConsolePath } from "@/lib/admin-console";
 import { SITE_ORIGIN } from "@/lib/app-url";
 
 function awardSecret() {
@@ -33,5 +34,5 @@ export function bugAwardClickUrl(bugId: string) {
 }
 
 export function bugAwardAdminUrl(bugId: string) {
-  return `${SITE_ORIGIN}/admin?bug=${encodeURIComponent(bugId)}#award`;
+  return `${SITE_ORIGIN}${adminConsolePath()}?bug=${encodeURIComponent(bugId)}#award`;
 }

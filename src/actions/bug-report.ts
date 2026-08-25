@@ -2,7 +2,11 @@
 
 import { redirect } from "next/navigation";
 import { requestIp } from "@/lib/assert-human";
-import { getSessionUser, requireProfile } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
+import {
+  adminConsolePath,
+  requireAdminConsoleSession,
+} from "@/lib/admin-console";
 import { grantBugReportAward } from "@/lib/bug-award";
 import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import {
@@ -35,13 +39,12 @@ export async function submitBugReport(formData: FormData) {
 }
 
 export async function awardBugReport(formData: FormData) {
-  const profile = await requireProfile();
-  if (!profile.is_admin) redirect("/board");
+  await requireAdminConsoleSession();
 
   const bugId = String(formData.get("bug_id") ?? "");
   const result = await grantBugReportAward(bugId);
   const params = new URLSearchParams();
   if (bugId) params.set("bug", bugId);
   params.set("message", result.message);
-  redirect(`/admin?${params.toString()}`);
+  redirect(`${adminConsolePath()}?${params.toString()}`);
 }

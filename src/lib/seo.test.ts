@@ -38,6 +38,7 @@ describe("seo crawl files", () => {
       "/signup",
       "/auth/",
       "/admin",
+      "/admin-console",
       "/wallet",
       "/api/",
       "/waitlist/",
