@@ -1,11 +1,11 @@
 import Link from "next/link";
+import { awardBugReport } from "@/actions/bug-report";
 import {
   adminAdjustCredits,
   adminBanUser,
   adminConfirmReview,
   adminRejectReview,
   adminRefundCredits,
-  awardBugReport,
   signOutAdminConsole,
 } from "@/actions/admin-console";
 import { BUG_REPORT_AWARD } from "@/lib/constants";

@@ -4,9 +4,9 @@ import { redirect } from "next/navigation";
 import { requestIp } from "@/lib/assert-human";
 import { getSessionUser } from "@/lib/auth";
 import {
-  adminConsolePath,
   requireAdminConsoleSession,
 } from "@/lib/admin-console";
+import { adminConsolePath } from "@/lib/admin-console-path";
 import { grantBugReportAward } from "@/lib/bug-award";
 import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import {

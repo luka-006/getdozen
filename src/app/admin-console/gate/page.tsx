@@ -2,11 +2,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminGateForm } from "@/components/admin-gate-form";
 import {
-  adminConsolePath,
   consoleConfigured,
   readAdminSession,
   requireAdminOwner,
 } from "@/lib/admin-console";
+import { adminConsolePath } from "@/lib/admin-console-path";
 
 type Props = {
   searchParams: Promise<{ error?: string }>;

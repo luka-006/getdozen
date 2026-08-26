@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  adminConsolePath,
   clearAdminSession,
   consoleConfigured,
   readLockState,
@@ -13,9 +12,9 @@ import {
   setAdminSession,
   verifyTotpCode,
 } from "@/lib/admin-console";
+import { adminConsolePath } from "@/lib/admin-console-path";
 import { appendLedger } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { awardBugReport } from "@/actions/bug-report";
 
 function gateRedirect(error?: string) {
   const base = `${adminConsolePath()}/gate`;
@@ -257,5 +256,3 @@ export async function adminBanUser(formData: FormData) {
     `${adminConsolePath()}?message=${encodeURIComponent("User banned")}`,
   );
 }
-
-export { awardBugReport } from "@/actions/bug-report";

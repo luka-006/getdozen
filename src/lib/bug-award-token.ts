@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "crypto";
-import { adminConsolePath } from "@/lib/admin-console";
+import { adminConsolePath } from "@/lib/admin-console-path";
 import { SITE_ORIGIN } from "@/lib/app-url";
 
 function awardSecret() {

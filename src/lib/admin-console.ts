@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 import { notFound, redirect } from "next/navigation";
 import { verifySync } from "otplib";
+import { adminConsolePath } from "@/lib/admin-console-path";
 import { requireProfile } from "@/lib/auth";
 import type { Profile } from "@/lib/types";
 
@@ -10,27 +11,6 @@ const LOCK_COOKIE = "dozen_console_lock";
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const SESSION_MS = 8 * 60 * 60 * 1000;
-
-export function adminConsolePath(): string {
-  const raw = process.env.ADMIN_CONSOLE_PATH?.trim();
-  if (raw && raw.startsWith("/") && !raw.includes("..")) {
-    return raw.replace(/\/+$/, "") || raw;
-  }
-  if (process.env.NODE_ENV === "production") {
-    return "/__console_unconfigured__";
-  }
-  return "/dev-console";
-}
-
-export function isAdminConsoleInternalPath(pathname: string): boolean {
-  return (
-    pathname === "/admin-console" || pathname.startsWith("/admin-console/")
-  );
-}
-
-export function isLegacyAdminPath(pathname: string): boolean {
-  return pathname === "/admin" || pathname.startsWith("/admin/");
-}
 
 export function adminOwnerEmail(): string | null {
   const email = process.env.ADMIN_OWNER_EMAIL?.trim().toLowerCase();

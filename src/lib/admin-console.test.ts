@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  adminConsolePath,
   createAdminSessionToken,
-  isAdminConsoleInternalPath,
-  isLegacyAdminPath,
   parseAdminSessionToken,
 } from "./admin-console";
+import {
+  adminConsolePath,
+  isAdminConsoleInternalPath,
+  isLegacyAdminPath,
+} from "./admin-console-path";
 
 describe("admin console paths", () => {
   it("blocks legacy and internal admin URLs", () => {

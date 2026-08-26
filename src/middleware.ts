@@ -4,7 +4,7 @@ import {
   adminConsolePath,
   isAdminConsoleInternalPath,
   isLegacyAdminPath,
-} from "@/lib/admin-console";
+} from "@/lib/admin-console-path";
 import { isLaunchOpen } from "@/lib/launch";
 import { isPublicSeoPath } from "@/lib/seo";
 
