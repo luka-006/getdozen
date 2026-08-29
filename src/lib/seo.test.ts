@@ -24,6 +24,7 @@ describe("seo crawl files", () => {
       "/pricing",
       "/blog",
       "/wall",
+      "/contact",
       "/legal",
       "/privacy",
       "/terms",

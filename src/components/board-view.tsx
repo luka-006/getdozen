@@ -7,9 +7,10 @@ import { PLATFORMS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/consta
 import { isBoostActive } from "@/lib/boost";
 import { testerCubes } from "@/lib/tester-progress";
 import { formatCredits, formatWaitLabel, waitHours } from "@/lib/utils";
+import type { BoardTrackId } from "@/lib/board-filters";
 import type { Profile, RequestRow, TesterCommitment } from "@/lib/types";
 
-type TrackId = "tester" | "feedback" | "combo" | "language";
+type TrackId = BoardTrackId;
 
 type OwnerProfile = Pick<
   Profile,
@@ -35,13 +36,6 @@ const PLATFORM_LABEL: Record<string, string> = {
 };
 
 const FOCUS_TAGS = ["Everything", "UX", "Market", "Technical"] as const;
-
-function parseTrack(value: string | null): TrackId {
-  if (value === "feedback") return "feedback";
-  if (value === "combo") return "combo";
-  if (value === "language") return "language";
-  return "tester";
-}
 
 function filterChipClass(active: boolean) {
   return active ? "filter-chip filter-chip-active" : "filter-chip";
@@ -419,4 +413,3 @@ function BoardHeader({ post = true }: { post?: boolean }) {
   );
 }
 
-export { parseTrack };

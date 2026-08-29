@@ -4,21 +4,29 @@ import { useEffect, useRef, useState } from "react";
 import { formatCredits } from "@/lib/utils";
 
 type Props = {
-  value: number;
-  pending?: number;
+  value: number | string;
+  pending?: number | string;
   pulseKey?: string | number;
 };
 
+function toCreditNumber(raw: number | string | null | undefined) {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export function CreditBadge({ value, pending = 0, pulseKey }: Props) {
-  const [display, setDisplay] = useState(value);
+  const amount = toCreditNumber(value);
+  const pendingAmount = toCreditNumber(pending);
+  const [display, setDisplay] = useState(amount);
   const [pulse, setPulse] = useState(false);
-  const prev = useRef(value);
+  const prev = useRef(amount);
 
   useEffect(() => {
-    if (value === prev.current) return;
+    const next = toCreditNumber(value);
+    if (next === prev.current) return;
     const from = prev.current;
-    const to = value;
-    prev.current = value;
+    const to = next;
+    prev.current = next;
     setPulse(true);
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -68,11 +76,11 @@ export function CreditBadge({ value, pending = 0, pulseKey }: Props) {
         />
       </svg>
       <span className="font-mono text-[13px] font-medium">
-        {formatCredits(Number(display.toFixed(1)))}
+        {formatCredits(display)}
       </span>
-      {pending > 0 ? (
+      {pendingAmount > 0 ? (
         <span className="font-mono text-[12px] text-ink/70">
-          +{formatCredits(pending)}
+          +{formatCredits(pendingAmount)}
         </span>
       ) : null}
     </div>

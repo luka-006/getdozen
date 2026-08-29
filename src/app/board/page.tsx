@@ -1,4 +1,5 @@
-import { BoardView, parseTrack } from "@/components/board-view";
+import { BoardView } from "@/components/board-view";
+import { parseBoardTrack } from "@/lib/board-filters";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, RequestRow } from "@/lib/types";
@@ -15,7 +16,7 @@ type Props = {
 export default async function BoardPage({ searchParams }: Props) {
   const me = await requireProfile();
   const params = await searchParams;
-  const type = parseTrack(params.type ?? null);
+  const type = parseBoardTrack(params.type ?? null);
 
   const supabase = await createClient();
 
