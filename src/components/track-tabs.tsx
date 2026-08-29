@@ -8,51 +8,20 @@ type Props = {
   variant?: "board" | "post";
 };
 
-/** Soft arc pointing up into Dozen pack. */
-function JoinArc({
-  side,
-  lit,
-}: {
-  side: "left" | "right";
-  lit: boolean;
-}) {
-  // Left arc: rises from Testers toward Dozen pack.
-  // Right arc: rises from Feedback toward Dozen pack (mirrored).
-  const path =
-    side === "left"
-      ? "M2 16 C8 16 10 5 20 4"
-      : "M22 16 C16 16 14 5 4 4";
-  const tip =
-    side === "left"
-      ? "M17 2.5l3.2 1.2-1.6 3"
-      : "M7 2.5L3.8 3.7l1.6 3";
+const TAB_LABELS: Record<Exclude<TrackId, "language">, string> = {
+  tester: "Testers",
+  combo: "Dozen pack",
+  feedback: "Feedback",
+};
 
-  return (
-    <span
-      className={`track-join ${lit ? "track-join-lit" : ""}`}
-      aria-hidden="true"
-    >
-      <svg viewBox="0 0 24 20" className="h-5 w-6" fill="none">
-        <path
-          d={path}
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-        />
-        <path
-          d={tip}
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </span>
-  );
-}
+const TAB_ORDER: Exclude<TrackId, "language">[] = [
+  "tester",
+  "combo",
+  "feedback",
+];
 
 export function TrackTabs({ active, variant = "board" }: Props) {
-  const href = (id: TrackId) => {
+  const href = (id: Exclude<TrackId, "language">) => {
     if (variant === "post") {
       if (id === "tester") return "/requests/new";
       if (id === "feedback") return "/requests/new?type=feedback";
@@ -60,40 +29,40 @@ export function TrackTabs({ active, variant = "board" }: Props) {
     }
     if (id === "tester") return "/board";
     if (id === "feedback") return "/board?type=feedback";
-    if (id === "combo") return "/board?type=combo";
-    return "/board?type=language";
+    return "/board?type=combo";
   };
 
-  const btn = (id: TrackId) =>
-    `btn ${active === id ? "btn-primary" : "btn-secondary"}`;
-
-  const comboLit = active === "combo";
-
   return (
-    <div className="mt-6 flex flex-wrap items-end gap-3">
-      <div className={`track-merge ${comboLit ? "track-merge-active" : ""}`}>
-        <Link href={href("tester")} className={`${btn("tester")} track-side`}>
-          Testers
-        </Link>
-        <JoinArc side="left" lit={comboLit} />
-        <Link
-          href={href("combo")}
-          className={`${btn("combo")} track-both`}
-          title="Testers + feedback pack"
-        >
-          Dozen pack
-        </Link>
-        <JoinArc side="right" lit={comboLit} />
-        <Link href={href("feedback")} className={`${btn("feedback")} track-side`}>
-          Feedback
-        </Link>
+    <div className="track-tabs mt-6">
+      <div className="track-tabs-group" role="tablist" aria-label="Request tracks">
+        {TAB_ORDER.map((id) => {
+          const isActive = active === id;
+          return (
+            <Link
+              key={id}
+              href={href(id)}
+              role="tab"
+              aria-selected={isActive}
+              className={`track-tab${isActive ? " track-tab-active" : ""}`}
+              title={id === "combo" ? "Testers + feedback pack" : undefined}
+            >
+              {TAB_LABELS[id]}
+            </Link>
+          );
+        })}
       </div>
 
       {variant === "board" ? (
-        <Link href={href("language")} className={`${btn("language")} track-side`}>
+        <span
+          className="track-tab track-tab-disabled"
+          role="tab"
+          aria-disabled="true"
+          aria-label="Language — coming soon"
+          title="Coming soon"
+        >
           Language
-          <span className="text-[11px] opacity-70">soon</span>
-        </Link>
+          <span className="track-tab-soon">soon</span>
+        </span>
       ) : null}
     </div>
   );

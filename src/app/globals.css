@@ -501,54 +501,73 @@ a.board-row:focus-visible,
   gap: 0.75rem;
 }
 
-.track-merge {
-  display: inline-flex;
+.track-tabs {
+  display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 0.1rem;
-  padding: 0.55rem 0 0;
-  border: none;
-  background: transparent;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.track-merge-active {
-  border: none;
-  background: transparent;
-}
-
-.track-merge .btn {
-  min-height: 2.5rem;
-  padding: 0.5rem 1rem;
-}
-
-.track-side {
-  position: relative;
-  z-index: 1;
-}
-
-.track-both {
-  position: relative;
-  z-index: 1;
-  font-weight: 600;
-  transform: translateY(-0.7rem);
-  font-size: 0.92rem;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-}
-
-.track-join {
+.track-tabs-group {
   display: inline-flex;
-  align-items: flex-end;
-  color: var(--ink);
-  opacity: 0.2;
-  width: 1.5rem;
-  margin-bottom: 0.95rem;
-  transition: opacity 140ms ease, color 140ms ease;
+  align-items: stretch;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--mist) 55%, var(--paper));
+  gap: 0.15rem;
 }
 
-.track-join-lit {
+.track-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 2rem;
+  padding: 0.35rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--ink) 65%, transparent);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.track-tab:hover:not(.track-tab-active):not(.track-tab-disabled) {
   color: var(--blue);
-  opacity: 0.55;
+  background: color-mix(in srgb, var(--paper) 85%, transparent);
+}
+
+.track-tab-active {
+  background: var(--paper);
+  border-color: color-mix(in srgb, var(--blue) 22%, var(--border));
+  color: var(--blue);
+  font-weight: 600;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.track-tab-active:hover {
+  color: var(--blue);
+}
+
+.track-tab-disabled {
+  cursor: not-allowed;
+  color: color-mix(in srgb, var(--ink) 42%, transparent);
+  background: color-mix(in srgb, var(--mist) 35%, var(--paper));
+  border-color: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.track-tab-soon {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--ink) 38%, transparent);
 }
 
 .icon-btn {
