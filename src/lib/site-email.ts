@@ -2,12 +2,7 @@
 export const SITE_EMAIL = "hello@getdozen.dev";
 
 export function siteEmail() {
-  return (
-    process.env.LEGAL_EMAIL?.trim() ||
-    process.env.SUPPORT_TO?.trim() ||
-    process.env.BUG_REPORT_TO?.trim() ||
-    SITE_EMAIL
-  );
+  return SITE_EMAIL;
 }
 
 export function resendFrom() {
