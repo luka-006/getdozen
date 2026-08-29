@@ -9,9 +9,10 @@ type Props = {
   total: number;
   filled: number;
   label?: string;
+  muted?: boolean;
 };
 
-export function DayStrip({ total, filled, label }: Props) {
+export function DayStrip({ total, filled, label, muted = false }: Props) {
   const safeTotal = Math.max(1, total);
   const safeFilled = Math.min(safeTotal, Math.max(0, filled));
   const text = label ?? `${safeFilled} of ${safeTotal} days`;
@@ -29,13 +30,21 @@ export function DayStrip({ total, filled, label }: Props) {
             <span
               key={i}
               className={`inline-block h-3 w-3 rounded-[2px] sm:h-2.5 sm:w-2.5 ${
-                on ? "bg-blue" : "border border-border bg-mist"
+                on
+                  ? muted
+                    ? "bg-ink/25"
+                    : "bg-blue"
+                  : "border border-border bg-mist"
               }`}
             />
           );
         })}
       </div>
-      <span className="font-mono text-[13px] text-ink/80">{text}</span>
+      <span
+        className={`font-mono text-[13px] ${muted ? "text-ink/50" : "text-ink/80"}`}
+      >
+        {text}
+      </span>
     </div>
   );
 }
