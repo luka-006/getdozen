@@ -4,6 +4,7 @@ import {
   LegalDoc,
   LegalEmailLink,
   LegalH,
+  LegalOperatorNotice,
   LegalStackLinks,
   LegalUpdated,
 } from "@/components/legal-doc";
@@ -152,6 +153,7 @@ export default function PaymentTermsPage() {
       </p>
 
       <LegalStackLinks />
+      <LegalOperatorNotice className="mt-4" />
       <LegalUpdated />
     </LegalDoc>
   );

@@ -4,6 +4,7 @@ import {
   LegalDoc,
   LegalEmailLink,
   LegalH,
+  LegalOperatorNotice,
   LegalStackLinks,
   LegalUpdated,
 } from "@/components/legal-doc";
@@ -26,14 +27,12 @@ export default function TermsPage() {
   return (
     <LegalDoc title="Terms of use">
       <p>
-        These terms govern use of {LEGAL.siteUrl} (“Dozen”). The provider is
-        identified on the{" "}
-        <Link className="text-blue" href={LEGAL_PATHS.notice}>
-          legal notice
-        </Link>
-        . By joining the waitlist or creating an account you agree to these
-        terms. If you do not agree, do not use the service.
+        These terms govern use of {LEGAL.siteUrl} (“Dozen”). By joining the
+        waitlist or creating an account you agree to these terms. If you do not
+        agree, do not use the service.
       </p>
+
+      <LegalOperatorNotice />
 
       <LegalH>The service</LegalH>
       <p>

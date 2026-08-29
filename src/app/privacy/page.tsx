@@ -4,6 +4,7 @@ import {
   LegalDoc,
   LegalEmailLink,
   LegalH,
+  LegalOperatorNotice,
   LegalStackLinks,
   LegalUpdated,
 } from "@/components/legal-doc";
@@ -19,20 +20,12 @@ export const metadata: Metadata = pageMetadata({
 export default function PrivacyPage() {
   return (
     <LegalDoc title="Privacy policy">
+      <LegalOperatorNotice />
       <p>
         This notice is given under Articles 13 and 14 of the EU General Data
         Protection Regulation (GDPR) and the Croatian Act Implementing the
-        GDPR. The controller is the Dozen operator established in the{" "}
-        {LEGAL.country}. Contact: <LegalEmailLink />. Registered identity is
-        on the{" "}
-        <Link className="text-blue" href={LEGAL_PATHS.notice}>
-          legal notice
-        </Link>
-        .
-      </p>
-      <p>
-        We do not appoint a data-protection officer. We do not sell personal
-        data. We do not run advertising or analytics cookies.
+        GDPR. We do not appoint a data-protection officer. We do not sell
+        personal data. We do not run advertising or analytics cookies.
       </p>
 
       <LegalH>What we process</LegalH>

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { LEGAL, LEGAL_PATHS } from "@/lib/legal";
+import { LEGAL, LEGAL_PATHS, operatorOwnershipLine } from "@/lib/legal";
 
 export function LegalDoc({
   title,
@@ -39,6 +39,27 @@ export function LegalUpdated() {
   return (
     <p className="font-mono text-[12px] text-ink/45">
       Last updated {LEGAL.updated}
+    </p>
+  );
+}
+
+/** Single-line operator / ownership notice — Art. 6 + GDPR. */
+export function LegalOperatorNotice({ className = "" }: { className?: string }) {
+  const line = operatorOwnershipLine();
+  if (!line) {
+    return (
+      <p className={`text-[13px] leading-relaxed text-ink/55 ${className}`}>
+        Operator identity is published on the{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.notice}>
+          legal notice
+        </Link>{" "}
+        before paid services go live.
+      </p>
+    );
+  }
+  return (
+    <p className={`text-[13px] leading-relaxed text-ink/60 ${className}`}>
+      {line}
     </p>
   );
 }

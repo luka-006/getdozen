@@ -4,6 +4,7 @@ import {
   LegalDoc,
   LegalEmailLink,
   LegalH,
+  LegalOperatorNotice,
   LegalStackLinks,
   LegalUpdated,
 } from "@/components/legal-doc";
@@ -11,7 +12,6 @@ import {
   COMPLAINT_RESPONSE_DAYS,
   LEGAL,
   LEGAL_PATHS,
-  hasFullLegalIdentity,
 } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
@@ -24,58 +24,14 @@ export const metadata: Metadata = pageMetadata({
 export default function LegalPage() {
   return (
     <LegalDoc title="Legal notice">
-      <p>
-        Required identification of the information-society service provider
-        under Article 6 of the Croatian Electronic Commerce Act (Zakon o
-        elektroničkoj trgovini) and pre-contract information under Croatian
-        consumer law.
-      </p>
+      <LegalOperatorNotice />
 
-      <LegalH>Provider</LegalH>
-      <ul className="list-disc space-y-1 pl-5">
-        <li>
-          <span className="text-ink/55">Name / company: </span>
-          {LEGAL.operatorName || "To be published before paid launch"}
-        </li>
-        <li>
-          <span className="text-ink/55">Seat: </span>
-          {LEGAL.address || `Established in the ${LEGAL.country}`}
-        </li>
-        <li>
-          <span className="text-ink/55">Email: </span>
-          <LegalEmailLink />
-        </li>
-        <li>
-          <span className="text-ink/55">Website: </span>
-          <a className="text-blue" href={LEGAL.siteUrl}>
-            {LEGAL.siteUrl}
-          </a>
-        </li>
-        {LEGAL.register ? (
-          <li>
-            <span className="text-ink/55">Register: </span>
-            {LEGAL.register}
-          </li>
-        ) : null}
-        {LEGAL.oib ? (
-          <li>
-            <span className="text-ink/55">OIB: </span>
-            {LEGAL.oib}
-          </li>
-        ) : null}
-        <li>
-          <span className="text-ink/55">VAT: </span>
-          {LEGAL.vatId ||
-            "Shown here if the operator is registered for VAT"}
-        </li>
-      </ul>
-      {!hasFullLegalIdentity() ? (
-        <p className="text-[14px] text-ink/60">
-          Full registered name, seat and OIB will appear here as soon as the
-          operator is entered in the Croatian register. Until then, use the
-          email above for any contact required by law.
-        </p>
-      ) : null}
+      <p className="text-[14px] text-ink/70">
+        Identification of the information-society service provider under
+        Article 6 of the Croatian Electronic Commerce Act and pre-contract
+        information under Croatian consumer law. For complaints write to{" "}
+        <LegalEmailLink /> — we respond within {COMPLAINT_RESPONSE_DAYS} days.
+      </p>
 
       <LegalH>Prices</LegalH>
       <p>
@@ -89,13 +45,6 @@ export default function LegalPage() {
         .
       </p>
 
-      <LegalH>Complaints</LegalH>
-      <p>
-        Write to <LegalEmailLink />. We answer written consumer complaints
-        within {COMPLAINT_RESPONSE_DAYS} days of receipt (Croatian Consumer
-        Protection Act).
-      </p>
-
       <LegalH>Dispute resolution</LegalH>
       <p>
         EU consumers may use the European Commission Online Dispute Resolution
@@ -103,8 +52,7 @@ export default function LegalPage() {
         <a className="text-blue" href={LEGAL.odrUrl} rel="noreferrer">
           {LEGAL.odrUrl}
         </a>
-        . We are not obliged to use a specific alternative-dispute body unless
-        a binding rule says so.
+        .
       </p>
 
       <LegalH>Governing law</LegalH>
