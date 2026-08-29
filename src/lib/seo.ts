@@ -45,6 +45,7 @@ export const SITEMAP_PATHS: Array<{
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/wall", changeFrequency: "weekly", priority: 0.7 },
+  { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
   { path: "/legal", changeFrequency: "yearly", priority: 0.3 },
   { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },

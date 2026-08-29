@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { SITE_EMAIL } from "@/lib/site-email";
+import { ContactEmailLink } from "@/components/contact-email-link";
 
 export default function Error({
   error,
@@ -36,10 +36,7 @@ export default function Error({
         </Link>
       </div>
       <p className="mt-8 text-[13px] text-ink/55">
-        Need help?{" "}
-        <a href={`mailto:${SITE_EMAIL}`} className="text-blue">
-          {SITE_EMAIL}
-        </a>
+        Need help? <ContactEmailLink />
       </p>
     </div>
   );

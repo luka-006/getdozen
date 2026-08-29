@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_EMAIL } from "@/lib/site-email";
+import { ContactEmailLink } from "@/components/contact-email-link";
 
 export default function NotFound() {
   return (
@@ -20,10 +20,7 @@ export default function NotFound() {
         </Link>
       </div>
       <p className="mt-8 text-[13px] text-ink/55">
-        Need help?{" "}
-        <a href={`mailto:${SITE_EMAIL}`} className="text-blue">
-          {SITE_EMAIL}
-        </a>
+        Need help? <ContactEmailLink />
       </p>
     </div>
   );

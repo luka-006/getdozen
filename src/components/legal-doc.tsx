@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { ContactEmailLink } from "@/components/contact-email-link";
 import { LEGAL, LEGAL_PATHS, operatorOwnershipLine } from "@/lib/legal";
 
 export function LegalDoc({
@@ -28,11 +29,7 @@ export function LegalH({ children }: { children: ReactNode }) {
 }
 
 export function LegalEmailLink() {
-  return (
-    <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-      {LEGAL.email}
-    </a>
-  );
+  return <ContactEmailLink />;
 }
 
 export function LegalUpdated() {

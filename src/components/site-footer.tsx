@@ -3,6 +3,7 @@ import { SupportButton } from "@/components/support-button";
 import { LEGAL, LEGAL_PATHS } from "@/lib/legal";
 
 const LINKS = [
+  { href: "/contact", label: "Contact" },
   { href: "/blog", label: "Blog" },
   { href: LEGAL_PATHS.privacy, label: "Privacy" },
   { href: LEGAL_PATHS.terms, label: "Terms" },

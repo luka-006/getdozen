@@ -63,7 +63,8 @@ export async function middleware(request: NextRequest) {
     path === "/terms" ||
     path.startsWith("/terms/") ||
     path === "/cookies" ||
-    path === "/legal";
+    path === "/legal" ||
+    path === "/contact";
   const isPublic =
     path === "/" ||
     isAuthRoute ||
