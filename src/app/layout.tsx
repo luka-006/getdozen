@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import { BugReportButton } from "@/components/bug-report-button";
+import { BugReportLazy } from "@/components/bug-report-lazy";
 import { CookieBanner } from "@/components/cookie-banner";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
@@ -86,7 +86,7 @@ export default async function RootLayout({
         <main className="flex-1">{children}</main>
         <SiteFooter />
         <CookieBanner />
-        <BugReportButton email={profile?.email ?? ""} />
+        <BugReportLazy email={profile?.email ?? ""} />
       </body>
     </html>
   );

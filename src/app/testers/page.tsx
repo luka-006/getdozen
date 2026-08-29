@@ -1,4 +1,4 @@
-import { voidStaleCommitments } from "@/actions/testers";
+import Link from "next/link";
 import { TesterCommitmentCard } from "@/components/tester-commitment-card";
 import { requireProfile } from "@/lib/auth";
 import {
@@ -7,7 +7,6 @@ import {
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
 import type { CommitmentStatus, RequestRow, TesterCommitment } from "@/lib/types";
-import Link from "next/link";
 
 type Props = {
   searchParams: Promise<{ error?: string; message?: string }>;
@@ -26,7 +25,6 @@ function isHistoryStatus(status: CommitmentStatus) {
 export default async function TestersPage({ searchParams }: Props) {
   const profile = await requireProfile();
   const query = await searchParams;
-  await voidStaleCommitments();
 
   const supabase = await createClient();
   const { data: commitments } = await supabase
