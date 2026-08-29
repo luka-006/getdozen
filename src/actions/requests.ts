@@ -15,6 +15,7 @@ import {
   TESTER_COST,
   TESTER_DURATION_OPTIONS,
   getComboPack,
+  type Platform,
 } from "@/lib/constants";
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
 import { encryptCredentials } from "@/lib/crypto";
@@ -27,11 +28,29 @@ const customQuestionSchema = z.object({
   suggestions: z.array(z.string().min(1).max(200)).max(6).default([]),
 });
 
+const platformSchema = z.enum(PLATFORMS);
+
+function refineMobileOptInLink<
+  T extends { platform: Platform; opt_in_link?: string | undefined },
+>(schema: z.ZodType<T>) {
+  return schema.superRefine((data, ctx) => {
+    if (data.platform === "web") return;
+    const result = z.string().url().safeParse(data.opt_in_link?.trim() ?? "");
+    if (!result.success) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["opt_in_link"],
+        message: "Opt-in link must be a full URL (https://…)",
+      });
+    }
+  });
+}
+
 const feedbackSchema = z.object({
   app_name: z.string().min(2).max(120),
   app_url: z.string().url(),
   app_description: z.string().min(20).max(2000),
-  platform: z.enum(PLATFORMS).default("web"),
+  platform: platformSchema,
   focus_tag: z.enum(FOCUS_TAGS).default("Everything"),
   test_credentials: z.string().max(500).optional(),
   custom_questions: z
@@ -41,22 +60,29 @@ const feedbackSchema = z.object({
   proof_answer: z.string().min(1).max(200),
 });
 
-const testerSchema = z.object({
-  app_name: z.string().min(2).max(120),
-  app_url: z.string().url(),
-  app_description: z.string().min(20).max(2000),
-  platform: z.enum(PLATFORMS).default("android"),
-  opt_in_link: z.string().url(),
-  testers_needed: z.number().int().min(MIN_TESTERS).max(100).default(MIN_TESTERS),
-  duration_days: z.coerce
-    .number()
-    .int()
-    .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
-      message: "Pick a test length",
-    }),
-  test_focus: z.string().min(10).max(1000),
-  test_start_date: z.string().min(8),
-});
+const testerSchema = refineMobileOptInLink(
+  z.object({
+    app_name: z.string().min(2).max(120),
+    app_url: z.string().url(),
+    app_description: z.string().min(20).max(2000),
+    platform: platformSchema,
+    opt_in_link: z.string().optional(),
+    testers_needed: z
+      .number()
+      .int()
+      .min(MIN_TESTERS)
+      .max(100)
+      .default(MIN_TESTERS),
+    duration_days: z.coerce
+      .number()
+      .int()
+      .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
+        message: "Pick a test length",
+      }),
+    test_focus: z.string().min(10).max(1000),
+    test_start_date: z.string().min(8),
+  }),
+);
 
 type CustomQuestionInput = z.infer<typeof customQuestionSchema>;
 
@@ -133,6 +159,13 @@ function formatZodError(error: z.ZodError): string {
     if (root === "app_url" || root === "opt_in_link") {
       return `${label} must be a full URL (https://…)`;
     }
+    if (root === "platform") {
+      return "Pick a platform";
+    }
+  }
+
+  if (root === "platform") {
+    return "Pick a platform";
   }
 
   if (label) return `${label}: ${issue.message}`;
@@ -182,7 +215,7 @@ export async function createFeedbackRequest(
     app_name: formData.get("app_name"),
     app_url: formData.get("app_url"),
     app_description: formData.get("app_description"),
-    platform: formData.get("platform") || "web",
+    platform: formData.get("platform"),
     focus_tag: formData.get("focus_tag") || "Everything",
     test_credentials: String(formData.get("test_credentials") ?? "") || undefined,
     custom_questions: parseCustomQuestions(formData.get("custom_questions")),
@@ -305,8 +338,8 @@ export async function createTesterRequest(
     app_name: formData.get("app_name"),
     app_url: formData.get("app_url"),
     app_description: formData.get("app_description"),
-    platform: formData.get("platform") || "android",
-    opt_in_link: formData.get("opt_in_link"),
+    platform: formData.get("platform"),
+    opt_in_link: String(formData.get("opt_in_link") ?? "") || undefined,
     testers_needed: Number(formData.get("testers_needed") ?? MIN_TESTERS),
     duration_days: Number(formData.get("duration_days") ?? 14),
     test_focus: formData.get("test_focus"),
@@ -341,7 +374,8 @@ export async function createTesterRequest(
       credit_cost: totalCost,
       testers_needed: data.testers_needed,
       duration_days: data.duration_days,
-      opt_in_link: data.opt_in_link,
+      opt_in_link:
+        data.platform === "web" ? null : (data.opt_in_link ?? null),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       expires_at: expiresAt.toISOString(),
@@ -384,13 +418,13 @@ export async function createComboRequest(
     return { error: "Pick a pack" };
   }
 
-  const parsed = z
-    .object({
+  const parsed = refineMobileOptInLink(
+    z.object({
       app_name: z.string().min(2).max(120),
       app_url: z.string().url(),
       app_description: z.string().min(20).max(2000),
-      platform: z.enum(PLATFORMS).default("android"),
-      opt_in_link: z.string().url(),
+      platform: platformSchema,
+      opt_in_link: z.string().optional(),
       test_focus: z.string().min(10).max(1000),
       test_start_date: z.string().min(8),
       duration_days: z.coerce
@@ -403,13 +437,13 @@ export async function createComboRequest(
       custom_questions: z.array(customQuestionSchema),
       proof_question: z.string().min(8).max(300),
       proof_answer: z.string().min(1).max(200),
-    })
-    .safeParse({
+    }),
+  ).safeParse({
       app_name: formData.get("app_name"),
       app_url: formData.get("app_url"),
       app_description: formData.get("app_description"),
-      platform: formData.get("platform") || "android",
-      opt_in_link: formData.get("opt_in_link"),
+      platform: formData.get("platform"),
+      opt_in_link: String(formData.get("opt_in_link") ?? "") || undefined,
       test_focus: formData.get("test_focus"),
       test_start_date: formData.get("test_start_date"),
       duration_days: Number(formData.get("duration_days") ?? 14),
@@ -457,7 +491,8 @@ export async function createComboRequest(
       testers_needed: pack.testers,
       duration_days: data.duration_days,
       question_count: pack.questions,
-      opt_in_link: data.opt_in_link,
+      opt_in_link:
+        data.platform === "web" ? null : (data.opt_in_link ?? null),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       test_credentials_encrypted: encrypted,

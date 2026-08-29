@@ -8,7 +8,12 @@ import {
 import { PlatformField } from "@/components/platform-field";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
-import { COMBO_PACKS, TESTER_DURATION_OPTIONS, type ComboPackId } from "@/lib/constants";
+import {
+  COMBO_PACKS,
+  TESTER_DURATION_OPTIONS,
+  type ComboPackId,
+  type Platform,
+} from "@/lib/constants";
 import { randomDescriptionExample } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -32,6 +37,7 @@ export function ComboRequestForm({ balance, action }: Props) {
     action,
     emptyRequestFormState,
   );
+  const [platform, setPlatform] = useState<Platform>("android");
   const [packId, setPackId] = useState<ComboPackId>("combo_12_10");
   const pack = COMBO_PACKS.find((p) => p.id === packId)!;
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
@@ -113,21 +119,26 @@ export function ComboRequestForm({ balance, action }: Props) {
           placeholder={descriptionPlaceholder}
         />
       </div>
-      <PlatformField defaultValue="android" />
-      <div className="field">
-        <label htmlFor="opt_in_link">
-          Play Console opt-in link
-          <RequiredMark />
-        </label>
-        <input
-          id="opt_in_link"
-          name="opt_in_link"
-          type="url"
-          className="input"
-          required
-          placeholder="Play Console link"
-        />
-      </div>
+      <PlatformField
+        defaultValue="android"
+        onPlatformChange={setPlatform}
+      />
+      {platform !== "web" ? (
+        <div className="field">
+          <label htmlFor="opt_in_link">
+            Play Console opt-in link
+            <RequiredMark />
+          </label>
+          <input
+            id="opt_in_link"
+            name="opt_in_link"
+            type="url"
+            className="input"
+            required
+            placeholder="Play Console link"
+          />
+        </div>
+      ) : null}
       <div className="field">
         <label htmlFor="test_focus">
           What to focus on
