@@ -70,6 +70,7 @@ export async function middleware(request: NextRequest) {
     isAuthRoute ||
     isLegal ||
     path.startsWith("/api/cron") ||
+    path.startsWith("/api/resend") ||
     path.startsWith("/api/stripe") ||
     path === "/wall" ||
     path === "/pricing" ||

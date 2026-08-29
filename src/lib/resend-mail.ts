@@ -1,3 +1,4 @@
+import { ownerInbox } from "@/lib/mail-inbox";
 import { resendFrom, siteEmail } from "@/lib/site-email";
 
 const RESEND_API = "https://api.resend.com/emails";
@@ -11,7 +12,7 @@ export function resendFromAddress() {
 }
 
 export function supportInbox() {
-  return siteEmail();
+  return ownerInbox();
 }
 
 export async function sendResendEmail(opts: {

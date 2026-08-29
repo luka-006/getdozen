@@ -1,6 +1,8 @@
 #!/usr/bin/env npx tsx
 /**
- * Send a test support email via Resend to SUPPORT_TO / ADMIN_OWNER_EMAIL.
+ * Send a test support email via Resend.
+ * Requires RESEND_API_KEY (+ optional RESEND_FROM, MAIL_FORWARD_TO) in .env.local or env.
+ *
  * Usage: npx tsx scripts/test-support-email.ts
  */
 import { readFileSync } from "node:fs";
@@ -33,19 +35,31 @@ loadEnvLocal();
 
 async function main() {
   const { sendSupportEmail } = await import("../src/lib/support-mail");
-  const { supportInbox } = await import("../src/lib/resend-mail");
+  const { resendFromAddress, supportInbox, resendConfigured } = await import(
+    "../src/lib/resend-mail"
+  );
+  const { SITE_EMAIL } = await import("../src/lib/site-email");
+
+  if (!resendConfigured()) {
+    console.error("RESEND_API_KEY is missing. Add it to .env.local or Vercel.");
+    process.exit(1);
+  }
 
   const inbox = supportInbox();
+  const from = resendFromAddress();
   const stamp = new Date().toISOString();
 
+  console.log("From (public):", from);
+  console.log("To (owner inbox):", inbox);
+  console.log("Public address:", SITE_EMAIL);
+
   const result = await sendSupportEmail({
-    subject: "Support pipeline test",
-    message: `Automated test from scripts/test-support-email.ts at ${stamp}.`,
+    subject: "Resend pipeline test",
+    message: `Automated test from scripts/test-support-email.ts at ${stamp}. If you got this, outbound mail works.`,
     email: "test@getdozen.dev",
     page: "/scripts/test-support-email",
   });
 
-  console.log("Inbox:", inbox);
   console.log(result.ok ? "Support email sent OK" : `Failed: ${result.error}`);
 
   if (!result.ok) process.exit(1);

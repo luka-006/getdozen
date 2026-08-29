@@ -33,8 +33,20 @@ Credit-powered feedback and Google Play closed-test marketplace for indie develo
 | `NEXT_PUBLIC_SITE_URL` | `https://getdozen.dev` |
 | `CRON_SECRET` | Auth for `/api/cron` |
 | `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Payments |
-| `RESEND_API_KEY` / `RESEND_FROM` | Email (`hello@getdozen.dev` after domain verify) |
-| `SUPPORT_TO` | Support inbox (default: admin owner email) |
+| `RESEND_API_KEY` / `RESEND_FROM` | Outbound from `hello@getdozen.dev` |
+| `MAIL_FORWARD_TO` / `SUPPORT_TO` | Owner Gmail for support, bugs, inbound forwards |
+| `RESEND_WEBHOOK_SECRET` | Verify `/api/resend/inbound` webhooks |
+
+### Resend mail flow
+
+1. **Outbound** (contact form, bugs, etc.): `hello@getdozen.dev` → your `MAIL_FORWARD_TO` inbox, with `Reply-To` set to the user.
+2. **Inbound** (someone emails `hello@getdozen.dev`): Resend receives → webhook `POST /api/resend/inbound` → forwards to `MAIL_FORWARD_TO`.
+3. **Reply from Gmail as hello@**: Gmail → Settings → Accounts → “Send mail as” → add `hello@getdozen.dev` via SMTP `smtp.resend.com`, username `resend`, password = `RESEND_API_KEY`.
+
+Resend dashboard setup:
+
+- Domain `getdozen.dev`: verify sending + enable **Receiving** + add MX record.
+- Webhook: event `email.received`, URL `https://getdozen.dev/api/resend/inbound`.
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET` | Bot checks |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Analytics |
 
