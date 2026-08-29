@@ -1,3 +1,5 @@
+import { SITE_EMAIL } from "@/lib/site-email";
+
 export const TURNSTILE_SITEVERIFY =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
@@ -127,7 +129,7 @@ export async function checkBotGuard(
   if (siteKey && !secret && process.env.NODE_ENV === "production") {
     return {
       ok: false,
-      error: "Bot check is misconfigured. Email hello@getdozen.dev for help.",
+      error: `Bot check is misconfigured. Email ${SITE_EMAIL} for help.`,
     };
   }
 

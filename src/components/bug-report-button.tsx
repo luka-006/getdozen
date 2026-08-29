@@ -31,20 +31,6 @@ export function BugReportButton({ email = "" }: { email?: string }) {
       setError(result.error);
       return;
     }
-    if ("mail" in result && result.mail) {
-      try {
-        await fetch(result.mail.url, {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(result.mail.body),
-        });
-      } catch {
-        // Report is already saved; email is best-effort.
-      }
-    }
     setSent(true);
   }
 

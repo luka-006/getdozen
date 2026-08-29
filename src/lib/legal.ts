@@ -1,12 +1,11 @@
+import { siteEmail } from "@/lib/site-email";
+
 /** Operator identity for Croatian e-commerce Art. 6 + GDPR Art. 13. */
 export const LEGAL = {
   brand: "Dozen",
   siteUrl: "https://getdozen.dev",
   country: "Republic of Croatia",
-  email:
-    process.env.LEGAL_EMAIL?.trim() ||
-    process.env.NEXT_PUBLIC_LEGAL_EMAIL?.trim() ||
-    "info@getdozen.dev",
+  email: siteEmail(),
   operatorName: process.env.LEGAL_OPERATOR_NAME?.trim() || "",
   /** e.g. paušalni obrt — shown in the ownership line when set. */
   businessForm: process.env.LEGAL_BUSINESS_FORM?.trim() || "",

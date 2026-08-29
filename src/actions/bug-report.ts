@@ -10,7 +10,6 @@ import { adminConsolePath } from "@/lib/admin-console-path";
 import { grantBugReportAward } from "@/lib/bug-award";
 import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import {
-  bugMailBrowserPayload,
   parseBugReport,
   saveSiteBugReport,
   sendBugReportEmail,
@@ -30,12 +29,8 @@ export async function submitBugReport(formData: FormData) {
 
   const awardUrl = bugAwardClickUrl(saved.id);
   const mailed = await sendBugReportEmail(parsed, awardUrl);
-  if (mailed.ok) return { ok: true as const };
-
-  return {
-    ok: true as const,
-    mail: bugMailBrowserPayload(parsed, awardUrl),
-  };
+  if (!mailed.ok) return { ok: false as const, error: mailed.error };
+  return { ok: true as const };
 }
 
 export async function awardBugReport(formData: FormData) {

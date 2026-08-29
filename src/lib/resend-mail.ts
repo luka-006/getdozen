@@ -1,3 +1,5 @@
+import { resendFrom, siteEmail } from "@/lib/site-email";
+
 const RESEND_API = "https://api.resend.com/emails";
 
 export function resendConfigured() {
@@ -5,20 +7,11 @@ export function resendConfigured() {
 }
 
 export function resendFromAddress() {
-  return (
-    process.env.RESEND_FROM?.trim() ||
-    process.env.BUG_REPORT_FROM?.trim() ||
-    "Dozen <hello@getdozen.dev>"
-  );
+  return resendFrom();
 }
 
 export function supportInbox() {
-  return (
-    process.env.SUPPORT_TO?.trim() ||
-    process.env.ADMIN_OWNER_EMAIL?.trim() ||
-    process.env.BUG_REPORT_TO?.trim() ||
-    "lukakasalo96@gmail.com"
-  );
+  return siteEmail();
 }
 
 export async function sendResendEmail(opts: {

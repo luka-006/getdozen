@@ -1,7 +1,6 @@
 import { bugAwardClickUrl } from "@/lib/bug-award-token";
-import { createAdminClient } from "@/lib/supabase/admin";
-
 import { sendResendEmail, supportInbox } from "@/lib/resend-mail";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const BUG_REPORT_TO = supportInbox();
 
@@ -10,11 +9,6 @@ export type BugReportInput = {
   details: string;
   email: string;
   page: string;
-};
-
-export type BugMailBrowserPayload = {
-  url: string;
-  body: Record<string, string>;
 };
 
 export function parseBugReport(formData: FormData): BugReportInput | { error: string } {
@@ -75,29 +69,6 @@ function mailHtml(report: BugReportInput, awardUrl?: string | null) {
   ].join("");
 }
 
-export function bugMailBrowserPayload(
-  report: BugReportInput,
-  awardUrl?: string | null,
-): BugMailBrowserPayload {
-  const subject = `Dozen bug: ${report.summary}`.slice(0, 120);
-  return {
-    url: `https://formsubmit.co/ajax/${encodeURIComponent(BUG_REPORT_TO)}`,
-    body: {
-      _subject: subject,
-      _template: "box",
-      _captcha: "false",
-      ...(awardUrl
-        ? {
-            Award: awardUrl,
-          }
-        : {}),
-      email: report.email || "noreply@getdozen.dev",
-      page: report.page,
-      message: mailBody(report, awardUrl),
-    },
-  };
-}
-
 export async function saveSiteBugReport(
   report: BugReportInput,
   userId: string | null,
@@ -121,26 +92,10 @@ export async function saveSiteBugReport(
   return { ok: true as const, id: data.id as string };
 }
 
-async function sendFormSubmit(report: BugReportInput, awardUrl?: string | null) {
-  const payload = bugMailBrowserPayload(report, awardUrl);
-  const res = await fetch(payload.url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    },
-    body: JSON.stringify(payload.body),
-  });
-  return res.ok;
-}
-
 export async function sendBugReportEmail(
   report: BugReportInput,
   awardUrl?: string | null,
 ) {
-  const formOk = await sendFormSubmit(report, awardUrl).catch(() => false);
-  if (formOk) return { ok: true as const };
-
   const mailed = await sendResendEmail({
     to: BUG_REPORT_TO,
     subject: `Dozen bug: ${report.summary}`.slice(0, 120),

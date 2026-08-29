@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { bugAwardAdminUrl, bugAwardClickUrl } from "./bug-award-token";
-import { bugMailBrowserPayload, parseBugReport } from "./bug-mail";
+import { parseBugReport } from "./bug-mail";
 
 describe("parseBugReport", () => {
   it("accepts a complete report", () => {
@@ -35,24 +35,6 @@ describe("parseBugReport", () => {
     if (!("error" in parsed)) {
       assert.equal(parsed.page, "/");
     }
-  });
-
-  it("builds a browser mail payload after a valid report", () => {
-    const award =
-      "https://getdozen.dev/api/admin/award-bug?bug=82b16889-909d-496b-afc8-a7580f4b64ad&sig=abc";
-    const payload = bugMailBrowserPayload(
-      {
-        summary: "Board filter does not stick",
-        details: "I chose UX then refreshed and it reset.",
-        email: "maker@example.com",
-        page: "/board",
-      },
-      award,
-    );
-    assert.equal(payload.url.includes("formsubmit.co/ajax/"), true);
-    assert.equal(payload.body.page, "/board");
-    assert.equal(payload.body.email, "maker@example.com");
-    assert.equal(payload.body.Award, award);
   });
 
   it("builds a signed Award click URL when secret is set", () => {
