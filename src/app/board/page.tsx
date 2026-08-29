@@ -36,6 +36,10 @@ function withParam(base: string, key: string, value?: string) {
   return `${base}${base.includes("?") ? "&" : "?"}${key}=${value}`;
 }
 
+function filterChipClass(active: boolean) {
+  return active ? "filter-chip filter-chip-active" : "filter-chip";
+}
+
 export default async function BoardPage({ searchParams }: Props) {
   const me = await requireProfile();
   const params = await searchParams;
@@ -178,7 +182,7 @@ export default async function BoardPage({ searchParams }: Props) {
         <span className="text-ink/50">Focus:</span>
         <Link
           href={withParam(base, "platform", params.platform)}
-          className={!params.focus ? "text-blue" : "text-ink/70 hover:text-blue"}
+          className={filterChipClass(!params.focus)}
         >
           All
         </Link>
@@ -190,9 +194,7 @@ export default async function BoardPage({ searchParams }: Props) {
               "platform",
               params.platform,
             )}
-            className={
-              params.focus === tag ? "text-blue" : "text-ink/70 hover:text-blue"
-            }
+            className={filterChipClass(params.focus === tag)}
           >
             {tag}
           </Link>
@@ -203,7 +205,7 @@ export default async function BoardPage({ searchParams }: Props) {
         <span className="text-ink/50">Platform:</span>
         <Link
           href={withParam(base, "focus", params.focus)}
-          className={!params.platform ? "text-blue" : "text-ink/70 hover:text-blue"}
+          className={filterChipClass(!params.platform)}
         >
           All
         </Link>
@@ -215,9 +217,7 @@ export default async function BoardPage({ searchParams }: Props) {
               "platform",
               p,
             )}
-            className={
-              params.platform === p ? "text-blue" : "text-ink/70 hover:text-blue"
-            }
+            className={filterChipClass(params.platform === p)}
           >
             {PLATFORM_LABEL[p]}
           </Link>

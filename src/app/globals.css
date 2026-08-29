@@ -373,6 +373,40 @@ a.board-row:focus-visible,
   color: var(--blue);
 }
 
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.85rem;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--paper);
+  font-size: 13px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.filter-chip:hover {
+  border-color: color-mix(in srgb, var(--blue) 40%, var(--border));
+  background: var(--mist);
+  color: var(--blue);
+}
+
+.filter-chip-active {
+  border-color: color-mix(in srgb, var(--blue) 25%, var(--border));
+  background: color-mix(in srgb, var(--blue) 8%, var(--paper));
+  color: var(--blue);
+}
+
+.filter-chip-active:hover {
+  color: var(--blue);
+}
+
 .feature-card {
   border: 1px solid var(--border);
   border-radius: calc(var(--radius-app) + 2px);
