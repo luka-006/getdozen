@@ -32,6 +32,7 @@ export function ReviewForm({
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [picked, setPicked] = useState<Record<string, string | null>>({});
+  const [chipClicks, setChipClicks] = useState<Record<string, string[]>>({});
   const startedAt = useRef(Date.now());
   const timeInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,12 +58,17 @@ export function ReviewForm({
     });
     setAnswers(next);
     setPicked({});
+    setChipClicks({});
     setIndex(0);
   }
 
   function chooseSuggestion(text: string) {
     if (!current) return;
     setPicked((prev) => ({ ...prev, [current.id]: text }));
+    setChipClicks((prev) => ({
+      ...prev,
+      [current.id]: [...(prev[current.id] ?? []), text],
+    }));
     setAnswers((prev) => {
       const existing = (prev[current.id] ?? "").trim();
       // Seed from chip; keep room for the reviewer to expand in writing.
@@ -90,6 +96,11 @@ export function ReviewForm({
     >
       <input type="hidden" name="request_id" value={requestId} />
       <input type="hidden" name="answers" value={JSON.stringify(answers)} />
+      <input
+        type="hidden"
+        name="chip_clicks"
+        value={JSON.stringify(chipClicks)}
+      />
       <input
         ref={timeInputRef}
         type="hidden"

@@ -15,7 +15,7 @@ export function SiteHeader({
 }) {
   if (waitlistLock && !profile?.is_admin) {
     return (
-      <header className="sticky top-0 z-20 border-b border-border bg-paper/95 backdrop-blur-md">
+      <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2.5 text-ink">
             <DozenMark className="h-8 w-8 shrink-0" />
@@ -47,7 +47,7 @@ export function SiteHeader({
       ];
 
   return (
-    <header className="sticky top-0 z-20 border-b border-border bg-paper/95 backdrop-blur-md">
+    <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur-xl">
       <div className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-6">
           <Link

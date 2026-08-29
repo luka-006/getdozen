@@ -224,7 +224,7 @@ export default async function BoardPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="mt-4 border-t border-border">
+      <div className="board-grid">
         {sorted.length === 0 ? (
           <p className="py-10 text-ink/70">Nothing waiting.</p>
         ) : (
@@ -340,11 +340,17 @@ function BoardHeader({ post = true }: { post?: boolean }) {
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div>
-        <h1 className="font-display text-[32px] font-semibold">Board</h1>
+        <p className="eyebrow">Live board</p>
+        <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight">
+          Open feedback & tests
+        </h1>
+        <p className="mt-2 max-w-xl text-[15px] text-ink/65">
+          Pick a post, leave structured feedback, or join a tester run.
+        </p>
       </div>
       {post ? (
         <Link href="/requests/new" className="btn btn-primary">
-          Post
+          Post feedback
         </Link>
       ) : null}
     </div>

@@ -17,13 +17,14 @@ export default async function SignupPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-[480px] px-4 py-14">
-      <div className="surface p-6 sm:p-8">
-        <p className="font-display text-[18px] font-semibold tracking-[0.03em]">
-          Dozen
-        </p>
-        <h1 className="mt-3 font-display text-[28px] font-semibold">
+      <div className="auth-card surface p-6 sm:p-8">
+        <p className="eyebrow">Join Dozen</p>
+        <h1 className="mt-2 font-display text-[28px] font-semibold">
           Create account
         </h1>
+        <p className="mt-2 text-[14px] text-ink/70">
+          Start posting feedback requests or earning as a tester.
+        </p>
 
         {params.error ? (
           <p className="mt-4 rounded-[6px] border border-flag/40 bg-flag/5 px-3 py-2 text-[13px] text-flag">

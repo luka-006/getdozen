@@ -41,12 +41,17 @@ export default async function HomePage({
                 Dozen
               </p>
             </div>
-            <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
-              Test apps. Earn. Get feedback.
+            <h1 className="hero-title mt-3">
+              Real feedback from real testers.
             </h1>
-            <p className="trust text-[16px] leading-relaxed">
-              Earn by testing other makers' apps. Post yours and get structured feedback.
+            <p className="hero-lead mt-4">
+              Earn by testing other makers&apos; apps. Post yours and get
+              structured feedback when we open.
             </p>
+            <div className="flex flex-wrap gap-2 pt-1">
+              <span className="pill pill-blue">Structured feedback</span>
+              <span className="pill">Tester programs</span>
+            </div>
             <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
             <p className="text-[13px] text-ink/60">
               <Link href="/blog/why-12-testers" className="text-blue">
@@ -91,12 +96,18 @@ export default async function HomePage({
               Dozen
             </p>
           </div>
-          <h1 className="font-display text-[28px] font-semibold text-ink sm:text-[32px]">
-            Test apps. Earn. Get feedback.
+          <h1 className="hero-title mt-3">
+            Real feedback from real testers.
           </h1>
-          <p className="trust text-[16px] leading-relaxed">
-            Earn by testing other makers' apps. Post yours and get structured feedback.
+          <p className="hero-lead mt-4">
+            The feedback loop for indie makers — structured reviews, tester
+            commitments, and credits that keep quality high.
           </p>
+          <div className="flex flex-wrap gap-2 pt-2">
+            <span className="pill pill-blue">Structured feedback</span>
+            <span className="pill">Tester programs</span>
+            <span className="pill">Credit economy</span>
+          </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link
               href="/signup?next=/requests/new"

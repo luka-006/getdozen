@@ -61,10 +61,13 @@ export async function submitReview(formData: FormData) {
   const requestId = String(formData.get("request_id") ?? "");
   const timeSpent = Number(formData.get("time_spent_seconds") ?? 0);
   const rawAnswers = String(formData.get("answers") ?? "{}");
+  const rawChipClicks = String(formData.get("chip_clicks") ?? "{}");
 
   let answers: Record<string, string>;
+  let chipClicks: Record<string, string[]>;
   try {
     answers = JSON.parse(rawAnswers) as Record<string, string>;
+    chipClicks = JSON.parse(rawChipClicks) as Record<string, string[]>;
   } catch {
     redirect(`/requests/${requestId}/review?error=${encodeURIComponent("Could not read answers")}`);
   }
@@ -184,6 +187,7 @@ export async function submitReview(formData: FormData) {
       request_id: requestId,
       reviewer_id: profile.id,
       answers,
+      chip_clicks: chipClicks,
       proof_passed: true,
       time_spent_seconds: timeSpent,
       confirm_status: "pending",

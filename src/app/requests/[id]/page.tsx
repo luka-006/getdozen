@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { joinTesterRequest } from "@/actions/testers";
 import { purchaseBoardBoost } from "@/actions/billing";
+import { AnswerInsights } from "@/components/answer-insights";
 import { TesterProgressRow } from "@/components/day-strip";
 import { PackProgress } from "@/components/pack-progress";
 import { requireProfile } from "@/lib/auth";
+import { aggregateQuestionChipInsights } from "@/lib/chip-analytics";
 import { pageMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -133,6 +135,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
   }
 
   let peerNotes: { body: string; rating: number | null }[] = [];
+  let chipInsights: ReturnType<typeof aggregateQuestionChipInsights> = [];
   if (
     !isOwner &&
     (row.type === "feedback" || row.type === "combo") &&
@@ -148,6 +151,27 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
     peerNotes = (notes ?? []) as { body: string; rating: number | null }[];
   }
 
+  if (
+    isOwner &&
+    (row.type === "feedback" || row.type === "combo") &&
+    hasReview
+  ) {
+    const admin = createAdminClient();
+    const { data: questions } = await admin
+      .from("questions")
+      .select("id, text, position, is_proof, suggested_answers")
+      .eq("request_id", id)
+      .order("position");
+    const { data: reviewRows } = await admin
+      .from("reviews")
+      .select("answers, chip_clicks")
+      .eq("request_id", id);
+    chipInsights = aggregateQuestionChipInsights(
+      questions ?? [],
+      reviewRows ?? [],
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <p className="text-[13px] text-ink/55">
@@ -156,8 +180,13 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </Link>{" "}
         / request
       </p>
-      <h1 className="mt-2 font-display text-[32px] font-semibold">{row.app_name}</h1>
-      <p className="mt-2 text-ink/75">{row.app_description}</p>
+      <div className="mt-3">
+        <p className="eyebrow">Feedback request</p>
+        <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight sm:text-[38px]">
+          {row.app_name}
+        </h1>
+      </div>
+      <p className="mt-3 text-[16px] leading-relaxed text-ink/75">{row.app_description}</p>
 
       {query.error ? (
         <p className="mt-4 text-[13px] text-flag">{query.error}</p>
@@ -191,8 +220,8 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </div>
       ) : null}
 
-      <dl className="mt-6 grid gap-3 text-[15px]">
-        <div className="flex justify-between gap-4 border-b border-border py-2">
+      <dl className="stat-grid mt-8">
+        <div className="stat-cell">
           <dt className="text-ink/60">Posted by</dt>
           <dd>
             <Link href={`/profile/${owner?.id}`} className="text-blue">
@@ -200,32 +229,32 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             </Link>
           </dd>
         </div>
-        <div className="flex justify-between gap-4 border-b border-border py-2">
+        <div className="stat-cell">
           <dt className="text-ink/60">App</dt>
-          <dd className="text-ink/70 truncate max-w-[60%]">{row.app_url}</dd>
+          <dd className="text-ink/70 truncate">{row.app_url}</dd>
         </div>
-        <div className="flex justify-between gap-4 border-b border-border py-2">
+        <div className="stat-cell">
           <dt className="text-ink/60">Waiting</dt>
           <dd className="font-mono">{formatWait(row.created_at)}</dd>
         </div>
         {row.type === "feedback" ? (
           <>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Questions</dt>
               <dd className="font-mono">{row.question_count}</dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Posted for</dt>
               <dd>
-                <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
+                <span className="pill-credit font-mono">
                   {formatCredits(Number(row.credit_cost))}
                 </span>
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Reviewer earn</dt>
               <dd>
-                <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
+                <span className="pill-credit font-mono">
                   {formatCredits(
                     reviewEarnForQuestionCount(row.question_count) *
                       Number(row.bounty_multiplier),
@@ -241,50 +270,50 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           </>
         ) : row.type === "combo" ? (
           <>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Testers</dt>
               <dd className="font-mono">
                 {row.testers_filled} / {row.testers_needed}
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Test length</dt>
               <dd className="font-mono">
                 {row.duration_days ?? TESTER_DAYS} days
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Questions</dt>
               <dd className="font-mono">{row.question_count}</dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Pack cost</dt>
               <dd>
-                <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
+                <span className="pill-credit font-mono">
                   {formatCredits(Number(row.credit_cost))}
                 </span>
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Focus</dt>
               <dd>{row.test_focus}</dd>
             </div>
           </>
         ) : (
           <>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Testers</dt>
               <dd className="font-mono">
                 {row.testers_filled} / {row.testers_needed}
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Test length</dt>
               <dd className="font-mono">
                 {row.duration_days ?? TESTER_DAYS} days
               </dd>
             </div>
-            <div className="flex justify-between gap-4 border-b border-border py-2">
+            <div className="stat-cell">
               <dt className="text-ink/60">Focus</dt>
               <dd>{row.test_focus}</dd>
             </div>
@@ -439,6 +468,10 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             </p>
           )}
         </section>
+      ) : null}
+
+      {isOwner && chipInsights.length > 0 ? (
+        <AnswerInsights insights={chipInsights} />
       ) : null}
 
       {isOwner && (row.type === "feedback" || row.type === "combo") ? (

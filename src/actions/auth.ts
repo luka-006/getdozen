@@ -2,25 +2,98 @@
 
 import { redirect } from "next/navigation";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
-import { assertHuman } from "@/lib/assert-human";
+import { assertHuman, requestIp } from "@/lib/assert-human";
+import { otpSendError, verifyEmailOtp } from "@/lib/auth-otp";
+import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
 
-export async function signInWithEmail(formData: FormData) {
+function loginCredentialError(message: string) {
+  return /invalid login credentials/i.test(message)
+    ? "Wrong email or password. If you joined with Google, use Continue with Google — or Forgot to set a password."
+    : message;
+}
+
+export async function requestLoginCode(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
-  const next = safeInternalPath(formData.get("next"), "/board");
-  await assertHuman(formData, "/login", { next }, "login");
+  const guard = await checkBotGuard(formData, await requestIp(), "login");
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
+  }
+  if (!email || password.length < 8) {
+    return { ok: false as const, error: "Enter your email and password." };
+  }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) {
-    const hint = /invalid login credentials/i.test(error.message)
-      ? "Wrong email or password. If you joined with Google, use Continue with Google — or Forgot to set a password."
-      : error.message;
-    redirect(`/login?error=${encodeURIComponent(hint)}&next=${encodeURIComponent(next)}`);
+  const { error: passwordError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  if (passwordError) {
+    return { ok: false as const, error: loginCredentialError(passwordError.message) };
   }
+
+  await supabase.auth.signOut();
+
+  const { error: otpError } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false },
+  });
+  if (otpError) {
+    return { ok: false as const, error: otpSendError(otpError.message) };
+  }
+
+  return { ok: true as const, email };
+}
+
+export async function resendLoginCode(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const guard = await checkBotGuard(formData, await requestIp(), "login");
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
+  }
+  if (!email) {
+    return { ok: false as const, error: "Enter a valid email." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false },
+  });
+  if (error) {
+    return { ok: false as const, error: otpSendError(error.message) };
+  }
+
+  return { ok: true as const, email };
+}
+
+export async function confirmLoginCode(formData: FormData) {
+  const email = String(formData.get("email") ?? "").trim();
+  const token = String(formData.get("token") ?? "").replace(/\s/g, "");
+  const next = safeInternalPath(formData.get("next"), "/board");
+  const guard = await checkBotGuard(formData, await requestIp(), "login");
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
+  }
+  if (!email) {
+    return { ok: false as const, error: "Enter a valid email." };
+  }
+  if (!/^\d{6}$/.test(token)) {
+    return {
+      ok: false as const,
+      error: "Enter the 6-digit code from your email.",
+    };
+  }
+
+  const supabase = await createClient();
+  const { error } = await verifyEmailOtp(supabase, email, token);
+  if (error) {
+    return { ok: false as const, error: "That code did not match. Try again." };
+  }
+
   redirect(next);
 }
 
