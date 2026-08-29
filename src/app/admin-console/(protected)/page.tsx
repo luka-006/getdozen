@@ -6,6 +6,7 @@ import {
   adminConfirmReview,
   adminRejectReview,
   adminRefundCredits,
+  adminRemoveFromWaitlist,
   signOutAdminConsole,
 } from "@/actions/admin-console";
 import { BUG_REPORT_AWARD } from "@/lib/constants";
@@ -28,6 +29,7 @@ async function loadConsoleData() {
     recentUsersRes,
     pendingListRes,
     ledgerRes,
+    waitlistRes,
   ] = await Promise.all([
     admin.from("profiles").select("id", { count: "exact", head: true }),
     admin
@@ -68,6 +70,10 @@ async function loadConsoleData() {
       .select("id, user_id, amount, reason, status, created_at")
       .order("created_at", { ascending: false })
       .limit(25),
+    admin
+      .from("waitlist")
+      .select("id, email, confirmed_at, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   const creditsRows = creditsRes.data ?? [];
@@ -101,6 +107,23 @@ async function loadConsoleData() {
   const reqMap = new Map((reqRows ?? []).map((r) => [r.id, r]));
   const reviewerMap = new Map((reviewerRows ?? []).map((r) => [r.id, r]));
 
+  const waitlistRows = waitlistRes.data ?? [];
+  const waitlistEmails = waitlistRows.map((row) => row.email);
+  let waitlistProfiles: { email: string; display_name: string }[] = [];
+  if (waitlistEmails.length) {
+    const { data } = await admin
+      .from("profiles")
+      .select("email, display_name")
+      .in("email", waitlistEmails);
+    waitlistProfiles = (data ?? []) as { email: string; display_name: string }[];
+  }
+  const nameByEmail = new Map(
+    waitlistProfiles.map((profile) => [
+      profile.email.trim().toLowerCase(),
+      profile.display_name,
+    ]),
+  );
+
   return {
     stats: {
       users: usersRes.count ?? 0,
@@ -121,6 +144,12 @@ async function loadConsoleData() {
         review.reviewer_id,
     })),
     ledger: ledgerRes.data ?? [],
+    waitlist: waitlistRows.map((row) => ({
+      ...row,
+      displayName:
+        nameByEmail.get(row.email.trim().toLowerCase()) ??
+        row.email.split("@")[0],
+    })),
   };
 }
 
@@ -254,6 +283,72 @@ export default async function AdminConsolePage({ searchParams }: Props) {
           </form>
         </section>
       ) : null}
+
+      <section className="mt-10">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-[24px] font-semibold">Waitlist</h2>
+            <p className="mt-1 text-[13px] text-ink/60">
+              {data.waitlist.length}{" "}
+              {data.waitlist.length === 1 ? "person" : "people"} enlisted
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto border-t border-border">
+          <table className="w-full min-w-[720px] text-[13px]">
+            <thead>
+              <tr className="border-b border-border text-left text-ink/55">
+                <th className="py-2 pr-3 font-medium">Name</th>
+                <th className="py-2 pr-3 font-medium">Email</th>
+                <th className="py-2 pr-3 font-medium">Joined</th>
+                <th className="py-2 pr-3 font-medium">Confirmed</th>
+                <th className="py-2 font-medium">Remove</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.waitlist.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-6 text-ink/65">
+                    No one on the waitlist yet.
+                  </td>
+                </tr>
+              ) : (
+                data.waitlist.map((entry) => (
+                  <tr key={entry.id} className="border-b border-border">
+                    <td className="py-2 pr-3 font-medium">
+                      {entry.displayName}
+                    </td>
+                    <td className="py-2 pr-3 font-mono text-[12px]">
+                      {entry.email}
+                    </td>
+                    <td className="py-2 pr-3 font-mono text-[12px]">
+                      {new Date(entry.created_at).toLocaleString()}
+                    </td>
+                    <td className="py-2 pr-3">
+                      {entry.confirmed_at ? (
+                        <span className="pill pill-blue">Yes</span>
+                      ) : (
+                        <span className="text-ink/45">Pending</span>
+                      )}
+                    </td>
+                    <td className="py-2">
+                      <form action={adminRemoveFromWaitlist}>
+                        <input type="hidden" name="waitlist_id" value={entry.id} />
+                        <button
+                          type="submit"
+                          className="btn btn-danger min-h-8 px-3 text-[12px]"
+                        >
+                          Remove
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-[24px] font-semibold">Pending reviews</h2>

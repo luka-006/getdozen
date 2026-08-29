@@ -15,6 +15,7 @@ import {
 import { adminConsolePath } from "@/lib/admin-console-path";
 import { appendLedger } from "@/lib/credits";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { removeWaitlistById } from "@/lib/waitlist";
 
 function gateRedirect(error?: string) {
   const base = `${adminConsolePath()}/gate`;
@@ -254,5 +255,36 @@ export async function adminBanUser(formData: FormData) {
   revalidatePath(adminConsolePath());
   redirect(
     `${adminConsolePath()}?message=${encodeURIComponent("User banned")}`,
+  );
+}
+
+export async function adminRemoveFromWaitlist(formData: FormData) {
+  await requireAdminConsoleSession();
+
+  const waitlistId = String(formData.get("waitlist_id") ?? "").trim();
+  if (!waitlistId) {
+    redirect(
+      `${adminConsolePath()}?error=${encodeURIComponent("Missing waitlist entry")}`,
+    );
+  }
+
+  try {
+    const removed = await removeWaitlistById(waitlistId);
+    if (!removed) {
+      redirect(
+        `${adminConsolePath()}?error=${encodeURIComponent("Waitlist entry not found")}`,
+      );
+    }
+  } catch (e) {
+    redirect(
+      `${adminConsolePath()}?error=${encodeURIComponent(
+        e instanceof Error ? e.message : "Could not remove from waitlist",
+      )}`,
+    );
+  }
+
+  revalidatePath(adminConsolePath());
+  redirect(
+    `${adminConsolePath()}?message=${encodeURIComponent("Removed from waitlist")}`,
   );
 }

@@ -9,6 +9,8 @@ import { createClient } from "@/lib/supabase/server";
 import {
   markWaitlistConfirmed,
   normalizeWaitlistEmail,
+  removeWaitlistById,
+  removeWaitlistEmail,
   upsertWaitlistEmail,
 } from "@/lib/waitlist";
 
@@ -74,5 +76,35 @@ export async function confirmWaitlistCode(formData: FormData) {
 
   await markWaitlistConfirmed(email);
   await supabase.auth.signOut();
+  return { ok: true as const };
+}
+
+export async function cancelWaitlistEnrollment(formData: FormData) {
+  if (isLaunchOpen()) {
+    return { ok: false as const, error: "Dozen is open — no waitlist to leave." };
+  }
+
+  const email = normalizeWaitlistEmail(formData.get("email"));
+  if (!email) {
+    return { ok: false as const, error: "Enter a valid email." };
+  }
+
+  const guard = await checkBotGuard(formData, await requestIp(), "waitlist");
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
+  }
+
+  try {
+    const removed = await removeWaitlistEmail(email);
+    if (!removed) {
+      return {
+        ok: false as const,
+        error: "That email is not on the waitlist anymore.",
+      };
+    }
+  } catch {
+    return { ok: false as const, error: "Could not cancel just now. Try again." };
+  }
+
   return { ok: true as const };
 }

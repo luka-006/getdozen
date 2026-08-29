@@ -31,3 +31,32 @@ export async function markWaitlistConfirmed(email: string) {
     { onConflict: "email" },
   );
 }
+
+export async function removeWaitlistEmail(email: string): Promise<boolean> {
+  const normalized = normalizeWaitlistEmail(email);
+  if (!normalized) return false;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("waitlist")
+    .delete()
+    .eq("email", normalized)
+    .select("id");
+
+  if (error) throw new Error(error.message);
+  return (data?.length ?? 0) > 0;
+}
+
+export async function removeWaitlistById(id: string): Promise<boolean> {
+  if (!id) return false;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin
+    .from("waitlist")
+    .delete()
+    .eq("id", id)
+    .select("id");
+
+  if (error) throw new Error(error.message);
+  return (data?.length ?? 0) > 0;
+}
