@@ -19,9 +19,6 @@ export function BuyCreditsSection({ isPro, purchaseErrors }: Props) {
     <section className="mt-10 space-y-8">
       <div>
         <h2 className="font-display text-[24px] font-semibold">Buy credits</h2>
-        <p className="mt-1 text-[13px] text-ink/60">
-          From €{EUR_PER_CREDIT}/credit · packs cheaper
-        </p>
 
         <div className="mt-4 space-y-3">
           {CREDIT_PACKS.map((pack) => {
