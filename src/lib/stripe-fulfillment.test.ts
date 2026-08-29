@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { resolveCreditOffer, proAmountCents } from "./pricing";
+import { resolveCreditOffer, proAmountCents, resolveCreditOfferByAmount } from "./pricing";
 import {
   fulfillmentFromCheckout,
   shouldActivateSubscription,
@@ -50,6 +50,17 @@ describe("resolveCreditOffer", () => {
   });
 });
 
+describe("resolveCreditOfferByAmount", () => {
+  it("maps catalog pack amounts without pack_id metadata", () => {
+    assert.deepEqual(resolveCreditOfferByAmount(1100), {
+      packId: "credits_15",
+      credits: 15,
+      amountCents: 1100,
+    });
+    assert.equal(resolveCreditOfferByAmount(999), null);
+  });
+});
+
 describe("fulfillmentFromCheckout", () => {
   it("grants catalog credits from pack_id + paid amount", () => {
     const result = fulfillmentFromCheckout(
@@ -95,6 +106,21 @@ describe("fulfillmentFromCheckout", () => {
     assert.deepEqual(result, { kind: "skip", reason: "amount_mismatch" });
   });
 
+  it("grants credits from paid amount when pack_id is missing (Payment Link)", () => {
+    const result = fulfillmentFromCheckout(
+      session({
+        amount_total: 1100,
+        metadata: { profile_id: PROFILE },
+      }),
+    );
+    assert.deepEqual(result, {
+      kind: "credits",
+      profileId: PROFILE,
+      credits: 15,
+      sessionId: "cs_live_abc",
+    });
+  });
+
   it("skips unpaid, wrong currency, and missing pack", () => {
     assert.equal(
       fulfillmentFromCheckout(session({ payment_status: "unpaid" })).kind,
@@ -106,7 +132,7 @@ describe("fulfillmentFromCheckout", () => {
     );
     assert.equal(
       fulfillmentFromCheckout(
-        session({ metadata: { profile_id: PROFILE } }),
+        session({ metadata: { profile_id: PROFILE }, amount_total: 999 }),
       ).kind,
       "skip",
     );

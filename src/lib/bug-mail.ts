@@ -1,8 +1,9 @@
 import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export const BUG_REPORT_TO =
-  process.env.BUG_REPORT_TO?.trim() || "luka.kasalo.web@gmail.com";
+import { sendResendEmail, supportInbox } from "@/lib/resend-mail";
+
+export const BUG_REPORT_TO = supportInbox();
 
 export type BugReportInput = {
   summary: string;
@@ -140,29 +141,15 @@ export async function sendBugReportEmail(
   const formOk = await sendFormSubmit(report, awardUrl).catch(() => false);
   if (formOk) return { ok: true as const };
 
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return { ok: false as const, error: "No mailer configured." };
-
-  const subject = `Dozen bug: ${report.summary}`.slice(0, 120);
-  const from =
-    process.env.BUG_REPORT_FROM?.trim() || "Dozen <onboarding@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [BUG_REPORT_TO],
-      subject,
-      text: mailBody(report, awardUrl),
-      html: mailHtml(report, awardUrl),
-      reply_to: report.email || undefined,
-    }),
+  const mailed = await sendResendEmail({
+    to: BUG_REPORT_TO,
+    subject: `Dozen bug: ${report.summary}`.slice(0, 120),
+    text: mailBody(report, awardUrl),
+    html: mailHtml(report, awardUrl),
+    replyTo: report.email || undefined,
   });
-  if (!res.ok) {
-    return { ok: false as const, error: "Could not send just now. Try again." };
+  if (!mailed.ok) {
+    return { ok: false as const, error: mailed.error };
   }
   return { ok: true as const };
 }

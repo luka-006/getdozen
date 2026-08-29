@@ -1,6 +1,7 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { BOOST_HOURS, BOOST_WAIT_DAYS } from "@/lib/constants";
 import { BOOST_PRICE_EUR } from "@/lib/pricing";
+import { sendResendEmail } from "@/lib/resend-mail";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
 
@@ -43,26 +44,13 @@ function offerHtml(row: BoostOfferRow) {
 }
 
 async function sendResend(to: string, row: BoostOfferRow) {
-  const key = process.env.RESEND_API_KEY?.trim();
-  if (!key) return false;
-
-  const from =
-    process.env.BUG_REPORT_FROM?.trim() || "Dozen <onboarding@resend.dev>";
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
-      subject: `Pin "${row.app_name}" to the top for €${BOOST_PRICE_EUR}`,
-      text: offerText(row),
-      html: offerHtml(row),
-    }),
+  const mailed = await sendResendEmail({
+    to,
+    subject: `Pin "${row.app_name}" to the top for €${BOOST_PRICE_EUR}`,
+    text: offerText(row),
+    html: offerHtml(row),
   });
-  return res.ok;
+  return mailed.ok;
 }
 
 export async function sendBoostOffers() {

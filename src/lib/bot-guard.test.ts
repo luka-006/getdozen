@@ -42,7 +42,7 @@ describe("checkBotGuard", () => {
       const result = await checkBotGuard(form);
       assert.equal(result.ok, false);
       if (!result.ok) {
-        assert.match(result.error, /not a bot/i);
+        assert.match(result.error, /bot check/i);
       }
     } finally {
       if (previous === undefined) delete process.env.TURNSTILE_SECRET_KEY;

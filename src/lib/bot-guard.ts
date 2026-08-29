@@ -10,7 +10,7 @@ export const TURNSTILE_DUMMY = {
   token: "XXXX.DUMMY.TOKEN.XXXX",
 } as const;
 
-export type TurnstileAction = "login" | "signup" | "reset" | "waitlist" | "bug";
+export type TurnstileAction = "login" | "signup" | "reset" | "waitlist" | "bug" | "support";
 
 type SiteverifyResult = {
   success?: boolean;
@@ -110,10 +110,35 @@ export async function checkBotGuard(
   if (honeypotTripped(formData)) {
     return { ok: false, error: "Could not submit just now. Try again." };
   }
+
+  const siteKey = turnstileSiteKey();
+  const secret = turnstileSecret();
+
+  if (!siteKey && !secret) {
+    return { ok: true };
+  }
+
   const token = String(formData.get("cf-turnstile-response") ?? "");
+
   if (process.env.NODE_ENV === "development" && !token.trim()) {
     return { ok: true };
   }
+
+  if (siteKey && !secret && process.env.NODE_ENV === "production") {
+    return {
+      ok: false,
+      error: "Bot check is misconfigured. Email hello@getdozen.dev for help.",
+    };
+  }
+
+  if (!secret) {
+    return { ok: true };
+  }
+
+  if (!token.trim()) {
+    return { ok: false, error: "Complete the bot check below." };
+  }
+
   return verifyTurnstile(token, {
     ip,
     expectedAction,

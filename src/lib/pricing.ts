@@ -85,6 +85,25 @@ export function resolveCreditOffer(packId: string): CreditOffer | null {
   };
 }
 
+/**
+ * Resolve a named credit pack from a paid Checkout amount (Payment Links omit pack_id).
+ * Only matches fixed catalog packs — custom amounts need metadata.
+ */
+export function resolveCreditOfferByAmount(amountCents: number): CreditOffer | null {
+  if (!Number.isInteger(amountCents) || amountCents <= 0) return null;
+  for (const pack of CREDIT_PACKS) {
+    const cents = Math.round(pack.amountEur * 100);
+    if (cents === amountCents) {
+      return {
+        packId: pack.id,
+        credits: pack.credits,
+        amountCents: cents,
+      };
+    }
+  }
+  return null;
+}
+
 export function proAmountCents() {
   return Math.round(PRO_PRICE_EUR * 100);
 }

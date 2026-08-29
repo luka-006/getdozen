@@ -16,6 +16,7 @@ import { hashEmail } from "@/lib/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clampTesterDuration } from "@/lib/tester-progress";
 import { isLaunchBonusActive } from "@/lib/utils";
+import { sendJoinConfirmationEmail } from "@/lib/join-mail";
 
 export async function joinTesterRequest(formData: FormData) {
   const profile = await requireProfile();
@@ -143,6 +144,16 @@ export async function joinTesterRequest(formData: FormData) {
       status: nextStatus,
     })
     .eq("id", requestId);
+
+  await sendJoinConfirmationEmail({
+    to: googleEmail,
+    appName: request.app_name,
+    durationDays: duration,
+    optInLink: request.opt_in_link,
+    requestId,
+  }).catch((err) => {
+    console.error("join confirmation email failed", err);
+  });
 
   revalidatePath("/testers");
   revalidatePath(`/requests/${requestId}`);

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { BugReportLazy } from "@/components/bug-report-lazy";
 import { CookieBanner } from "@/components/cookie-banner";
+import { PostHogProvider } from "@/components/posthog-provider";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SiteJsonLd } from "@/components/site-json-ld";
@@ -81,12 +82,14 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
-        <SiteJsonLd />
-        <SiteHeader profile={profile} waitlistLock={!isLaunchOpen()} />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
-        <CookieBanner />
-        <BugReportLazy email={profile?.email ?? ""} />
+        <PostHogProvider>
+          <SiteJsonLd />
+          <SiteHeader profile={profile} waitlistLock={!isLaunchOpen()} />
+          <main className="flex-1">{children}</main>
+          <SiteFooter />
+          <CookieBanner />
+          <BugReportLazy email={profile?.email ?? ""} />
+        </PostHogProvider>
       </body>
     </html>
   );

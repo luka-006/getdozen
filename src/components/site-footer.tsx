@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SupportButton } from "@/components/support-button";
 import { LEGAL, LEGAL_PATHS } from "@/lib/legal";
 
 const LINKS = [
@@ -17,7 +18,8 @@ export function SiteFooter() {
         <p className="font-mono text-[12px] text-ink/50">
           © {new Date().getFullYear()} {LEGAL.brand}. All rights reserved.
         </p>
-        <nav className="flex flex-wrap gap-x-4 gap-y-1">
+        <nav className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <SupportButton />
           {LINKS.map((link) => (
             <Link
               key={link.href}

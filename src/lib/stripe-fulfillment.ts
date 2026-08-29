@@ -1,4 +1,4 @@
-import { boostAmountCents, proAmountCents, resolveCreditOffer } from "./pricing";
+import { boostAmountCents, proAmountCents, resolveCreditOffer, resolveCreditOfferByAmount } from "./pricing";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -104,7 +104,10 @@ export function fulfillmentFromCheckout(session: CheckoutLike): Fulfillment {
       };
     }
 
-    const offer = resolveCreditOffer(session.metadata?.pack_id ?? "");
+    let offer = resolveCreditOffer(session.metadata?.pack_id ?? "");
+    if (!offer && session.amount_total != null) {
+      offer = resolveCreditOfferByAmount(session.amount_total);
+    }
     if (!offer) return { kind: "skip", reason: "unknown_pack" };
     if (session.amount_total !== offer.amountCents) {
       return { kind: "skip", reason: "amount_mismatch" };
