@@ -38,10 +38,7 @@ export default function BlogIndexPage() {
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-ink/70">
           Short essays from Dozen. How many testers to use, how to ask them
-          anything useful, and what to do with the pile of notes after.{" "}
-          <a className="text-blue" href="/blog/rss.xml">
-            RSS
-          </a>
+          anything useful, and what to do with the pile of notes after.
         </p>
 
         <ul className="mt-10 space-y-6">
