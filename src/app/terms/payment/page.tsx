@@ -1,32 +1,43 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalDoc, LegalH } from "@/components/legal-doc";
+import {
+  LegalDoc,
+  LegalEmailLink,
+  LegalH,
+  LegalStackLinks,
+  LegalUpdated,
+} from "@/components/legal-doc";
 import { CREDIT_EXPIRY_MONTHS } from "@/lib/constants";
-import { LEGAL } from "@/lib/legal";
+import {
+  COMPLAINT_RESPONSE_DAYS,
+  LEGAL,
+  LEGAL_PATHS,
+  WITHDRAWAL_DAYS,
+} from "@/lib/legal";
 import { EUR_PER_CREDIT, PRO_PRICE_EUR, BOOST_PRICE_EUR } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Payment terms",
   description: "Payment, credits, Pro, refunds, and checkout terms for Dozen.",
-  path: "/terms/payment",
+  path: LEGAL_PATHS.paymentTerms,
 });
 
 export default function PaymentTermsPage() {
   return (
     <LegalDoc title="Payment terms">
       <p>
-        These payment terms apply when you buy credit packs or Dozen Pro on{" "}
-        {LEGAL.siteUrl}. They sit with the{" "}
-        <Link className="text-blue" href="/terms">
+        These payment terms apply when you buy credit packs, Dozen Pro, or a
+        board boost on {LEGAL.siteUrl}. They sit with the{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.terms}>
           terms of use
         </Link>
         ,{" "}
-        <Link className="text-blue" href="/privacy">
+        <Link className="text-blue" href={LEGAL_PATHS.privacy}>
           privacy policy
         </Link>
         , and{" "}
-        <Link className="text-blue" href="/legal">
+        <Link className="text-blue" href={LEGAL_PATHS.notice}>
           legal notice
         </Link>
         . By starting checkout you agree to this page.
@@ -66,11 +77,16 @@ export default function PaymentTermsPage() {
 
       <LegalH>How payment works</LegalH>
       <p>
-        Checkout is Stripe-hosted. We do not see or store full card numbers,
-        CVC, or expiry. Stripe is the payment service provider. The purchase
-        contract is formed when Stripe confirms the payment to our server —
-        not when the browser returns from checkout. Credits, Pro, and board
-        boosts are granted only after that confirmation.
+        Checkout is Stripe-hosted on stripe.com. We do not see or store full
+        card numbers, CVC, or expiry. Stripe is the payment service provider.
+        The purchase contract is formed when Stripe confirms the payment to our
+        server — not when the browser returns from checkout. Credits, Pro, and
+        board boosts are granted only after that confirmation. Stripe may set
+        its own cookies on its checkout pages; see the{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.cookies}>
+          cookie notice
+        </Link>
+        .
       </p>
       <p>
         If a payment is declined, delayed, or reversed, we do not supply the
@@ -80,28 +96,26 @@ export default function PaymentTermsPage() {
 
       <LegalH>Immediate supply and withdrawal</LegalH>
       <p>
-        EU / Croatian consumers normally have 14 days to withdraw from a
-        distance contract. Credits and Pro are digital services supplied
-        immediately after payment. By completing checkout you ask us to
-        supply at once and accept that the 14-day withdrawal right ends once
-        supply begins, as allowed for digital content and digital services.
-        If we have not yet added the credits or activated Pro, email{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>{" "}
-        and we will cancel.
+        EU / Croatian consumers normally have {WITHDRAWAL_DAYS} days to
+        withdraw from a distance contract. Credits, Pro, and board boosts are
+        digital services supplied immediately after payment. By completing
+        checkout you ask us to supply at once and accept that the{" "}
+        {WITHDRAWAL_DAYS}-day withdrawal right ends once supply begins, as
+        allowed for digital content and digital services. If we have not yet
+        added the credits, activated Pro, or applied the boost, email{" "}
+        <LegalEmailLink /> and we will cancel.
       </p>
 
       <LegalH>Refunds</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          Unused purchased credits may be refunded within 14 days of purchase
-          if they have not been spent.
+          Unused purchased credits may be refunded within {WITHDRAWAL_DAYS}{" "}
+          days of purchase if they have not been spent.
         </li>
         <li>
-          Spent credits, finished reviews, and tester commitments are not
-          refundable except where the service was not supplied or Croatian /
-          EU law requires a refund.
+          Spent credits, finished reviews, activated board boosts, and tester
+          commitments are not refundable except where the service was not
+          supplied or Croatian / EU law requires a refund.
         </li>
         <li>
           Pro can be cancelled at period end in the Stripe billing portal
@@ -124,21 +138,21 @@ export default function PaymentTermsPage() {
 
       <LegalH>Contact</LegalH>
       <p>
-        Billing questions:{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>
-        . Complaints are answered within 15 days. EU ODR:{" "}
+        Billing questions: <LegalEmailLink />. Complaints are answered within{" "}
+        {COMPLAINT_RESPONSE_DAYS} days. EU ODR:{" "}
         <a className="text-blue" href={LEGAL.odrUrl} rel="noreferrer">
           {LEGAL.odrUrl}
         </a>
         . Croatian law applies; mandatory consumer rights in your home EU
-        state still apply.
+        state still apply. Liability limits are in the{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.terms}>
+          terms of use
+        </Link>
+        .
       </p>
 
-      <p className="font-mono text-[12px] text-ink/45">
-        Last updated {LEGAL.updated}
-      </p>
+      <LegalStackLinks />
+      <LegalUpdated />
     </LegalDoc>
   );
 }

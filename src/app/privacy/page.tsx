@@ -1,13 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalDoc, LegalH } from "@/components/legal-doc";
-import { LEGAL } from "@/lib/legal";
+import {
+  LegalDoc,
+  LegalEmailLink,
+  LegalH,
+  LegalStackLinks,
+  LegalUpdated,
+} from "@/components/legal-doc";
+import { LEGAL, LEGAL_PATHS, MIN_AGE } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Privacy",
   description: "How Dozen processes personal data under the GDPR.",
-  path: "/privacy",
+  path: LEGAL_PATHS.privacy,
 });
 
 export default function PrivacyPage() {
@@ -17,12 +23,9 @@ export default function PrivacyPage() {
         This notice is given under Articles 13 and 14 of the EU General Data
         Protection Regulation (GDPR) and the Croatian Act Implementing the
         GDPR. The controller is the Dozen operator established in the{" "}
-        {LEGAL.country}. Contact:{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>
-        . Registered identity is on the{" "}
-        <Link className="text-blue" href="/legal">
+        {LEGAL.country}. Contact: <LegalEmailLink />. Registered identity is
+        on the{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.notice}>
           legal notice
         </Link>
         .
@@ -44,13 +47,19 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Use of the product:</strong> posts, reviews, tester
-          check-ins, messages you send other users, and credit-ledger rows
-          needed to run the marketplace.
+          check-ins, the Google account email you give for a closed test,
+          messages you send other users, and credit-ledger rows needed to run
+          the marketplace.
         </li>
         <li>
           <strong>Payments:</strong> we receive Stripe customer and session
-          identifiers, payment status, and pack/subscription metadata. We do
-          not store full card numbers.
+          identifiers, payment status, and pack/subscription/boost metadata. We
+          do not store full card numbers.
+        </li>
+        <li>
+          <strong>Transactional email:</strong> your email when we send board
+          boost offers or other service messages you can opt out of where the
+          law allows.
         </li>
         <li>
           <strong>Security:</strong> IP address and basic request metadata
@@ -58,8 +67,13 @@ export default function PrivacyPage() {
         </li>
         <li>
           <strong>Bug reports:</strong> what you type in the report form, the
-          page you were on, and an email if you add one. We store these and
-          email them to the operator so we can fix the product.
+          page you were on, and an email if you add one. We store these in our
+          database and email them to the operator so we can fix the product.
+        </li>
+        <li>
+          <strong>Operator administration:</strong> authorised staff access
+          user, waitlist, payment, and bug-report records through a protected
+          admin console for support, moderation, and billing.
         </li>
       </ul>
 
@@ -71,8 +85,8 @@ export default function PrivacyPage() {
           does not affect processing already done.
         </li>
         <li>
-          <strong>Account, board, reviews, tester slots, credits</strong> —
-          performance of a contract (Art. 6(1)(b)).
+          <strong>Account, board, reviews, tester slots, credits, checkout</strong>{" "}
+          — performance of a contract (Art. 6(1)(b)).
         </li>
         <li>
           <strong>Invoices, tax, and dispute records</strong> — legal
@@ -94,30 +108,35 @@ export default function PrivacyPage() {
         <li>
           <strong>Stripe</strong> — checkout, cards, and subscriptions. Stripe
           is an independent controller for much of the payment data it
-          collects. See Stripe’s privacy notice.
+          collects. See Stripe&apos;s privacy notice.
         </li>
         <li>
           <strong>Vercel</strong> — hosting and delivery of this website.
         </li>
         <li>
-          <strong>FormSubmit</strong> — sending bug-report emails to the
-          operator.
+          <strong>Resend</strong> — transactional email (bug-report alerts,
+          board-boost offers, and similar service mail when configured).
         </li>
         <li>
-          <strong>Google</strong> — only if you choose “Continue with Google”.
+          <strong>FormSubmit</strong> — alternative path for delivering
+          bug-report emails to the operator when Resend is not configured.
+        </li>
+        <li>
+          <strong>Google</strong> — only if you choose “Continue with Google”,
+          or when you sign in to a poster&apos;s Google Play test track as part
+          of a tester program.
         </li>
         <li>
           <strong>Cloudflare</strong> — DNS for getdozen.dev, and Turnstile
           bot checks on sign-in, signup, password reset, waitlist, and bug
-          report forms.
-          Turnstile is used only to tell humans from automated clients
-          (legitimate interests, Art. 6(1)(f)).
+          report forms. Turnstile is used only to tell humans from automated
+          clients (legitimate interests, Art. 6(1)(f)).
         </li>
       </ul>
       <p>
         Some of these providers may process data outside the EEA. Where that
-        happens we rely on an adequacy decision or the European Commission’s
-        Standard Contractual Clauses, plus the provider’s extra safeguards.
+        happens we rely on an adequacy decision or the European Commission&apos;s
+        Standard Contractual Clauses, plus the provider&apos;s extra safeguards.
       </p>
 
       <LegalH>How long we keep data</LegalH>
@@ -138,12 +157,8 @@ export default function PrivacyPage() {
       <p>
         You may request access, rectification, erasure, restriction,
         portability, and — where we rely on legitimate interests or consent —
-        objection or withdrawal. Ask at{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>
-        . We reply without undue delay and within one month (extendable as the
-        GDPR allows).
+        objection or withdrawal. Ask at <LegalEmailLink />. We reply without
+        undue delay and within one month (extendable as the GDPR allows).
       </p>
       <p>
         You may lodge a complaint with the Croatian Personal Data Protection
@@ -161,9 +176,9 @@ export default function PrivacyPage() {
 
       <LegalH>Children</LegalH>
       <p>
-        Dozen is for people 16 or older (Croatia’s GDPR age of digital
-        consent). We do not knowingly take waitlist or account data from
-        children under 16.
+        Dozen is for people {MIN_AGE} or older (Croatia&apos;s GDPR age of
+        digital consent). We do not knowingly take waitlist or account data from
+        children under {MIN_AGE}.
       </p>
 
       <LegalH>Automated decisions</LegalH>
@@ -176,15 +191,14 @@ export default function PrivacyPage() {
       <p>
         Only cookies needed to run the site and keep you signed in. A short
         notice explains this on first visit. Details:{" "}
-        <Link className="text-blue" href="/cookies">
+        <Link className="text-blue" href={LEGAL_PATHS.cookies}>
           cookie notice
         </Link>
         .
       </p>
 
-      <p className="font-mono text-[12px] text-ink/45">
-        Last updated {LEGAL.updated}
-      </p>
+      <LegalStackLinks />
+      <LegalUpdated />
     </LegalDoc>
   );
 }

@@ -1,9 +1,11 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
+import { LEGAL_PATHS } from "@/lib/legal";
 
-export const PAYMENT_TERMS_PATH = "/terms/payment";
+export const PAYMENT_TERMS_PATH = LEGAL_PATHS.paymentTerms;
 export const PAYMENT_TERMS_URL = `${SITE_ORIGIN}${PAYMENT_TERMS_PATH}`;
+export const TERMS_URL = `${SITE_ORIGIN}${LEGAL_PATHS.terms}`;
 
-/** Hosted Checkout only — no custom_text (Managed Payments rejects it). */
+/** Hosted Checkout — custom_text may be stripped by older Stripe account settings. */
 export function stripeCheckoutLegal() {
   return {
     branding_settings: {
@@ -14,6 +16,11 @@ export function stripeCheckoutLegal() {
     },
     consent_collection: {
       terms_of_service: "required" as const,
+    },
+    custom_text: {
+      terms_of_service_acceptance: {
+        message: `I agree to the [Payment terms](${PAYMENT_TERMS_URL}) and [Terms of use](${TERMS_URL})`,
+      },
     },
   };
 }

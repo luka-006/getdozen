@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { confirmWaitlistCode, requestWaitlistCode } from "@/actions/waitlist";
 import { Captcha } from "@/components/captcha";
+import { LegalAgreementNotice } from "@/components/legal-doc";
 import { WaitlistJoined } from "@/components/waitlist-joined";
 
 type Phase = "idle" | "sending" | "code" | "confirming" | "joined";
@@ -158,6 +159,7 @@ export function WaitlistForm({
       >
         {phase === "sending" ? "Sending…" : "Join waitlist"}
       </button>
+      <LegalAgreementNotice action="joining the waitlist" />
     </form>
   );
 }

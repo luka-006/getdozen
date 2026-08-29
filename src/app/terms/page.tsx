@@ -1,13 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalDoc, LegalH } from "@/components/legal-doc";
-import { LEGAL } from "@/lib/legal";
+import {
+  LegalDoc,
+  LegalEmailLink,
+  LegalH,
+  LegalStackLinks,
+  LegalUpdated,
+} from "@/components/legal-doc";
+import {
+  COMPLAINT_RESPONSE_DAYS,
+  LEGAL,
+  LEGAL_PATHS,
+  MIN_AGE,
+  WITHDRAWAL_DAYS,
+} from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Terms",
   description: "Terms of use for Dozen.",
-  path: "/terms",
+  path: LEGAL_PATHS.terms,
 });
 
 export default function TermsPage() {
@@ -16,7 +28,7 @@ export default function TermsPage() {
       <p>
         These terms govern use of {LEGAL.siteUrl} (“Dozen”). The provider is
         identified on the{" "}
-        <Link className="text-blue" href="/legal">
+        <Link className="text-blue" href={LEGAL_PATHS.notice}>
           legal notice
         </Link>
         . By joining the waitlist or creating an account you agree to these
@@ -26,16 +38,18 @@ export default function TermsPage() {
       <LegalH>The service</LegalH>
       <p>
         Dozen is a marketplace for structured app feedback and closed tests
-        among other makers. During the waitlist phase the public site only
-        collects a confirmed email so we can write when Dozen opens.
+        among other makers. Before public launch, the homepage may only offer
+        a waitlist that collects a confirmed email so we can write when Dozen
+        opens. After launch, signed-in users can post work, review apps, join
+        tester programs, and buy credits or Pro.
       </p>
 
       <LegalH>Accounts and waitlist</LegalH>
       <p>
-        You must be 16 or older. Keep your login to yourself. We may refuse
-        or close an account that is abusive, fraudulent, or illegal. Waitlist
-        confirmation is given by the email we send; unconfirmed addresses are
-        not treated as subscribed.
+        You must be {MIN_AGE} or older. Keep your login to yourself. We may
+        refuse or close an account that is abusive, fraudulent, or illegal.
+        Waitlist confirmation is given by the email we send; unconfirmed
+        addresses are not treated as subscribed.
       </p>
 
       <LegalH>Credits, Pro, and prices</LegalH>
@@ -47,40 +61,51 @@ export default function TermsPage() {
         the charge. Credits are added only after Stripe confirms payment to
         our server — never because the browser returned from checkout. Full
         payment rules:{" "}
-        <Link className="text-blue" href="/terms/payment">
+        <Link className="text-blue" href={LEGAL_PATHS.paymentTerms}>
           payment terms
         </Link>
         .
       </p>
 
+      <LegalH>Tester programs</LegalH>
+      <p>
+        Closed tests require you to opt in through the poster&apos;s test
+        track (for example Google Play), check in on alternating days during
+        the test period, and submit a final review when the period ends.
+        Missing too many check-ins voids the commitment without tester
+        credits. Free accounts may run one active test at a time; Pro allows
+        more, as shown in the product. You must use a real Google account
+        email for each test; duplicate or shared accounts across profiles are
+        not allowed. Gaming check-ins or other abuse can lead to a permanent
+        ban.
+      </p>
+
       <LegalH>Withdrawal (EU / Croatian consumers)</LegalH>
       <p>
-        You normally have 14 days to withdraw from a distance contract
-        (Croatian Consumer Protection Act). Credits and Pro are digital
-        services supplied immediately after payment. By completing checkout
-        you request immediate supply and acknowledge that you lose the
-        14-day withdrawal right once supply begins, as allowed for digital
-        content and digital services. If we have not yet supplied the
-        credits or activated Pro, you may still withdraw by emailing{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>
-        .
+        You normally have {WITHDRAWAL_DAYS} days to withdraw from a distance
+        contract (Croatian Consumer Protection Act). Credits and Pro are
+        digital services supplied immediately after payment. By completing
+        checkout you request immediate supply and acknowledge that you lose
+        the {WITHDRAWAL_DAYS}-day withdrawal right once supply begins, as
+        allowed for digital content and digital services. If we have not yet
+        supplied the credits or activated Pro, you may still withdraw by
+        emailing <LegalEmailLink />.
       </p>
       <p>
-        Unused purchased credits may be refunded on request within 14 days of
-        purchase if they have not been spent. Spent credits, completed
-        reviews, and tester commitments are not refundable except where the
-        service was not supplied or Croatian / EU law requires it. Pro
-        cancels at period end through the Stripe billing portal unless a
-        mandatory rule says otherwise.
+        Unused purchased credits may be refunded on request within{" "}
+        {WITHDRAWAL_DAYS} days of purchase if they have not been spent. Spent
+        credits, completed reviews, activated board boosts, and tester
+        commitments are not refundable except where the service was not
+        supplied or Croatian / EU law requires it. Pro cancels at period end
+        through the Stripe billing portal unless a mandatory rule says
+        otherwise.
       </p>
 
       <LegalH>Your content</LegalH>
       <p>
         You keep rights in what you post. You grant us a licence to host and
         display it as needed to run Dozen. Do not post unlawful content,
-        malware, or other people’s personal data without a basis. Guest
+        malware, or other people&apos;s personal data without a basis. Guest
         logins you share with reviewers must be throwaway accounts.
       </p>
 
@@ -102,21 +127,25 @@ export default function TermsPage() {
 
       <LegalH>Complaints and law</LegalH>
       <p>
-        Complaints: {LEGAL.email}, answer within 15 days. EU ODR:{" "}
+        Complaints: <LegalEmailLink />, answer within{" "}
+        {COMPLAINT_RESPONSE_DAYS} days. EU ODR:{" "}
         <a className="text-blue" href={LEGAL.odrUrl} rel="noreferrer">
           {LEGAL.odrUrl}
         </a>
         . Croatian law; mandatory consumer rights in your home EU state still
         apply. Personal data:{" "}
-        <Link className="text-blue" href="/privacy">
+        <Link className="text-blue" href={LEGAL_PATHS.privacy}>
           privacy policy
+        </Link>
+        . Cookies:{" "}
+        <Link className="text-blue" href={LEGAL_PATHS.cookies}>
+          cookie notice
         </Link>
         .
       </p>
 
-      <p className="font-mono text-[12px] text-ink/45">
-        Last updated {LEGAL.updated}
-      </p>
+      <LegalStackLinks />
+      <LegalUpdated />
     </LegalDoc>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from "@/actions/auth";
 import { Captcha } from "@/components/captcha";
 import { GoogleIcon } from "@/components/icons";
+import { LegalAgreementNotice } from "@/components/legal-doc";
 
 type Phase = "credentials" | "sending" | "code" | "confirming";
 
@@ -247,6 +248,7 @@ export function LoginForm({
         <button type="submit" className="btn btn-primary w-full">
           Continue
         </button>
+        <LegalAgreementNotice action="signing in" />
       </form>
 
       <p className="mt-6 text-center text-[13px] text-ink/70">

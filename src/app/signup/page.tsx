@@ -2,6 +2,7 @@ import Link from "next/link";
 import { signUpWithEmail } from "@/actions/auth";
 import { Captcha } from "@/components/captcha";
 import { GoogleIcon } from "@/components/icons";
+import { LegalAgreementNotice } from "@/components/legal-doc";
 
 type Props = {
   searchParams: Promise<{
@@ -100,6 +101,7 @@ export default async function SignupPage({ searchParams }: Props) {
           <button type="submit" className="btn btn-primary w-full">
             Create account
           </button>
+          <LegalAgreementNotice action="creating an account" />
         </form>
 
         <p className="mt-6 text-center text-[13px] text-ink/70">

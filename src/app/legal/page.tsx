@@ -1,13 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { LegalDoc, LegalH } from "@/components/legal-doc";
-import { LEGAL, hasFullLegalIdentity } from "@/lib/legal";
+import {
+  LegalDoc,
+  LegalEmailLink,
+  LegalH,
+  LegalStackLinks,
+  LegalUpdated,
+} from "@/components/legal-doc";
+import {
+  COMPLAINT_RESPONSE_DAYS,
+  LEGAL,
+  LEGAL_PATHS,
+  hasFullLegalIdentity,
+} from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Legal",
   description: "Service-provider information for Dozen.",
-  path: "/legal",
+  path: LEGAL_PATHS.notice,
 });
 
 export default function LegalPage() {
@@ -32,9 +43,7 @@ export default function LegalPage() {
         </li>
         <li>
           <span className="text-ink/55">Email: </span>
-          <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-            {LEGAL.email}
-          </a>
+          <LegalEmailLink />
         </li>
         <li>
           <span className="text-ink/55">Website: </span>
@@ -74,7 +83,7 @@ export default function LegalPage() {
         unless a tax line is shown separately. There is no shipping. Payment
         is processed by Stripe. Credit packs and Pro are listed on the site
         before you pay. Paying is also covered by the{" "}
-        <Link className="text-blue" href="/terms/payment">
+        <Link className="text-blue" href={LEGAL_PATHS.paymentTerms}>
           payment terms
         </Link>
         .
@@ -82,12 +91,9 @@ export default function LegalPage() {
 
       <LegalH>Complaints</LegalH>
       <p>
-        Write to{" "}
-        <a className="text-blue" href={`mailto:${LEGAL.email}`}>
-          {LEGAL.email}
-        </a>
-        . We answer written consumer complaints within 15 days of receipt
-        (Croatian Consumer Protection Act).
+        Write to <LegalEmailLink />. We answer written consumer complaints
+        within {COMPLAINT_RESPONSE_DAYS} days of receipt (Croatian Consumer
+        Protection Act).
       </p>
 
       <LegalH>Dispute resolution</LegalH>
@@ -108,9 +114,10 @@ export default function LegalPage() {
         jurisdiction, without limiting any non-waivable consumer forum rights.
       </p>
 
-      <p className="font-mono text-[12px] text-ink/45">
-        Last updated {LEGAL.updated}
-      </p>
+      <LegalH>Related documents</LegalH>
+      <LegalStackLinks />
+
+      <LegalUpdated />
     </LegalDoc>
   );
 }

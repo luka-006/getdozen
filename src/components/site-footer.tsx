@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { LEGAL } from "@/lib/legal";
+import { LEGAL, LEGAL_PATHS } from "@/lib/legal";
 
 const LINKS = [
   { href: "/blog", label: "Blog" },
-  { href: "/privacy", label: "Privacy" },
-  { href: "/terms", label: "Terms" },
-  { href: "/terms/payment", label: "Payment" },
-  { href: "/cookies", label: "Cookies" },
-  { href: "/legal", label: "Legal" },
+  { href: LEGAL_PATHS.privacy, label: "Privacy" },
+  { href: LEGAL_PATHS.terms, label: "Terms" },
+  { href: LEGAL_PATHS.paymentTerms, label: "Payment" },
+  { href: LEGAL_PATHS.cookies, label: "Cookies" },
+  { href: LEGAL_PATHS.notice, label: "Legal" },
 ] as const;
 
 export function SiteFooter() {
