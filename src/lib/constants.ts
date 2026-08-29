@@ -53,7 +53,7 @@ export const MAX_CONCURRENT_COMMITMENTS = 1;
 export const MAX_CONCURRENT_COMMITMENTS_PRO = 3;
 
 export const PRO_BENEFITS = [
-  "Test up to 3 apps at once (free plan: 1)",
+  "Test up to 3 apps at once",
   "Your posts rank above free accounts on the board",
   "Pro badge on posts and your profile",
 ] as const;
