@@ -9,7 +9,7 @@ import {
   QUESTION_LIBRARY,
   creditCostForQuestionCount,
 } from "@/lib/constants";
-import { formatCredits } from "@/lib/utils";
+import { formatDots, formatDotsDelta, currencyUnits } from "@/lib/currency";
 
 type LibraryItem = { category: string; text: string };
 type CustomQuestion = { text: string; suggestions: string[] };
@@ -150,14 +150,14 @@ export function QuestionBuilder({
             <p className="text-[13px] text-ink/60">
               {needExact
                 ? `Need ${needExact} total (core + yours + proof).`
-                : `${MIN_QUESTIONS}+ total · 1 credit each. Adding a question costs +1.`}
+                : `${MIN_QUESTIONS}+ total · 1 ${currencyUnits(1)} each. Adding a question costs +1.`}
             </p>
           </div>
           <button type="button" className="btn btn-secondary" onClick={addQuestion}>
             <PlusIcon />
             Add
             {showCost ? (
-              <span className="ml-1 text-[12px] font-normal text-ink/55">+1 credit</span>
+              <span className="ml-1 text-[12px] font-normal text-ink/55">+1 {currencyUnits(1)}</span>
             ) : null}
           </button>
         </div>
@@ -242,7 +242,7 @@ export function QuestionBuilder({
                     >
                       <span className="flex-1 text-left">{q}</span>
                       {showCost ? (
-                        <span className="text-[11px] text-ink/45">+1 credit</span>
+                        <span className="text-[11px] text-ink/45">+1 {currencyUnits(1)}</span>
                       ) : null}
                       <span className="library-chip-add">
                         <PlusIcon className="h-3.5 w-3.5" />
@@ -258,7 +258,7 @@ export function QuestionBuilder({
 
       <section className="space-y-3">
         <h2 className="font-display text-[22px] font-semibold">Proof</h2>
-        <p className="text-[12px] text-ink/55">Required · counts as +1 credit</p>
+        <p className="text-[12px] text-ink/55">Required · counts as +1 {currencyUnits(1)}</p>
         <div className="field">
           <label htmlFor="proof_question">Question</label>
           <input
@@ -293,11 +293,7 @@ export function QuestionBuilder({
         <div className="flex flex-wrap items-center gap-2 text-[14px]">
           <CreditIcon className="h-5 w-5 text-ink" />
           <span>
-            {total} questions ·{" "}
-            <span className="inline-flex items-center gap-1 rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-ink">
-              {formatCredits(cost)}
-            </span>{" "}
-            credits · 1 each
+            {total} questions · {formatDots(cost)} · 1 each
           </span>
           {needExact && !exactOk ? (
             <span className="text-[13px] text-flag">
@@ -311,7 +307,7 @@ export function QuestionBuilder({
           ) : null}
           {short ? (
             <span className="text-[13px] text-flag">
-              You have {formatCredits(balance)}
+              You have {formatDots(balance)}
             </span>
           ) : null}
         </div>
@@ -319,13 +315,13 @@ export function QuestionBuilder({
         <div className="flex flex-wrap gap-2">
           <button
             type="submit"
-            form="buy-credits-exact"
-            name="credits"
+            form="buy-dots-exact"
+            name="dots"
             value={String(creditsToBuy)}
             className={short ? "btn btn-primary" : "btn btn-secondary"}
           >
             <CreditIcon className="h-4 w-4" />
-            Buy {creditsToBuy} credit{creditsToBuy === 1 ? "" : "s"}
+            Buy {formatDots(creditsToBuy)}
           </button>
         </div>
       </div>

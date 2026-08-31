@@ -16,12 +16,17 @@ export function stripeConfigured() {
 }
 
 export {
+  DOT_PACKS,
   CREDIT_PACKS,
   PRO_PRICE_ENV,
   PRO_PRICE_EUR,
+  EUR_PER_DOT,
   EUR_PER_CREDIT,
+  eurForDots,
   eurForCredits,
+  getDotPack,
   getCreditPack,
   getStripePriceId,
+  type DotPackId,
   type CreditPackId,
 } from "@/lib/pricing";

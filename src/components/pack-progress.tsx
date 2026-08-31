@@ -1,5 +1,5 @@
 import { differenceInCalendarDays } from "date-fns";
-import { formatCredits } from "@/lib/utils";
+import { formatDots } from "@/lib/currency";
 
 type Props = {
   hasReview: boolean;
@@ -57,8 +57,8 @@ export function PackProgress({
     <section className="mt-8">
       <h2 className="font-display text-[24px] font-semibold">Pack progress</h2>
       <p className="mt-1 text-[13px] text-ink/60">
-        {formatCredits(creditCost)} credits locked · unused tester slots refund
-        at 2 cr each when the pack expires
+        {formatDots(creditCost)} locked · unused tester slots refund
+        at 2 dots each when the pack expires
       </p>
       <div className="mt-4">
         <Step
@@ -85,7 +85,7 @@ export function PackProgress({
           detail={
             daysLeft === 0
               ? potentialRefund > 0
-                ? `Expired · ~${potentialRefund} cr unused-slot refund pending`
+                ? `Expired · ~${formatDots(potentialRefund)} unused-slot refund pending`
                 : "Expired"
               : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`
           }

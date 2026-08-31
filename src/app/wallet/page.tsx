@@ -1,10 +1,10 @@
 import { requireProfile } from "@/lib/auth";
 import { CreditBadge } from "@/components/credit-badge";
-import { BuyCreditsSection } from "@/components/buy-credits-section";
-import { canPurchaseCredits } from "@/lib/credits";
-import { CREDIT_PACKS, stripeConfigured } from "@/lib/stripe";
+import { BuyDotsSection } from "@/components/buy-dots-section";
+import { WalletLedger } from "@/components/wallet-ledger";
+import { canPurchaseDots } from "@/lib/credits";
+import { DOT_PACKS, stripeConfigured } from "@/lib/stripe";
 import { createClient } from "@/lib/supabase/server";
-import { formatCredits } from "@/lib/utils";
 import type { CreditLedgerEntry } from "@/lib/types";
 
 type Props = {
@@ -25,8 +25,8 @@ export default async function WalletPage({ searchParams }: Props) {
 
   const entries = (ledger ?? []) as CreditLedgerEntry[];
   const purchaseErrors: Record<string, string | null> = {};
-  for (const pack of CREDIT_PACKS) {
-    const check = canPurchaseCredits(profile, pack.credits);
+  for (const pack of DOT_PACKS) {
+    const check = canPurchaseDots(profile, pack.dots);
     purchaseErrors[pack.id] = check.ok ? null : check.error;
   }
 
@@ -58,41 +58,9 @@ export default async function WalletPage({ searchParams }: Props) {
         />
       </div>
 
-      <BuyCreditsSection isPro={profile.is_pro} purchaseErrors={purchaseErrors} />
+      <BuyDotsSection isPro={profile.is_pro} purchaseErrors={purchaseErrors} />
 
-      <div className="mt-10">
-        <h2 className="font-display text-[24px] font-semibold">Ledger</h2>
-        <div className="mt-4 border-t border-border">
-          {entries.length === 0 ? (
-            <p className="py-8 text-ink/65">No ledger rows yet.</p>
-          ) : (
-            entries.map((entry) => (
-              <div
-                key={entry.id}
-                className="grid grid-cols-[1fr_auto] gap-3 border-b border-border py-3"
-              >
-                <div>
-                  <p className="text-[15px]">{entry.reason.replaceAll("_", " ")}</p>
-                  <p className="font-mono text-[12px] text-ink/55">
-                    {new Date(entry.created_at).toLocaleString()} · {entry.status}
-                    {entry.expires_at
-                      ? ` · expires ${new Date(entry.expires_at).toLocaleDateString()}`
-                      : ""}
-                  </p>
-                </div>
-                <p
-                  className={`font-mono text-[15px] ${
-                    entry.amount >= 0 ? "text-ink" : "text-flag"
-                  }`}
-                >
-                  {entry.amount >= 0 ? "+" : ""}
-                  {formatCredits(Number(entry.amount))}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
+      <WalletLedger entries={entries} />
     </div>
   );
 }

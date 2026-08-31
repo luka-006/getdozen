@@ -15,7 +15,8 @@ import { BOOST_HOURS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/cons
 import { decryptCredentials } from "@/lib/crypto";
 import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
 import { BOOST_PRICE_EUR } from "@/lib/pricing";
-import { formatCredits, formatWait } from "@/lib/utils";
+import { formatDots } from "@/lib/currency";
+import { formatWait } from "@/lib/utils";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -247,7 +248,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dt className="text-ink/60">Posted for</dt>
               <dd>
                 <span className="pill-credit font-mono">
-                  {formatCredits(Number(row.credit_cost))}
+                  {formatDots(Number(row.credit_cost))}
                 </span>
               </dd>
             </div>
@@ -255,7 +256,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dt className="text-ink/60">Reviewer earn</dt>
               <dd>
                 <span className="pill-credit font-mono">
-                  {formatCredits(
+                  {formatDots(
                     reviewEarnForQuestionCount(row.question_count) *
                       Number(row.bounty_multiplier),
                   )}
@@ -290,7 +291,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dt className="text-ink/60">Pack cost</dt>
               <dd>
                 <span className="pill-credit font-mono">
-                  {formatCredits(Number(row.credit_cost))}
+                  {formatDots(Number(row.credit_cost))}
                 </span>
               </dd>
             </div>

@@ -13,7 +13,7 @@ import { haveInteracted } from "@/lib/profile-reviews";
 import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { formatCredits } from "@/lib/utils";
+import { formatDots } from "@/lib/currency";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -121,8 +121,8 @@ export default async function ProfilePage({ params, searchParams }: Props) {
   ];
 
   if (isOwn) {
-    stats.unshift(["Pending", formatCredits(Number(profile.credits_pending))]);
-    stats.unshift(["Balance", formatCredits(Number(profile.credits))]);
+    stats.unshift(["Pending", formatDots(Number(profile.credits_pending))]);
+    stats.unshift(["Balance", formatDots(Number(profile.credits))]);
   }
 
   return (
@@ -171,7 +171,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
             className="inline-flex min-w-[4.75rem] items-center gap-1.5 rounded-[6px] bg-credit px-2.5 py-1 font-mono text-[13px] text-ink"
           >
             <CreditIcon className="h-3.5 w-3.5 shrink-0" />
-            {formatCredits(profile.credits)}
+            {formatDots(profile.credits)}
           </Link>
           <Link href="/wallet" className="btn btn-secondary min-h-9 px-3 text-[13px]">
             Wallet

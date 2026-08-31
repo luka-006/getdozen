@@ -1,14 +1,15 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
-  CREDIT_PAYMENT_LINKS,
+  DOT_PAYMENT_LINKS,
+  dotPaymentLink,
   PRO_PAYMENT_LINK,
   stripePaymentLinkUrl,
 } from "./stripe-payment-links";
 
 describe("stripePaymentLinkUrl", () => {
   it("attaches the signed-in profile so the webhook can fulfill", () => {
-    const url = stripePaymentLinkUrl(CREDIT_PAYMENT_LINKS.credits_1, {
+    const url = stripePaymentLinkUrl(DOT_PAYMENT_LINKS.dots_1, {
       profileId: "82b16889-909d-496b-afc8-a7580f4b64ad",
       email: "maker@getdozen.dev",
     });
@@ -22,7 +23,11 @@ describe("stripePaymentLinkUrl", () => {
   });
 
   it("has a live link for every catalog pack and Pro", () => {
-    assert.equal(Object.keys(CREDIT_PAYMENT_LINKS).length, 4);
+    assert.equal(Object.keys(DOT_PAYMENT_LINKS).length, 4);
     assert.match(PRO_PAYMENT_LINK, /^https:\/\/buy\.stripe\.com\//);
+  });
+
+  it("resolves legacy credits_* pack ids", () => {
+    assert.equal(dotPaymentLink("credits_5"), DOT_PAYMENT_LINKS.dots_5);
   });
 });

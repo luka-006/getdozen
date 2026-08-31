@@ -20,7 +20,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Payment terms",
-  description: "Payment, credits, Pro, refunds, and checkout terms for Dozen.",
+  description: "Payment, dots, Pro, refunds, and checkout terms for Dozen.",
   path: LEGAL_PATHS.paymentTerms,
 });
 
@@ -28,7 +28,7 @@ export default function PaymentTermsPage() {
   return (
     <LegalDoc title="Payment terms">
       <p>
-        These payment terms apply when you buy credit packs, Dozen Pro, or a
+        These payment terms apply when you buy dot packs, Dozen Pro, or a
         board boost on {LEGAL.siteUrl}. They sit with the{" "}
         <Link className="text-blue" href={LEGAL_PATHS.terms}>
           terms of use
@@ -47,9 +47,9 @@ export default function PaymentTermsPage() {
       <LegalH>What you can buy</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Credits</strong> — a prepaid balance used on Dozen to post
+          <strong>Dots</strong> — a prepaid balance used on Dozen to post
           tester and feedback work. Packs and custom amounts are priced in
-          euro. The list rate is €{EUR_PER_CREDIT} per credit; some packs are
+          euro. The list rate is €{EUR_PER_CREDIT} per dot; some packs are
           cheaper.
         </li>
         <li>
@@ -64,7 +64,7 @@ export default function PaymentTermsPage() {
         </li>
       </ul>
       <p>
-        Credits are not money, not e-money, and not withdrawable except as a
+        Dots are not money, not e-money, and not withdrawable except as a
         refund we owe you under these terms or the law. They cannot be sold
         or transferred to another account.
       </p>
@@ -81,7 +81,7 @@ export default function PaymentTermsPage() {
         Checkout is Stripe-hosted on stripe.com. We do not see or store full
         card numbers, CVC, or expiry. Stripe is the payment service provider.
         The purchase contract is formed when Stripe confirms the payment to our
-        server — not when the browser returns from checkout. Credits, Pro, and
+        server — not when the browser returns from checkout. Dots, Pro, and
         board boosts are granted only after that confirmation. Stripe may set
         its own cookies on its checkout pages; see the{" "}
         <Link className="text-blue" href={LEGAL_PATHS.cookies}>
@@ -91,30 +91,30 @@ export default function PaymentTermsPage() {
       </p>
       <p>
         If a payment is declined, delayed, or reversed, we do not supply the
-        credits, Pro, or boost until funds are confirmed. Chargebacks may freeze or
-        reverse the matching credits, Pro period, or boost.
+        dots, Pro, or boost until funds are confirmed. Chargebacks may freeze or
+        reverse the matching dots, Pro period, or boost.
       </p>
 
       <LegalH>Immediate supply and withdrawal</LegalH>
       <p>
         EU / Croatian consumers normally have {WITHDRAWAL_DAYS} days to
-        withdraw from a distance contract. Credits, Pro, and board boosts are
+        withdraw from a distance contract. Dots, Pro, and board boosts are
         digital services supplied immediately after payment. By completing
         checkout you ask us to supply at once and accept that the{" "}
         {WITHDRAWAL_DAYS}-day withdrawal right ends once supply begins, as
         allowed for digital content and digital services. If we have not yet
-        added the credits, activated Pro, or applied the boost, email{" "}
+        added the dots, activated Pro, or applied the boost, email{" "}
         <LegalEmailLink /> and we will cancel.
       </p>
 
       <LegalH>Refunds</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          Unused purchased credits may be refunded within {WITHDRAWAL_DAYS}{" "}
+          Unused purchased dots may be refunded within {WITHDRAWAL_DAYS}{" "}
           days of purchase if they have not been spent.
         </li>
         <li>
-          Spent credits, finished reviews, activated board boosts, and tester
+          Spent dots, finished reviews, activated board boosts, and tester
           commitments are not refundable except where the service was not
           supplied or Croatian / EU law requires a refund.
         </li>
@@ -125,7 +125,7 @@ export default function PaymentTermsPage() {
         </li>
       </ul>
       <p>
-        Purchased credits expire {CREDIT_EXPIRY_MONTHS} months after they
+        Purchased dots expire {CREDIT_EXPIRY_MONTHS} months after they
         become available, unless a longer period is required by law.
       </p>
 

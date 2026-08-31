@@ -10,6 +10,7 @@ import {
 } from "@/lib/constants";
 import { isLaunchBonusActive } from "@/lib/utils";
 import type { Profile } from "@/lib/types";
+import { currencyName, currencyUnits } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export { SIGNUP_BONUS };
@@ -17,23 +18,26 @@ export { SIGNUP_BONUS };
 /**
  * Give one confirmed review first, then buy any amount.
  */
-export function canPurchaseCredits(
+export function canPurchaseDots(
   profile: Pick<Profile, "purchased_credits" | "reviews_given">,
   amount: number,
 ): { ok: true } | { ok: false; error: string } {
   if (!Number.isFinite(amount) || amount <= 0) {
-    return { ok: false, error: "Choose a valid credit amount." };
+    return { ok: false, error: `Choose a valid ${currencyUnits(2)} amount.` };
   }
 
   if (Number(profile.reviews_given ?? 0) < 1) {
     return {
       ok: false,
-      error: "Complete one confirmed review before buying credits.",
+      error: `Complete one confirmed review before buying ${currencyName().toLowerCase()}.`,
     };
   }
 
   return { ok: true };
 }
+
+/** @deprecated use canPurchaseDots */
+export const canPurchaseCredits = canPurchaseDots;
 
 export function earnAmountForReview(
   questionCount: number,

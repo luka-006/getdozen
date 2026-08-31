@@ -18,6 +18,7 @@ import {
   type Platform,
 } from "@/lib/constants";
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
+import { formatDots, currencyName } from "@/lib/currency";
 import { encryptCredentials } from "@/lib/crypto";
 import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
@@ -244,7 +245,7 @@ export async function createFeedbackRequest(
   );
   const bountyMultiplier = parsePriorityMultiplier(formData.get("priority_multiplier"));
   if (profile.credits < creditCost) {
-    return { error: "Not enough credits — use Buy credits below." };
+    return { error: `Not enough ${currencyName().toLowerCase()} — use Buy ${currencyName().toLowerCase()} below.` };
   }
 
   const supabase = await createClient();
@@ -364,7 +365,7 @@ export async function createTesterRequest(
   );
   if (profile.credits < totalCost) {
     return {
-      error: `Need ${totalCost} credits for ${data.testers_needed} testers`,
+      error: `Need ${formatDots(totalCost)} for ${data.testers_needed} testers`,
     };
   }
 
@@ -482,7 +483,7 @@ export async function createComboRequest(
   const totalCost = priorityCost(pack.credits, bountyMultiplier);
   if (profile.credits < totalCost) {
     return {
-      error: `Need ${totalCost} credits for this pack at ${bountyMultiplier}× priority`,
+      error: `Need ${formatDots(totalCost)} for this pack at ${bountyMultiplier}× priority`,
     };
   }
 

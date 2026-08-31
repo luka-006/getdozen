@@ -14,6 +14,7 @@ import {
 } from "@/lib/admin-console";
 import { adminConsolePath } from "@/lib/admin-console-path";
 import { appendLedger } from "@/lib/credits";
+import { formatDots } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { removeWaitlistById } from "@/lib/waitlist";
 
@@ -87,7 +88,7 @@ export async function adminRefundCredits(formData: FormData) {
 
   revalidatePath(adminConsolePath());
   redirect(
-    `${adminConsolePath()}?message=${encodeURIComponent(`Refunded ${amount} credits`)}`,
+    `${adminConsolePath()}?message=${encodeURIComponent(`Refunded ${formatDots(amount)}`)}`,
   );
 }
 
@@ -140,7 +141,7 @@ export async function adminAdjustCredits(formData: FormData) {
 
   revalidatePath(adminConsolePath());
   redirect(
-    `${adminConsolePath()}?message=${encodeURIComponent(`Adjusted ${amount} credits`)}`,
+    `${adminConsolePath()}?message=${encodeURIComponent(`Adjusted ${formatDots(amount)}`)}`,
   );
 }
 

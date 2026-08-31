@@ -1,29 +1,30 @@
 import {
   openBillingPortal,
-  purchaseCreditPack,
+  purchaseDotPack,
   startProSubscription,
 } from "@/actions/billing";
-import { CustomCreditsBuy } from "@/components/custom-credits-buy";
+import { CustomDotsBuy } from "@/components/custom-dots-buy";
+import { currencyName } from "@/lib/currency";
 import { PRO_BENEFITS } from "@/lib/constants";
-import { CREDIT_PACKS, EUR_PER_CREDIT, PRO_PRICE_EUR } from "@/lib/pricing";
+import { DOT_PACKS, PRO_PRICE_EUR } from "@/lib/pricing";
 
 type Props = {
   isPro: boolean;
   purchaseErrors: Record<string, string | null>;
 };
 
-export function BuyCreditsSection({ isPro, purchaseErrors }: Props) {
+export function BuyDotsSection({ isPro, purchaseErrors }: Props) {
   const customBlocked = Object.values(purchaseErrors).some(Boolean);
 
   return (
     <section className="mt-10 space-y-8">
       <div>
-        <h2 className="font-display text-[24px] font-semibold">Buy credits</h2>
+        <h2 className="font-display text-[24px] font-semibold">Buy {currencyName().toLowerCase()}</h2>
 
         <div className="mt-4 space-y-3">
-          {CREDIT_PACKS.map((pack) => {
+          {DOT_PACKS.map((pack) => {
             const blocked = purchaseErrors[pack.id];
-            const list = pack.credits * EUR_PER_CREDIT;
+            const list = pack.dots * 1;
             const save = list - pack.amountEur;
             return (
               <div
@@ -44,7 +45,7 @@ export function BuyCreditsSection({ isPro, purchaseErrors }: Props) {
                   <p className="font-display text-[32px] font-semibold tracking-tight">
                     €{pack.amountEur}
                   </p>
-                  <form action={purchaseCreditPack}>
+                  <form action={purchaseDotPack}>
                     <input type="hidden" name="pack_id" value={pack.id} />
                     <button
                       type="submit"
@@ -60,7 +61,7 @@ export function BuyCreditsSection({ isPro, purchaseErrors }: Props) {
             );
           })}
 
-          <CustomCreditsBuy blocked={customBlocked} />
+          <CustomDotsBuy blocked={customBlocked} />
         </div>
         {customBlocked ? (
           <p className="mt-3 text-[13px] text-ink/55">

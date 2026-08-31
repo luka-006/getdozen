@@ -11,6 +11,7 @@ import {
   TESTER_DAYS,
 } from "@/lib/constants";
 import { appendLedger } from "@/lib/credits";
+import { formatDotsDelta } from "@/lib/currency";
 import { hashEmail } from "@/lib/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
@@ -236,7 +237,7 @@ export async function submitCheckin(formData: FormData) {
 
   revalidatePath("/testers");
   revalidatePath("/wallet");
-  redirect(`/testers?message=Check-in saved. +${earn} credits.`);
+  redirect(`/testers?message=Check-in saved. ${formatDotsDelta(earn)}.`);
 }
 
 export async function completeTesterCommitment(formData: FormData) {
@@ -292,7 +293,7 @@ export async function completeTesterCommitment(formData: FormData) {
 
   revalidatePath("/testers");
   revalidatePath("/wallet");
-  redirect(`/testers?message=Commitment complete. +${earn} credits.`);
+  redirect(`/testers?message=Commitment complete. ${formatDotsDelta(earn)}.`);
 }
 
 export async function voidStaleCommitments() {

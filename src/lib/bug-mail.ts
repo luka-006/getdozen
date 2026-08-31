@@ -51,14 +51,14 @@ function mailBody(report: BugReportInput, awardUrl?: string | null) {
     report.details,
   ];
   if (awardUrl) {
-    lines.push("", "If this is a proper report, click Award 2 credits:", awardUrl);
+    lines.push("", "If this is a proper report, click Award 2 dots:", awardUrl);
   }
   return lines.join("\n");
 }
 
 function mailHtml(report: BugReportInput, awardUrl?: string | null) {
   const award = awardUrl
-    ? `<p><a href="${escapeHtml(awardUrl)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">Award 2 credits</a></p>`
+    ? `<p><a href="${escapeHtml(awardUrl)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">Award 2 dots</a></p>`
     : "";
   return [
     `<p><strong>Page:</strong> ${escapeHtml(report.page)}</p>`,

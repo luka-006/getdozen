@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { purchaseCreditsAmount } from "@/actions/billing";
-import { EUR_PER_CREDIT, eurForCredits } from "@/lib/pricing";
+import { purchaseDotsAmount } from "@/actions/billing";
+import { currencyUnits } from "@/lib/currency";
+import { EUR_PER_DOT, eurForDots } from "@/lib/pricing";
 
 type Props = {
   returnTo?: string;
   blocked?: boolean;
 };
 
-export function CustomCreditsBuy({ returnTo = "/wallet", blocked = false }: Props) {
-  const [credits, setCredits] = useState(10);
-  const valid = Number.isInteger(credits) && credits >= 1 && credits <= 500;
-  const amount = valid ? eurForCredits(credits) : EUR_PER_CREDIT;
+export function CustomDotsBuy({ returnTo = "/wallet", blocked = false }: Props) {
+  const [dots, setDots] = useState(10);
+  const valid = Number.isInteger(dots) && dots >= 1 && dots <= 500;
+  const amount = valid ? eurForDots(dots) : EUR_PER_DOT;
 
   return (
     <div
@@ -22,23 +23,23 @@ export function CustomCreditsBuy({ returnTo = "/wallet", blocked = false }: Prop
       <div className="min-w-0">
         <p className="font-display text-[18px] font-semibold">Custom</p>
         <p className="mt-1 text-[13px] text-ink/60">
-          Any amount · €{EUR_PER_CREDIT} each · 1–500
+          Any amount · €{EUR_PER_DOT} per {currencyUnits(1)} · 1–500
         </p>
       </div>
       <form
-        action={purchaseCreditsAmount}
+        action={purchaseDotsAmount}
         className="flex flex-wrap items-center gap-3"
       >
         <input type="hidden" name="return_to" value={returnTo} />
         <input
           type="number"
-          name="credits"
+          name="dots"
           min={1}
           max={500}
-          value={credits}
-          onChange={(e) => setCredits(Number(e.target.value))}
+          value={dots}
+          onChange={(e) => setDots(Number(e.target.value))}
           className="input font-mono w-24"
-          aria-label="Custom credit amount"
+          aria-label={`Custom ${currencyUnits(2)} amount`}
         />
         <p className="font-display text-[24px] font-semibold tracking-tight">
           €{amount}

@@ -2,28 +2,29 @@
 
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
-import { canPurchaseCredits } from "@/lib/credits";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { canPurchaseDots } from "@/lib/credits";
+import { currencyUnits, stripeDotsLineItem } from "@/lib/currency";
 import {
-  getStripe,
-  stripeConfigured,
-} from "@/lib/stripe";
+  dotPaymentLink,
+  PRO_PAYMENT_LINK,
+  stripePaymentLinkUrl,
+} from "@/lib/stripe-payment-links";
 import {
   boostAmountCents,
   getStripePriceId,
   PRO_PRICE_ENV,
   PRO_PRICE_EUR,
-  resolveCreditOffer,
+  resolveDotOffer,
 } from "@/lib/pricing";
+import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  getStripe,
+  stripeConfigured,
+} from "@/lib/stripe";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { stripeCheckoutLegal } from "@/lib/checkout-legal";
 import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
 import { BOOST_HOURS, PRO_BENEFITS } from "@/lib/constants";
-import {
-  CREDIT_PAYMENT_LINKS,
-  PRO_PAYMENT_LINK,
-  stripePaymentLinkUrl,
-} from "@/lib/stripe-payment-links";
 import { safeInternalPath } from "@/lib/safe-path";
 import type Stripe from "stripe";
 
@@ -92,15 +93,15 @@ async function ensureStripeCustomer(profile: {
   return customer.id;
 }
 
-export async function purchaseCreditPack(formData: FormData) {
+export async function purchaseDotPack(formData: FormData) {
   const profile = await requireProfile();
-  const offer = resolveCreditOffer(String(formData.get("pack_id") ?? ""));
+  const offer = resolveDotOffer(String(formData.get("pack_id") ?? ""));
 
   if (!offer) {
-    redirect(`/wallet?error=${encodeURIComponent("Unknown credit pack")}`);
+    redirect(`/wallet?error=${encodeURIComponent("Unknown dot pack")}`);
   }
 
-  const check = canPurchaseCredits(profile, offer.credits);
+  const check = canPurchaseDots(profile, offer.dots);
   if (!check.ok) {
     redirect(`/wallet?error=${encodeURIComponent(check.error)}`);
   }
@@ -122,7 +123,7 @@ export async function purchaseCreditPack(formData: FormData) {
       client_reference_id: profile.id,
       integration_identifier: checkoutIntegrationId(offer.packId),
       metadata: {
-        kind: "credits",
+        kind: "dots",
         profile_id: profile.id,
         pack_id: offer.packId,
       },
@@ -132,14 +133,11 @@ export async function purchaseCreditPack(formData: FormData) {
           price_data: {
             currency: "eur",
             unit_amount: offer.amountCents,
-            product_data: {
-              name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
-              description: `${offer.credits} credits`,
-            },
+            product_data: stripeDotsLineItem(offer.dots),
           },
         },
       ],
-      success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
+      success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Dots land after Stripe confirms.")}`,
       cancel_url: `${baseUrl}/wallet?error=${encodeURIComponent("Checkout cancelled")}`,
     });
   } catch {
@@ -148,7 +146,7 @@ export async function purchaseCreditPack(formData: FormData) {
 
   if (session?.url) redirect(session.url);
 
-  const link = CREDIT_PAYMENT_LINKS[offer.packId];
+  const link = dotPaymentLink(offer.packId);
   if (!link) {
     redirect(`/wallet?error=${encodeURIComponent("Could not start checkout")}`);
   }
@@ -161,16 +159,18 @@ export async function purchaseCreditPack(formData: FormData) {
   );
 }
 
-export async function purchaseCreditsAmount(formData: FormData) {
+export async function purchaseDotsAmount(formData: FormData) {
   const profile = await requireProfile();
   const returnTo = safeInternalPath(formData.get("return_to"), "/wallet");
-  const credits = Math.ceil(Number(formData.get("credits") ?? 0));
+  const raw =
+    formData.get("dots") ?? formData.get("credits") ?? formData.get("amount");
+  const dots = Math.ceil(Number(raw ?? 0));
 
-  if (!Number.isFinite(credits) || credits < 1 || credits > 500) {
-    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Pick a valid credit amount")}`);
+  if (!Number.isFinite(dots) || dots < 1 || dots > 500) {
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(`Pick a valid ${currencyUnits(2)} amount`)}`);
   }
 
-  const check = canPurchaseCredits(profile, credits);
+  const check = canPurchaseDots(profile, dots);
   if (!check.ok) {
     redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(check.error)}`);
   }
@@ -183,9 +183,9 @@ export async function purchaseCreditsAmount(formData: FormData) {
     profile as typeof profile & { stripe_customer_id?: string | null },
   );
 
-  const offer = resolveCreditOffer(`custom_${credits}`);
+  const offer = resolveDotOffer(`custom_${dots}`);
   if (!offer) {
-    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Pick a valid credit amount")}`);
+    redirect(`${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent(`Pick a valid ${currencyUnits(2)} amount`)}`);
   }
   const baseUrl = await siteUrl();
 
@@ -193,9 +193,9 @@ export async function purchaseCreditsAmount(formData: FormData) {
     mode: "payment",
     customer: customerId,
     client_reference_id: profile.id,
-    integration_identifier: checkoutIntegrationId("credits_custom"),
+    integration_identifier: checkoutIntegrationId("dots_custom"),
     metadata: {
-      kind: "credits",
+      kind: "dots",
       profile_id: profile.id,
       pack_id: offer.packId,
     },
@@ -205,14 +205,11 @@ export async function purchaseCreditsAmount(formData: FormData) {
         price_data: {
           currency: "eur",
           unit_amount: offer.amountCents,
-          product_data: {
-            name: `Dozen ${offer.credits} credit${offer.credits === 1 ? "" : "s"}`,
-            description: `${offer.credits} credits`,
-          },
+          product_data: stripeDotsLineItem(offer.dots),
         },
       },
     ],
-    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Credits land after Stripe confirms.")}`,
+    success_url: `${baseUrl}/wallet?message=${encodeURIComponent("Checkout finished. Dots land after Stripe confirms.")}`,
     cancel_url: `${baseUrl}${returnTo}${returnTo.includes("?") ? "&" : "?"}error=${encodeURIComponent("Checkout cancelled")}`,
   });
 
@@ -222,6 +219,12 @@ export async function purchaseCreditsAmount(formData: FormData) {
 
   redirect(session.url);
 }
+
+/** @deprecated use purchaseDotPack */
+export const purchaseCreditPack = purchaseDotPack;
+
+/** @deprecated use purchaseDotsAmount */
+export const purchaseCreditsAmount = purchaseDotsAmount;
 
 export async function startProSubscription() {
   const profile = await requireProfile();

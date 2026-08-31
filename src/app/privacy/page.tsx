@@ -78,7 +78,7 @@ export default function PrivacyPage() {
           does not affect processing already done.
         </li>
         <li>
-          <strong>Account, board, reviews, tester slots, credits, checkout</strong>{" "}
+          <strong>Account, board, reviews, tester slots, dots, checkout</strong>{" "}
           — performance of a contract (Art. 6(1)(b)).
         </li>
         <li>

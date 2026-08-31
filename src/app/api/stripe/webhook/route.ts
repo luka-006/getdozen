@@ -33,7 +33,7 @@ async function releaseEvent(eventId: string) {
 async function claimSessionGrant(params: {
   sessionId: string;
   profileId: string;
-  kind: "credits" | "pro" | "boost";
+  kind: "credits" | "pro" | "boost" | "dots";
   credits: number | null;
 }) {
   const admin = createAdminClient();
@@ -114,13 +114,13 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
   const claimed = await claimSessionGrant({
     sessionId: decision.sessionId,
     profileId: decision.profileId,
-    kind: decision.kind,
-    credits: decision.kind === "credits" ? decision.credits : null,
+    kind: decision.kind === "dots" ? "credits" : decision.kind,
+    credits: decision.kind === "dots" ? decision.dots : null,
   });
   if (!claimed) return;
 
-  if (decision.kind === "credits") {
-    await grantCredits(decision.profileId, decision.credits);
+  if (decision.kind === "dots") {
+    await grantCredits(decision.profileId, decision.dots);
     const customerId = idOf(session.customer);
     if (customerId) {
       const admin = createAdminClient();

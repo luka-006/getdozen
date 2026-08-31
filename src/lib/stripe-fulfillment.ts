@@ -1,4 +1,4 @@
-import { boostAmountCents, proAmountCents, resolveCreditOffer, resolveCreditOfferByAmount } from "./pricing";
+import { boostAmountCents, proAmountCents, resolveDotOffer, resolveDotOfferByAmount } from "./pricing";
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -15,12 +15,15 @@ export type CheckoutLike = {
   customer?: string | { id?: string } | null;
 };
 
-export type CreditGrant = {
-  kind: "credits";
+export type DotGrant = {
+  kind: "dots";
   profileId: string;
-  credits: number;
+  dots: number;
   sessionId: string;
 };
+
+/** @deprecated use DotGrant */
+export type CreditGrant = DotGrant & { credits: number };
 
 export type ProGrant = {
   kind: "pro";
@@ -42,7 +45,7 @@ export type FulfillmentSkip = {
   reason: string;
 };
 
-export type Fulfillment = CreditGrant | ProGrant | BoostGrant | FulfillmentSkip;
+export type Fulfillment = DotGrant | ProGrant | BoostGrant | FulfillmentSkip;
 
 function isUuid(value: string): boolean {
   return UUID_RE.test(value);
@@ -104,18 +107,18 @@ export function fulfillmentFromCheckout(session: CheckoutLike): Fulfillment {
       };
     }
 
-    let offer = resolveCreditOffer(session.metadata?.pack_id ?? "");
+    let offer = resolveDotOffer(session.metadata?.pack_id ?? "");
     if (!offer && session.amount_total != null) {
-      offer = resolveCreditOfferByAmount(session.amount_total);
+      offer = resolveDotOfferByAmount(session.amount_total);
     }
     if (!offer) return { kind: "skip", reason: "unknown_pack" };
     if (session.amount_total !== offer.amountCents) {
       return { kind: "skip", reason: "amount_mismatch" };
     }
     return {
-      kind: "credits",
+      kind: "dots",
       profileId,
-      credits: offer.credits,
+      dots: offer.dots,
       sessionId,
     };
   }

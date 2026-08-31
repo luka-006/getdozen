@@ -15,6 +15,7 @@ import {
   type ComboPackId,
   type Platform,
 } from "@/lib/constants";
+import { formatDots } from "@/lib/currency";
 import { randomDescriptionExample } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -69,7 +70,7 @@ export function ComboRequestForm({ balance, action }: Props) {
         >
           {COMBO_PACKS.map((p) => (
             <option key={p.id} value={p.id}>
-              {p.label} · {p.credits} credits
+              {p.label} · {formatDots(p.credits)}
             </option>
           ))}
         </select>
@@ -209,12 +210,9 @@ export function ComboRequestForm({ balance, action }: Props) {
       />
 
       <p className="font-mono text-[14px]">
-        <span className="rounded-[6px] bg-credit px-1.5 py-0.5 text-ink">
-          {pack.credits}
-        </span>{" "}
-        credits · {pack.testers} testers · {pack.questions} questions
+        {formatDots(pack.credits)} · {pack.testers} testers · {pack.questions} questions
         {balance < pack.credits ? (
-          <span className="text-flag"> · you have {balance}</span>
+          <span className="text-flag"> · you have {formatDots(balance)}</span>
         ) : null}
       </p>
 

@@ -14,6 +14,7 @@ import {
   TESTER_DURATION_OPTIONS,
   type Platform,
 } from "@/lib/constants";
+import { formatDots } from "@/lib/currency";
 import { randomDescriptionExample, TESTER_COUNT_OPTIONS } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -130,7 +131,7 @@ export function TesterRequestForm({ action }: Props) {
         >
           {TESTER_COUNT_OPTIONS.map((n) => (
             <option key={n} value={n}>
-              {n} testers · {n * TESTER_COST} credits
+              {n} testers · {formatDots(n * TESTER_COST)}
             </option>
           ))}
         </select>

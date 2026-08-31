@@ -10,7 +10,7 @@ import { TesterRequestForm } from "@/components/tester-request-form";
 import { TrackTabs } from "@/components/track-tabs";
 import { requireProfile } from "@/lib/auth";
 import { pageMetadata } from "@/lib/seo";
-import { formatCredits } from "@/lib/utils";
+import { formatDots } from "@/lib/currency";
 
 type Props = {
   searchParams: Promise<{ type?: string; error?: string }>;
@@ -40,7 +40,7 @@ export default async function NewRequestPage({ searchParams }: Props) {
         <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] text-ink/65">
           <CreditIcon className="h-4 w-4 text-ink" />
           <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-ink">
-            {formatCredits(profile.credits)}
+            {formatDots(profile.credits)}
           </span>
         </p>
       </div>

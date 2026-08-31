@@ -2,7 +2,7 @@ import Link from "next/link";
 import { FIRST_REVIEW_GIFT } from "@/lib/constants";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { formatCredits } from "@/lib/utils";
+import { formatDots, formatDotsDelta } from "@/lib/currency";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -46,7 +46,7 @@ export default async function ReviewSubmittedPage({ params }: Props) {
       </h1>
       <p className="mt-3 text-ink/75">
         <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
-          {formatCredits(Number(review.credits_awarded ?? 0))}
+          {formatDots(Number(review.credits_awarded ?? 0))}
         </span>{" "}
         {confirmed ? "added to your wallet" : "pending · confirms in 48h"}
       </p>
@@ -54,9 +54,9 @@ export default async function ReviewSubmittedPage({ params }: Props) {
         <p className="mt-4 text-[15px] text-ink/75">
           Welcome gift:{" "}
           <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono">
-            +{FIRST_REVIEW_GIFT}
-          </span>{" "}
-          credit. You can buy packs now.
+            {formatDotsDelta(FIRST_REVIEW_GIFT)}
+          </span>
+          . You can buy packs now.
         </p>
       ) : null}
       <div className="mt-8 flex gap-3">

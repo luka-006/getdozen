@@ -101,12 +101,12 @@ export default async function HomePage({
           </h1>
           <p className="hero-lead mt-4">
             The feedback loop for indie makers — structured reviews, tester
-            commitments, and credits that keep quality high.
+            commitments, and dots that keep quality high.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
             <span className="pill pill-blue">Structured feedback</span>
             <span className="pill">Tester programs</span>
-            <span className="pill">Credit economy</span>
+            <span className="pill">Dot economy</span>
           </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link

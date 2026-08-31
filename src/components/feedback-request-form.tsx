@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { purchaseCreditsAmount } from "@/actions/billing";
+import { purchaseDotsAmount } from "@/actions/billing";
 import { QuestionBuilder } from "@/components/question-builder";
 import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
@@ -45,8 +45,8 @@ export function FeedbackRequestForm({ balance, action }: Props) {
   return (
     <>
       <form
-        id="buy-credits-exact"
-        action={purchaseCreditsAmount}
+        id="buy-dots-exact"
+        action={purchaseDotsAmount}
         className="hidden"
       >
         <input type="hidden" name="return_to" value="/requests/new?type=feedback" />

@@ -186,7 +186,7 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
             </button>
           </div>
           <p className="text-[13px] text-ink/60">
-            Rejection does not refund your credit.
+            Rejection does not refund your dots.
           </p>
         </form>
       ) : (
@@ -198,16 +198,16 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
       {review.confirm_status !== "rejected" ? (
         bugAward ? (
           <p className="mt-6 text-[13px] text-ink/60">
-            Awarded {BUG_REPORT_AWARD} credits for a proper bug report
+            Awarded {BUG_REPORT_AWARD} dots for a proper bug report
           </p>
         ) : (
           <form action={awardReviewBug} className="mt-6">
             <input type="hidden" name="review_id" value={review.id} />
             <button type="submit" className="btn btn-secondary">
-              Award {BUG_REPORT_AWARD} credits
+              Award {BUG_REPORT_AWARD} dots
             </button>
             <p className="mt-2 text-[12px] text-ink/55">
-              If this review includes a real bug, award 2 credits.
+              If this review includes a real bug, award 2 dots.
             </p>
           </form>
         )

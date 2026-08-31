@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { TesterCommitmentCard } from "@/components/tester-commitment-card";
 import { requireProfile } from "@/lib/auth";
+import { formatDots, formatDotsDelta } from "@/lib/currency";
 import {
   MAX_CONCURRENT_COMMITMENTS,
   MAX_CONCURRENT_COMMITMENTS_PRO,
@@ -117,8 +118,8 @@ export default async function TestersPage({ searchParams }: Props) {
             In progress
           </h2>
           <p className="mt-1 text-[13px] text-ink/60">
-            Every 3 days you get a feedback question (+1 credit). Finish the run
-            for +2 more.
+            Every 3 days you get a feedback question ({formatDotsDelta(1)}). Finish the run
+            for {formatDotsDelta(2)}.
           </p>
         </div>
 

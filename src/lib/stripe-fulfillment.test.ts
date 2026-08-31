@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { resolveCreditOffer, proAmountCents, resolveCreditOfferByAmount } from "./pricing";
+import { resolveCreditOffer, resolveCreditOfferByAmount } from "./pricing";
+import { proAmountCents } from "./pricing";
 import {
   fulfillmentFromCheckout,
   shouldActivateSubscription,
@@ -17,23 +18,30 @@ function session(over: Partial<CheckoutLike> = {}): CheckoutLike {
     currency: "eur",
     amount_total: 100,
     client_reference_id: PROFILE,
-    metadata: { pack_id: "credits_1", profile_id: PROFILE, credits: "1" },
+    metadata: { pack_id: "dots_1", profile_id: PROFILE, dots: "1" },
     ...over,
   };
 }
 
 describe("resolveCreditOffer", () => {
-  it("uses catalog prices, not a client credit count", () => {
-    const offer = resolveCreditOffer("credits_15");
+  it("uses catalog prices, not a client dot count", () => {
+    const offer = resolveCreditOffer("dots_15");
     assert.deepEqual(offer, {
-      packId: "credits_15",
+      packId: "dots_15",
+      dots: 15,
       credits: 15,
       amountCents: 1100,
     });
   });
 
+  it("accepts legacy credits_* pack ids", () => {
+    const offer = resolveCreditOffer("credits_15");
+    assert.equal(offer?.packId, "dots_15");
+    assert.equal(offer?.dots, 15);
+  });
+
   it("rejects unknown packs", () => {
-    assert.equal(resolveCreditOffer("credits_999"), null);
+    assert.equal(resolveCreditOffer("dots_999"), null);
     assert.equal(resolveCreditOffer(""), null);
     assert.equal(resolveCreditOffer("custom_0"), null);
     assert.equal(resolveCreditOffer("custom_501"), null);
@@ -43,6 +51,7 @@ describe("resolveCreditOffer", () => {
   it("accepts bounded custom packs at catalog rate", () => {
     assert.deepEqual(resolveCreditOffer("custom_7"), {
       packId: "custom_7",
+      dots: 7,
       credits: 7,
       amountCents: 700,
     });
@@ -53,8 +62,8 @@ describe("resolveCreditOffer", () => {
 describe("resolveCreditOfferByAmount", () => {
   it("maps catalog pack amounts without pack_id metadata", () => {
     assert.deepEqual(resolveCreditOfferByAmount(1100), {
-      packId: "credits_15",
-      credits: 15,
+      packId: "dots_15",
+      dots: 15,
       amountCents: 1100,
     });
     assert.equal(resolveCreditOfferByAmount(999), null);
@@ -62,34 +71,34 @@ describe("resolveCreditOfferByAmount", () => {
 });
 
 describe("fulfillmentFromCheckout", () => {
-  it("grants catalog credits from pack_id + paid amount", () => {
+  it("grants catalog dots from pack_id + paid amount", () => {
     const result = fulfillmentFromCheckout(
       session({
         amount_total: 1900,
-        metadata: { pack_id: "credits_25", profile_id: PROFILE },
+        metadata: { pack_id: "dots_25", profile_id: PROFILE },
       }),
     );
     assert.deepEqual(result, {
-      kind: "credits",
+      kind: "dots",
       profileId: PROFILE,
-      credits: 25,
+      dots: 25,
       sessionId: "cs_live_abc",
     });
   });
 
-  it("ignores inflated metadata.credits", () => {
+  it("ignores inflated metadata.dots", () => {
     const result = fulfillmentFromCheckout(
       session({
         amount_total: 100,
         metadata: {
-          pack_id: "credits_1",
+          pack_id: "dots_1",
           profile_id: PROFILE,
-          credits: "999",
+          dots: "999",
         },
       }),
     );
-    assert.equal(result.kind, "credits");
-    if (result.kind === "credits") assert.equal(result.credits, 1);
+    assert.equal(result.kind, "dots");
+    if (result.kind === "dots") assert.equal(result.dots, 1);
   });
 
   it("skips when paid amount does not match the pack", () => {
@@ -97,16 +106,16 @@ describe("fulfillmentFromCheckout", () => {
       session({
         amount_total: 100,
         metadata: {
-          pack_id: "credits_25",
+          pack_id: "dots_25",
           profile_id: PROFILE,
-          credits: "25",
+          dots: "25",
         },
       }),
     );
     assert.deepEqual(result, { kind: "skip", reason: "amount_mismatch" });
   });
 
-  it("grants credits from paid amount when pack_id is missing (Payment Link)", () => {
+  it("grants dots from paid amount when pack_id is missing (Payment Link)", () => {
     const result = fulfillmentFromCheckout(
       session({
         amount_total: 1100,
@@ -114,9 +123,9 @@ describe("fulfillmentFromCheckout", () => {
       }),
     );
     assert.deepEqual(result, {
-      kind: "credits",
+      kind: "dots",
       profileId: PROFILE,
-      credits: 15,
+      dots: 15,
       sessionId: "cs_live_abc",
     });
   });
@@ -151,7 +160,7 @@ describe("fulfillmentFromCheckout", () => {
       fulfillmentFromCheckout(
         session({
           client_reference_id: "not-a-uuid",
-          metadata: { pack_id: "credits_1", profile_id: "not-a-uuid" },
+          metadata: { pack_id: "dots_1", profile_id: "not-a-uuid" },
         }),
       ).kind,
       "skip",

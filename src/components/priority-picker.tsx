@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatDots, formatDotsDelta } from "@/lib/currency";
 import { PRIORITY_OPTIONS } from "@/lib/priority";
-import { formatCredits } from "@/lib/utils";
 
 type Props = {
   baseCost: number;
@@ -42,7 +42,7 @@ export function PriorityPicker({ baseCost, name = "priority_multiplier" }: Props
       </div>
       <input type="hidden" name={name} value={String(multiplier)} />
       <p className="mt-2 font-mono text-[13px] text-ink/70">
-        Total: {formatCredits(total)} credits ({PRIORITY_OPTIONS.find((o) => o.value === multiplier)?.hint})
+        Total: {formatDots(total)} ({PRIORITY_OPTIONS.find((o) => o.value === multiplier)?.hint})
       </p>
     </div>
   );

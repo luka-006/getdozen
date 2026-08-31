@@ -1,108 +1,159 @@
-export const CREDIT_PACKS = [
+/** @deprecated use dots — legacy Stripe pack ids still resolve. */
+const LEGACY_DOT_PACK_IDS: Record<string, string> = {
+  credits_1: "dots_1",
+  credits_5: "dots_5",
+  credits_15: "dots_15",
+  credits_25: "dots_25",
+};
+
+export function normalizeDotPackId(packId: string): string {
+  return LEGACY_DOT_PACK_IDS[packId] ?? packId;
+}
+
+export const DOT_PACKS = [
   {
-    id: "credits_1",
-    credits: 1,
+    id: "dots_1",
+    dots: 1,
     amountEur: 1,
-    label: "1 credit",
-    priceEnv: "STRIPE_PRICE_CREDITS_1",
+    label: "1 dot",
+    priceEnv: "STRIPE_PRICE_DOTS_1",
+    legacyPriceEnv: "STRIPE_PRICE_CREDITS_1",
   },
   {
-    id: "credits_5",
-    credits: 5,
+    id: "dots_5",
+    dots: 5,
     amountEur: 5,
-    label: "5 credits",
-    priceEnv: "STRIPE_PRICE_CREDITS_5",
+    label: "5 dots",
+    priceEnv: "STRIPE_PRICE_DOTS_5",
+    legacyPriceEnv: "STRIPE_PRICE_CREDITS_5",
   },
   {
-    id: "credits_15",
-    credits: 15,
+    id: "dots_15",
+    dots: 15,
     amountEur: 11,
-    label: "15 credits",
-    priceEnv: "STRIPE_PRICE_CREDITS_15",
+    label: "15 dots",
+    priceEnv: "STRIPE_PRICE_DOTS_15",
+    legacyPriceEnv: "STRIPE_PRICE_CREDITS_15",
   },
   {
-    id: "credits_25",
-    credits: 25,
+    id: "dots_25",
+    dots: 25,
     amountEur: 19,
-    label: "25 credits",
-    priceEnv: "STRIPE_PRICE_CREDITS_25",
+    label: "25 dots",
+    priceEnv: "STRIPE_PRICE_DOTS_25",
+    legacyPriceEnv: "STRIPE_PRICE_CREDITS_25",
   },
 ] as const;
+
+/** @deprecated alias — use DOT_PACKS */
+export const CREDIT_PACKS = DOT_PACKS.map((pack) => ({
+  ...pack,
+  credits: pack.dots,
+}));
 
 export const PRO_PRICE_EUR = 12;
 export const PRO_PRICE_ENV = "STRIPE_PRICE_PRO_MONTHLY";
 /** Base rate for custom amounts (packs may discount). */
-export const EUR_PER_CREDIT = 1;
+export const EUR_PER_DOT = 1;
+/** @deprecated use EUR_PER_DOT */
+export const EUR_PER_CREDIT = EUR_PER_DOT;
 export const BOOST_PRICE_EUR = 5;
 
-export type CreditPackId = (typeof CREDIT_PACKS)[number]["id"];
+export type DotPackId = (typeof DOT_PACKS)[number]["id"];
+/** @deprecated use DotPackId */
+export type CreditPackId = DotPackId;
 
-export function getCreditPack(id: string) {
-  return CREDIT_PACKS.find((pack) => pack.id === id) ?? null;
+export function getDotPack(id: string) {
+  const normalized = normalizeDotPackId(id);
+  return DOT_PACKS.find((pack) => pack.id === normalized) ?? null;
 }
 
-export function getStripePriceId(envName: string) {
+/** @deprecated use getDotPack */
+export const getCreditPack = getDotPack;
+
+export function getStripePriceId(envName: string, legacyEnvName?: string) {
   const value = process.env[envName]?.trim();
-  return value || null;
+  if (value) return value;
+  if (legacyEnvName) {
+    const legacy = process.env[legacyEnvName]?.trim();
+    if (legacy) return legacy;
+  }
+  return null;
 }
 
-export function eurForCredits(credits: number) {
-  const pack = CREDIT_PACKS.find((p) => p.credits === credits);
+export function eurForDots(dots: number) {
+  const pack = DOT_PACKS.find((p) => p.dots === dots);
   if (pack) return pack.amountEur;
-  return Math.round(credits * EUR_PER_CREDIT * 100) / 100;
+  return Math.round(dots * EUR_PER_DOT * 100) / 100;
 }
 
-export type CreditOffer = {
+/** @deprecated use eurForDots */
+export const eurForCredits = eurForDots;
+
+export type DotOffer = {
   packId: string;
-  credits: number;
+  dots: number;
   amountCents: number;
 };
 
-const CUSTOM_PACK = /^custom_(\d+)$/;
-const MAX_CUSTOM_CREDITS = 500;
+/** @deprecated use DotOffer */
+export type CreditOffer = DotOffer & { credits: number };
 
-/** Server-only catalog lookup. Never trust a client-supplied credit count. */
-export function resolveCreditOffer(packId: string): CreditOffer | null {
-  const named = getCreditPack(packId);
+const CUSTOM_PACK = /^custom_(\d+)$/;
+const MAX_CUSTOM_DOTS = 500;
+
+/** Server-only catalog lookup. Never trust a client-supplied dot count. */
+export function resolveDotOffer(packId: string): DotOffer | null {
+  const named = getDotPack(packId);
   if (named) {
     return {
       packId: named.id,
-      credits: named.credits,
+      dots: named.dots,
       amountCents: Math.round(named.amountEur * 100),
     };
   }
 
-  const custom = packId.match(CUSTOM_PACK);
+  const custom = normalizeDotPackId(packId).match(CUSTOM_PACK);
   if (!custom) return null;
-  const credits = Number(custom[1]);
-  if (!Number.isInteger(credits) || credits < 1 || credits > MAX_CUSTOM_CREDITS) {
+  const dots = Number(custom[1]);
+  if (!Number.isInteger(dots) || dots < 1 || dots > MAX_CUSTOM_DOTS) {
     return null;
   }
   return {
-    packId,
-    credits,
-    amountCents: Math.round(eurForCredits(credits) * 100),
+    packId: `custom_${dots}`,
+    dots,
+    amountCents: Math.round(eurForDots(dots) * 100),
   };
 }
 
+/** @deprecated use resolveDotOffer */
+export function resolveCreditOffer(packId: string): CreditOffer | null {
+  const offer = resolveDotOffer(packId);
+  if (!offer) return null;
+  return { ...offer, credits: offer.dots };
+}
+
 /**
- * Resolve a named credit pack from a paid Checkout amount (Payment Links omit pack_id).
+ * Resolve a named dot pack from a paid Checkout amount (Payment Links omit pack_id).
  * Only matches fixed catalog packs — custom amounts need metadata.
  */
-export function resolveCreditOfferByAmount(amountCents: number): CreditOffer | null {
+export function resolveDotOfferByAmount(amountCents: number): DotOffer | null {
   if (!Number.isInteger(amountCents) || amountCents <= 0) return null;
-  for (const pack of CREDIT_PACKS) {
+  for (const pack of DOT_PACKS) {
     const cents = Math.round(pack.amountEur * 100);
     if (cents === amountCents) {
       return {
         packId: pack.id,
-        credits: pack.credits,
+        dots: pack.dots,
         amountCents: cents,
       };
     }
   }
   return null;
 }
+
+/** @deprecated use resolveDotOfferByAmount */
+export const resolveCreditOfferByAmount = resolveDotOfferByAmount;
 
 export function proAmountCents() {
   return Math.round(PRO_PRICE_EUR * 100);

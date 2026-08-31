@@ -18,7 +18,7 @@ export const SITE_KEYWORDS = [
   "indie app feedback",
   "structured feedback",
   "app review platform",
-  "test apps earn credits",
+  "test apps earn dots",
   "get app feedback",
 ] as const;
 

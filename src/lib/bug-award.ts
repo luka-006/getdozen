@@ -1,5 +1,6 @@
 import { BUG_REPORT_AWARD } from "@/lib/constants";
 import { appendLedger } from "@/lib/credits";
+import { formatDots } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const UUID_RE =
@@ -74,7 +75,7 @@ export async function grantBugReportAward(bugId: string) {
     })
     .eq("id", bugId);
 
-  return { ok: true as const, message: "Awarded 2 credits" };
+  return { ok: true as const, message: `Awarded ${formatDots(BUG_REPORT_AWARD)}` };
 }
 
 export async function grantReviewBugAward(reviewId: string, actorId: string) {
@@ -122,5 +123,5 @@ export async function grantReviewBugAward(reviewId: string, actorId: string) {
   });
   await bumpBugsFound(review.reviewer_id);
 
-  return { ok: true as const, message: "Awarded 2 credits" };
+  return { ok: true as const, message: `Awarded ${formatDots(BUG_REPORT_AWARD)}` };
 }

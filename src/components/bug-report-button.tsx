@@ -48,7 +48,7 @@ export function BugReportButton({ email = "" }: { email?: string }) {
             <div className="space-y-3 motion-fade-in">
               <p className="font-display text-[16px] font-semibold">Sent</p>
               <p className="text-[13px] text-ink/70">
-                Thanks. A proper report can earn 2 credits.
+                Thanks. A proper report can earn 2 dots.
               </p>
               <button
                 type="button"
