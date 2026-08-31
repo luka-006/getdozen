@@ -1,0 +1,630 @@
+﻿-- feedback.io initial schema
+-- Credit mutations are SECURITY DEFINER only. Clients never write balances or ledger rows.
+
+create extension if not exists pgcrypto;
+
+create type public.request_type as enum ('feedback', 'tester');
+create type public.request_status as enum ('open', 'in_progress', 'completed', 'expired', 'cancelled');
+create type public.confirm_status as enum ('pending', 'confirmed', 'rejected');
+create type public.commitment_status as enum ('active', 'completed', 'voided', 'cancelled');
+create type public.ledger_status as enum ('pending', 'available', 'expired', 'voided');
+create type public.focus_tag as enum ('UX', 'Market', 'Technical');
+
+create table public.profiles (
+  id uuid primary key references auth.users (id) on delete cascade,
+  email text not null unique,
+  display_name text not null,
+  avatar_url text,
+  credits numeric(10,2) not null default 0 check (credits >= 0),
+  credits_pending numeric(10,2) not null default 0 check (credits_pending >= 0),
+  reviews_given integer not null default 0,
+  rating_avg numeric(4,2) not null default 0,
+  rating_count integer not null default 0,
+  is_ramped boolean not null default false,
+  is_pro boolean not null default false,
+  is_admin boolean not null default false,
+  is_banned boolean not null default false,
+  daily_review_count integer not null default 0,
+  daily_review_date date,
+  purchased_credits numeric(10,2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table public.credit_ledger (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  amount numeric(10,2) not null,
+  reason text not null,
+  ref_id uuid,
+  status public.ledger_status not null default 'available',
+  expires_at timestamptz,
+  available_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create index credit_ledger_user_created_idx on public.credit_ledger (user_id, created_at desc);
+create index credit_ledger_status_expires_idx on public.credit_ledger (status, expires_at);
+
+create table public.requests (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles (id) on delete cascade,
+  type public.request_type not null,
+  app_name text not null,
+  app_url text not null,
+  app_description text not null,
+  test_credentials_encrypted text,
+  focus_tag public.focus_tag,
+  question_count integer not null default 0,
+  credit_cost numeric(10,2) not null,
+  testers_needed integer not null default 0,
+  testers_filled integer not null default 0,
+  status public.request_status not null default 'open',
+  bounty_multiplier numeric(4,2) not null default 1,
+  claimed_at timestamptz,
+  expires_at timestamptz not null,
+  opt_in_link text,
+  test_focus text,
+  test_start_date date,
+  created_at timestamptz not null default now()
+);
+
+create index requests_board_idx on public.requests (type, status, created_at);
+create index requests_user_idx on public.requests (user_id, created_at desc);
+
+create table public.questions (
+  id uuid primary key default gen_random_uuid(),
+  request_id uuid not null references public.requests (id) on delete cascade,
+  position integer not null,
+  text text not null,
+  is_core boolean not null default false,
+  is_proof boolean not null default false,
+  expected_answer text,
+  unique (request_id, position)
+);
+
+create table public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  request_id uuid not null references public.requests (id) on delete cascade,
+  reviewer_id uuid not null references public.profiles (id) on delete cascade,
+  answers jsonb not null default '{}'::jsonb,
+  proof_passed boolean not null default false,
+  time_spent_seconds integer not null default 0,
+  confirm_status public.confirm_status not null default 'pending',
+  rating_received numeric(3,1),
+  credits_awarded numeric(10,2),
+  sample_question_ids uuid[] not null default '{}',
+  created_at timestamptz not null default now(),
+  auto_confirm_at timestamptz not null,
+  unique (request_id, reviewer_id)
+);
+
+create index reviews_confirm_idx on public.reviews (confirm_status, auto_confirm_at);
+
+create table public.tester_commitments (
+  id uuid primary key default gen_random_uuid(),
+  request_id uuid not null references public.requests (id) on delete cascade,
+  tester_id uuid not null references public.profiles (id) on delete cascade,
+  google_email text not null,
+  google_email_hash text not null,
+  opted_in_at timestamptz not null default now(),
+  checkins_completed integer not null default 0,
+  checkins_missed integer not null default 0,
+  checkin_days boolean[14] not null default array_fill(false, array[14]),
+  last_checkin_at timestamptz,
+  status public.commitment_status not null default 'active',
+  completes_at timestamptz not null,
+  final_review_id uuid references public.reviews (id),
+  created_at timestamptz not null default now(),
+  unique (request_id, tester_id)
+);
+
+create table public.checkins (
+  id uuid primary key default gen_random_uuid(),
+  commitment_id uuid not null references public.tester_commitments (id) on delete cascade,
+  day_index integer not null check (day_index between 0 and 13),
+  prompt_answer text not null,
+  created_at timestamptz not null default now(),
+  unique (commitment_id, day_index)
+);
+
+create table public.thanks_messages (
+  id uuid primary key default gen_random_uuid(),
+  from_user_id uuid not null references public.profiles (id) on delete cascade,
+  to_user_id uuid not null references public.profiles (id) on delete cascade,
+  review_id uuid references public.reviews (id) on delete set null,
+  body text not null check (char_length(body) <= 280),
+  created_at timestamptz not null default now()
+);
+
+create table public.reports (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  target_user_id uuid references public.profiles (id) on delete set null,
+  review_id uuid references public.reviews (id) on delete set null,
+  reason text not null,
+  status text not null default 'open',
+  created_at timestamptz not null default now()
+);
+
+create table public.shipped_apps (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null references public.profiles (id) on delete cascade,
+  app_name text not null,
+  app_url text not null,
+  launched_at date not null default current_date,
+  helper_ids uuid[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+-- Helpers
+create or replace function public.is_launch_bonus_active()
+returns boolean
+language sql
+stable
+as $$
+  select coalesce(
+    (current_setting('app.launch_started_at', true))::timestamptz,
+    (select min(created_at) from public.profiles)
+  ) > now() - interval '14 days'
+    or (
+      current_setting('app.launch_started_at', true) is null
+      and exists (
+        select 1 from public.profiles p
+        where p.created_at > now() - interval '14 days'
+      )
+    );
+$$;
+
+create or replace function public.recompute_balances(p_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.profiles
+  set
+    credits = greatest(coalesce((
+      select sum(amount) from public.credit_ledger
+      where user_id = p_user_id and status = 'available'
+    ), 0), 0),
+    credits_pending = coalesce((
+      select sum(amount) from public.credit_ledger
+      where user_id = p_user_id and status = 'pending' and amount > 0
+    ), 0)
+  where id = p_user_id;
+end;
+$$;
+
+create or replace function public.ledger_insert(
+  p_user_id uuid,
+  p_amount numeric,
+  p_reason text,
+  p_ref_id uuid default null,
+  p_status public.ledger_status default 'available',
+  p_expires_at timestamptz default null,
+  p_available_at timestamptz default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_id uuid;
+begin
+  insert into public.credit_ledger (user_id, amount, reason, ref_id, status, expires_at, available_at)
+  values (
+    p_user_id,
+    p_amount,
+    p_reason,
+    p_ref_id,
+    p_status,
+    case
+      when p_amount > 0 and p_status in ('available', 'pending')
+        then coalesce(p_expires_at, now() + interval '6 months')
+      else p_expires_at
+    end,
+    p_available_at
+  )
+  returning id into v_id;
+
+  perform public.recompute_balances(p_user_id);
+  return v_id;
+end;
+$$;
+
+create or replace function public.spend_credits(
+  p_user_id uuid,
+  p_amount numeric,
+  p_reason text,
+  p_ref_id uuid default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_credits numeric;
+begin
+  if p_amount <= 0 then
+    raise exception 'Spend amount must be positive';
+  end if;
+
+  select credits into v_credits from public.profiles where id = p_user_id for update;
+  if v_credits is null then
+    raise exception 'Profile not found';
+  end if;
+  if v_credits < p_amount then
+    raise exception 'Insufficient credits';
+  end if;
+
+  perform public.ledger_insert(p_user_id, -p_amount, p_reason, p_ref_id, 'available', null, null);
+end;
+$$;
+
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_name text;
+begin
+  v_name := coalesce(
+    new.raw_user_meta_data->>'full_name',
+    new.raw_user_meta_data->>'name',
+    split_part(new.email, '@', 1)
+  );
+
+  insert into public.profiles (id, email, display_name, avatar_url)
+  values (
+    new.id,
+    new.email,
+    v_name,
+    new.raw_user_meta_data->>'avatar_url'
+  );
+
+  perform public.ledger_insert(new.id, 1, 'signup_bonus', null, 'available', now() + interval '6 months', null);
+  return new;
+end;
+$$;
+
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+create or replace function public.credit_cost_for_questions(p_count integer)
+returns numeric
+language sql
+immutable
+as $$
+  select case
+    when p_count <= 15 then 1::numeric
+    when p_count <= 25 then 1.5::numeric
+    else 2::numeric
+  end;
+$$;
+
+create or replace function public.escalate_bounties()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.requests
+  set bounty_multiplier = 1.5
+  where type = 'feedback'
+    and status = 'open'
+    and bounty_multiplier = 1
+    and created_at <= now() - interval '72 hours';
+
+  update public.requests
+  set status = 'expired'
+  where status = 'open'
+    and expires_at <= now();
+end;
+$$;
+
+create or replace function public.release_pending_credits(p_review_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_user_id uuid;
+begin
+  select user_id into v_user_id
+  from public.credit_ledger
+  where ref_id = p_review_id
+    and status = 'pending'
+    and amount > 0
+  limit 1;
+
+  update public.credit_ledger
+  set status = 'available', available_at = now()
+  where ref_id = p_review_id
+    and status = 'pending'
+    and amount > 0;
+
+  if v_user_id is not null then
+    perform public.recompute_balances(v_user_id);
+  end if;
+end;
+$$;
+
+create or replace function public.auto_confirm_reviews()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r record;
+begin
+  for r in
+    select id, reviewer_id, request_id, credits_awarded
+    from public.reviews
+    where confirm_status = 'pending'
+      and auto_confirm_at <= now()
+  loop
+    update public.reviews
+    set confirm_status = 'confirmed'
+    where id = r.id;
+
+    perform public.release_pending_credits(r.id);
+
+    update public.profiles
+    set
+      reviews_given = reviews_given + 1,
+      is_ramped = case when reviews_given + 1 >= 5 then true else is_ramped end
+    where id = r.reviewer_id;
+
+    update public.requests
+    set status = 'completed'
+    where id = r.request_id
+      and type = 'feedback';
+  end loop;
+end;
+$$;
+
+create or replace function public.expire_credits()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  r record;
+begin
+  for r in
+    select id, user_id, amount
+    from public.credit_ledger
+    where status = 'available'
+      and amount > 0
+      and expires_at is not null
+      and expires_at <= now()
+  loop
+    update public.credit_ledger set status = 'expired' where id = r.id;
+    perform public.ledger_insert(r.user_id, -r.amount, 'credit_expiry', r.id, 'available', null, null);
+  end loop;
+end;
+$$;
+
+-- RLS
+alter table public.profiles enable row level security;
+alter table public.credit_ledger enable row level security;
+alter table public.requests enable row level security;
+alter table public.questions enable row level security;
+alter table public.reviews enable row level security;
+alter table public.tester_commitments enable row level security;
+alter table public.checkins enable row level security;
+alter table public.thanks_messages enable row level security;
+alter table public.reports enable row level security;
+alter table public.shipped_apps enable row level security;
+
+create policy "profiles_select_authenticated"
+  on public.profiles for select to authenticated
+  using (not is_banned or id = auth.uid());
+
+create policy "profiles_update_own"
+  on public.profiles for update to authenticated
+  using (id = auth.uid())
+  with check (id = auth.uid());
+
+create policy "ledger_select_own"
+  on public.credit_ledger for select to authenticated
+  using (user_id = auth.uid());
+
+-- No insert/update/delete policies on credit_ledger for authenticated â€” server/RPC only
+
+create policy "requests_select_open_or_own"
+  on public.requests for select to authenticated
+  using (
+    status in ('open', 'in_progress', 'completed')
+    or user_id = auth.uid()
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+create policy "requests_insert_own"
+  on public.requests for insert to authenticated
+  with check (user_id = auth.uid());
+
+create policy "requests_update_own"
+  on public.requests for update to authenticated
+  using (user_id = auth.uid() or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin));
+
+create policy "questions_select"
+  on public.questions for select to authenticated
+  using (
+    exists (
+      select 1 from public.requests r
+      where r.id = request_id
+        and (r.status in ('open', 'in_progress', 'completed') or r.user_id = auth.uid())
+    )
+  );
+
+create policy "questions_insert_own_request"
+  on public.questions for insert to authenticated
+  with check (
+    exists (select 1 from public.requests r where r.id = request_id and r.user_id = auth.uid())
+  );
+
+create policy "reviews_select_involved"
+  on public.reviews for select to authenticated
+  using (
+    reviewer_id = auth.uid()
+    or exists (select 1 from public.requests r where r.id = request_id and r.user_id = auth.uid())
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+create policy "reviews_insert_own"
+  on public.reviews for insert to authenticated
+  with check (reviewer_id = auth.uid());
+
+create policy "reviews_update_involved"
+  on public.reviews for update to authenticated
+  using (
+    reviewer_id = auth.uid()
+    or exists (select 1 from public.requests r where r.id = request_id and r.user_id = auth.uid())
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+create policy "commitments_select_involved"
+  on public.tester_commitments for select to authenticated
+  using (
+    tester_id = auth.uid()
+    or exists (select 1 from public.requests r where r.id = request_id and r.user_id = auth.uid())
+  );
+
+create policy "commitments_insert_own"
+  on public.tester_commitments for insert to authenticated
+  with check (tester_id = auth.uid());
+
+create policy "commitments_update_involved"
+  on public.tester_commitments for update to authenticated
+  using (
+    tester_id = auth.uid()
+    or exists (select 1 from public.requests r where r.id = request_id and r.user_id = auth.uid())
+  );
+
+create policy "checkins_select_involved"
+  on public.checkins for select to authenticated
+  using (
+    exists (
+      select 1 from public.tester_commitments c
+      where c.id = commitment_id
+        and (
+          c.tester_id = auth.uid()
+          or exists (select 1 from public.requests r where r.id = c.request_id and r.user_id = auth.uid())
+        )
+    )
+  );
+
+create policy "checkins_insert_own"
+  on public.checkins for insert to authenticated
+  with check (
+    exists (
+      select 1 from public.tester_commitments c
+      where c.id = commitment_id and c.tester_id = auth.uid()
+    )
+  );
+
+create policy "thanks_select_involved"
+  on public.thanks_messages for select to authenticated
+  using (from_user_id = auth.uid() or to_user_id = auth.uid());
+
+create policy "thanks_insert_own"
+  on public.thanks_messages for insert to authenticated
+  with check (from_user_id = auth.uid());
+
+create policy "reports_insert_own"
+  on public.reports for insert to authenticated
+  with check (reporter_id = auth.uid());
+
+create policy "reports_admin_select"
+  on public.reports for select to authenticated
+  using (
+    reporter_id = auth.uid()
+    or exists (select 1 from public.profiles p where p.id = auth.uid() and p.is_admin)
+  );
+
+create policy "shipped_select_all"
+  on public.shipped_apps for select to authenticated
+  using (true);
+
+create policy "shipped_insert_own"
+  on public.shipped_apps for insert to authenticated
+  with check (owner_id = auth.uid());
+
+-- Column privilege: reviewers must never read expected_answer from the client.
+revoke select on public.questions from authenticated, anon;
+grant select (id, request_id, position, text, is_core, is_proof) on public.questions to authenticated;
+-- Owners still insert full rows (including expected_answer) through their insert policy;
+-- service_role / SECURITY DEFINER paths read expected_answer for proof checks.
+
+create or replace function public.protect_profile_economy()
+returns trigger
+language plpgsql
+as $$
+begin
+  -- Allow SECURITY DEFINER credit functions (run as postgres / supabase_admin).
+  -- Block direct authenticated client writes to economy fields.
+  if tg_op = 'UPDATE'
+    and current_user in ('authenticated', 'anon')
+    and (
+      new.credits is distinct from old.credits
+      or new.credits_pending is distinct from old.credits_pending
+      or new.reviews_given is distinct from old.reviews_given
+      or new.rating_avg is distinct from old.rating_avg
+      or new.rating_count is distinct from old.rating_count
+      or new.is_ramped is distinct from old.is_ramped
+      or new.is_pro is distinct from old.is_pro
+      or new.is_admin is distinct from old.is_admin
+      or new.is_banned is distinct from old.is_banned
+      or new.purchased_credits is distinct from old.purchased_credits
+      or new.daily_review_count is distinct from old.daily_review_count
+      or new.daily_review_date is distinct from old.daily_review_date
+    ) then
+    raise exception 'Economy fields are server-managed';
+  end if;
+  return new;
+end;
+$$;
+
+create trigger profiles_protect_economy
+  before update on public.profiles
+  for each row execute function public.protect_profile_economy();
+
+revoke all on function public.ledger_insert(uuid, numeric, text, uuid, public.ledger_status, timestamptz, timestamptz) from public;
+revoke all on function public.spend_credits(uuid, numeric, text, uuid) from public;
+revoke all on function public.recompute_balances(uuid) from public;
+revoke all on function public.release_pending_credits(uuid) from public;
+revoke all on function public.escalate_bounties() from public;
+revoke all on function public.auto_confirm_reviews() from public;
+revoke all on function public.expire_credits() from public;
+
+grant execute on function public.ledger_insert(uuid, numeric, text, uuid, public.ledger_status, timestamptz, timestamptz) to service_role;
+grant execute on function public.spend_credits(uuid, numeric, text, uuid) to service_role;
+grant execute on function public.recompute_balances(uuid) to service_role;
+grant execute on function public.release_pending_credits(uuid) to service_role;
+grant execute on function public.escalate_bounties() to service_role;
+grant execute on function public.auto_confirm_reviews() to service_role;
+grant execute on function public.expire_credits() to service_role;
+
+grant usage on schema public to authenticated;
+grant select, update on public.profiles to authenticated;
+grant select on public.credit_ledger to authenticated;
+grant select, insert, update on public.requests to authenticated;
+grant insert on public.questions to authenticated;
+grant select, insert, update on public.reviews to authenticated;
+grant select, insert, update on public.tester_commitments to authenticated;
+grant select, insert on public.checkins to authenticated;
+grant select, insert on public.thanks_messages to authenticated;
+grant select, insert on public.reports to authenticated;
+grant select, insert on public.shipped_apps to authenticated;
+

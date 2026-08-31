@@ -8,6 +8,7 @@ import { CreditIcon } from "@/components/icons";
 import { ProfileNameEditor } from "@/components/profile-name-editor";
 import { ProfileReviewForm } from "@/components/profile-review-form";
 import { getProfile } from "@/lib/auth";
+import { getPublicProfile } from "@/lib/profile-data";
 import { haveInteracted } from "@/lib/profile-reviews";
 import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -25,13 +26,8 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("profiles")
-    .select("display_name")
-    .eq("id", id)
-    .single();
-  const name = data?.display_name?.trim() || "Profile";
+  const profile = await getPublicProfile(id);
+  const name = profile?.display_name?.trim() || "Profile";
   return pageMetadata({
     title: name,
     description: `${name} on Dozen.`,
@@ -43,57 +39,47 @@ export default async function ProfilePage({ params, searchParams }: Props) {
   const { id } = await params;
   const query = await searchParams;
   const me = await getProfile();
-  const supabase = await createClient();
   const isOwn = me?.id === id;
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", id)
-    .single();
+  const supabase = await createClient();
+  const admin = createAdminClient();
+
+  const [profile, shippedRes, thanksRes, languagesRes, peerReviewsRes, canReview] =
+    await Promise.all([
+      getPublicProfile(id),
+      supabase
+        .from("shipped_apps")
+        .select("*")
+        .or(`owner_id.eq.${id},helper_ids.cs.{${id}}`)
+        .order("launched_at", { ascending: false }),
+      supabase
+        .from("thanks_messages")
+        .select("*")
+        .eq("to_user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(10),
+      supabase
+        .from("user_languages")
+        .select("*")
+        .eq("user_id", id)
+        .order("language"),
+      admin
+        .from("profile_reviews")
+        .select("id, from_user_id, body, rating, created_at")
+        .eq("to_user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      me && me.id !== id ? haveInteracted(me.id, id) : Promise.resolve(false),
+    ]);
 
   if (!profile) notFound();
 
-  const { data: shipped } = await supabase
-    .from("shipped_apps")
-    .select("*")
-    .or(`owner_id.eq.${id},helper_ids.cs.{${id}}`)
-    .order("launched_at", { ascending: false });
+  const shipped = shippedRes.data ?? [];
+  const thanks = thanksRes.data ?? [];
+  const languages = languagesRes.data ?? [];
+  const peerReviews = peerReviewsRes.data ?? [];
 
-  const { data: thanks } = await supabase
-    .from("thanks_messages")
-    .select("*")
-    .eq("to_user_id", id)
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  const { data: languages } = await supabase
-    .from("user_languages")
-    .select("*")
-    .eq("user_id", id)
-    .order("language");
-
-  const admin = createAdminClient();
-  const { data: earnedRows } = await admin
-    .from("credit_ledger")
-    .select("amount, status")
-    .eq("user_id", id)
-    .gt("amount", 0);
-
-  const earnedSoFar = (earnedRows ?? [])
-    .filter((row) => row.status === "available" || row.status === "pending")
-    .reduce((sum, row) => sum + Number(row.amount), 0);
-
-  const { data: peerReviews } = await admin
-    .from("profile_reviews")
-    .select("id, from_user_id, body, rating, created_at")
-    .eq("to_user_id", id)
-    .order("created_at", { ascending: false })
-    .limit(40);
-
-  const reviewerIds = [
-    ...new Set((peerReviews ?? []).map((r) => r.from_user_id)),
-  ];
+  const reviewerIds = [...new Set(peerReviews.map((r) => r.from_user_id))];
   const { data: reviewers } = reviewerIds.length
     ? await admin
         .from("profiles")
@@ -103,49 +89,40 @@ export default async function ProfilePage({ params, searchParams }: Props) {
   const reviewerMap = new Map((reviewers ?? []).map((p) => [p.id, p]));
 
   const peerAvg =
-    (peerReviews ?? []).filter((r) => r.rating != null).length > 0
+    peerReviews.filter((r) => r.rating != null).length > 0
       ? (
-          (peerReviews ?? [])
+          peerReviews
             .filter((r) => r.rating != null)
             .reduce((s, r) => s + Number(r.rating), 0) /
-          (peerReviews ?? []).filter((r) => r.rating != null).length
+          peerReviews.filter((r) => r.rating != null).length
         ).toFixed(1)
       : null;
 
-  const canReview =
-    me && !isOwn ? await haveInteracted(me.id, id) : false;
   const myExisting = me
-    ? (peerReviews ?? []).find((r) => r.from_user_id === me.id)
+    ? peerReviews.find((r) => r.from_user_id === me.id)
     : null;
 
-  const helpedCount = (shipped ?? []).filter((app) =>
+  const helpedCount = shipped.filter((app) =>
     (app.helper_ids ?? []).includes(id),
   ).length;
-  const ownedShips = (shipped ?? []).filter((app) => app.owner_id === id).length;
+  const ownedShips = shipped.filter((app) => app.owner_id === id).length;
   const memberSince = new Date(profile.created_at).toLocaleDateString(undefined, {
     month: "short",
     year: "numeric",
   });
 
   const stats: [string, string][] = [
-    ["Earned so far", formatCredits(earnedSoFar)],
     ["App reviews", String(profile.reviews_given)],
-    ["Peer notes", String((peerReviews ?? []).length)],
-    [
-      "Peer rating",
-      peerAvg ? `${peerAvg}★` : "—",
-    ],
+    ["Peer notes", String(peerReviews.length)],
+    ["Peer rating", peerAvg ? `${peerAvg}★` : "—"],
     ["Helped ship", String(helpedCount)],
     ["Launched", String(ownedShips)],
     ["Bugs found", String(profile.bugs_found ?? 0)],
   ];
 
   if (isOwn) {
-    stats.splice(1, 0, ["Balance", formatCredits(Number(profile.credits))]);
-    stats.splice(2, 0, [
-      "Pending",
-      formatCredits(Number(profile.credits_pending)),
-    ]);
+    stats.unshift(["Pending", formatCredits(Number(profile.credits_pending))]);
+    stats.unshift(["Balance", formatCredits(Number(profile.credits))]);
   }
 
   return (
@@ -191,9 +168,9 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         <section className="mt-8 flex flex-wrap items-center gap-3">
           <Link
             href="/wallet"
-            className="inline-flex items-center gap-1.5 rounded-[6px] bg-credit px-2.5 py-1 font-mono text-[13px] text-ink"
+            className="inline-flex min-w-[4.75rem] items-center gap-1.5 rounded-[6px] bg-credit px-2.5 py-1 font-mono text-[13px] text-ink"
           >
-            <CreditIcon className="h-3.5 w-3.5" />
+            <CreditIcon className="h-3.5 w-3.5 shrink-0" />
             {formatCredits(profile.credits)}
           </Link>
           <Link href="/wallet" className="btn btn-secondary min-h-9 px-3 text-[13px]">
@@ -230,10 +207,10 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         ) : null}
 
         <div className="border-t border-border">
-          {(peerReviews ?? []).length === 0 ? (
+          {peerReviews.length === 0 ? (
             <p className="py-5 text-[14px] text-ink/60">No peer reviews yet.</p>
           ) : (
-            (peerReviews ?? []).map((review) => {
+            peerReviews.map((review) => {
               const author = reviewerMap.get(review.from_user_id);
               return (
                 <div
@@ -287,10 +264,10 @@ export default async function ProfilePage({ params, searchParams }: Props) {
       <section className="mt-10">
         <h2 className="font-display text-[22px] font-semibold">Languages</h2>
         <div className="mt-3 border-t border-border">
-          {(languages ?? []).length === 0 ? (
+          {languages.length === 0 ? (
             <p className="py-5 text-[14px] text-ink/60">—</p>
           ) : (
-            (languages ?? []).map((lang) => (
+            languages.map((lang) => (
               <div
                 key={lang.id}
                 className="flex justify-between border-b border-border py-3 text-[14px]"
@@ -316,10 +293,10 @@ export default async function ProfilePage({ params, searchParams }: Props) {
           ) : null}
         </div>
         <div className="mt-3 border-t border-border">
-          {(shipped ?? []).length === 0 ? (
+          {shipped.length === 0 ? (
             <p className="py-5 text-[14px] text-ink/60">—</p>
           ) : (
-            (shipped ?? []).map((app) => (
+            shipped.map((app) => (
               <div
                 key={app.id}
                 className="flex items-center justify-between gap-3 border-b border-border py-3"
@@ -344,11 +321,11 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         </div>
       </section>
 
-      {(thanks ?? []).length > 0 ? (
+      {thanks.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-[22px] font-semibold">Thanks</h2>
           <div className="mt-3 space-y-2">
-            {(thanks ?? []).map((msg) => (
+            {thanks.map((msg) => (
               <div key={msg.id} className="well px-3 py-2 text-[15px]">
                 {msg.body}
               </div>

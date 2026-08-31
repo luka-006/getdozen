@@ -9,13 +9,18 @@ import {
   MAX_MISSED_CHECKINS,
   MIN_ANSWER_CHARS,
   TESTER_DAYS,
-  TESTER_EARN,
 } from "@/lib/constants";
 import { appendLedger } from "@/lib/credits";
 import { hashEmail } from "@/lib/crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  CHECKIN_INTERVAL_DAYS,
+  commitmentDayIndex,
+  isCheckinDueDay,
+  testerCheckinEarnAmount,
+  testerCompletionEarnAmount,
+} from "@/lib/tester-checkin";
 import { clampTesterDuration } from "@/lib/tester-progress";
-import { isLaunchBonusActive } from "@/lib/utils";
 import { sendJoinConfirmationEmail } from "@/lib/join-mail";
 
 export async function joinTesterRequest(formData: FormData) {
@@ -172,7 +177,7 @@ export async function submitCheckin(formData: FormData) {
   const admin = createAdminClient();
   const { data: commitment } = await admin
     .from("tester_commitments")
-    .select("*")
+    .select("*, requests(bounty_multiplier)")
     .eq("id", commitmentId)
     .single();
 
@@ -184,11 +189,14 @@ export async function submitCheckin(formData: FormData) {
   const duration = clampTesterDuration(
     commitment.duration_days ?? days.length ?? TESTER_DAYS,
   );
-  const start = new Date(commitment.opted_in_at);
-  const dayIndex = Math.min(
-    duration - 1,
-    Math.max(0, Math.floor((Date.now() - start.getTime()) / (24 * 60 * 60 * 1000))),
-  );
+  const dayIndex = Math.min(duration - 1, commitmentDayIndex(commitment.opted_in_at));
+
+  if (!isCheckinDueDay(dayIndex)) {
+    redirect(
+      `/testers?error=${encodeURIComponent("Check-in opens every 3 days — not due today")}`,
+    );
+  }
+
   while (days.length < duration) days.push(false);
   if (days[dayIndex]) {
     redirect(`/testers?error=${encodeURIComponent("Check-in already recorded for today")}`);
@@ -214,8 +222,21 @@ export async function submitCheckin(formData: FormData) {
     })
     .eq("id", commitmentId);
 
+  const requestRow = commitment.requests as { bounty_multiplier?: number } | null;
+  const multiplier = Number(requestRow?.bounty_multiplier ?? 1) || 1;
+  const earn = testerCheckinEarnAmount(multiplier);
+
+  await appendLedger({
+    userId: profile.id,
+    amount: earn,
+    reason: "tester_checkin",
+    refId: commitmentId,
+    status: "available",
+  });
+
   revalidatePath("/testers");
-  redirect("/testers?message=Check-in saved.");
+  revalidatePath("/wallet");
+  redirect(`/testers?message=Check-in saved. +${earn} credits.`);
 }
 
 export async function completeTesterCommitment(formData: FormData) {
@@ -252,8 +273,9 @@ export async function completeTesterCommitment(formData: FormData) {
     redirect(`/testers?error=${encodeURIComponent("Too many missed check-ins. Commitment voided.")}`);
   }
 
-  let earn = TESTER_EARN;
-  if (isLaunchBonusActive()) earn *= 2;
+  const request = commitment.requests as { bounty_multiplier?: number } | null;
+  const multiplier = Number(request?.bounty_multiplier ?? 1) || 1;
+  const earn = testerCompletionEarnAmount(multiplier);
 
   await admin
     .from("tester_commitments")
@@ -270,7 +292,7 @@ export async function completeTesterCommitment(formData: FormData) {
 
   revalidatePath("/testers");
   revalidatePath("/wallet");
-  redirect(`/testers?message=Commitment complete. ${earn} credits added.`);
+  redirect(`/testers?message=Commitment complete. +${earn} credits.`);
 }
 
 export async function voidStaleCommitments() {
@@ -289,9 +311,8 @@ export async function voidStaleCommitments() {
     );
     let missed = 0;
 
-    for (let i = 0; i < Math.min(elapsedDays, duration); i += 1) {
-      // Every other day check-in expected: days 0,2,4,...
-      if (i % 2 === 0 && !days[i]) missed += 1;
+    for (let i = 0; i < Math.min(elapsedDays, duration); i += CHECKIN_INTERVAL_DAYS) {
+      if (!days[i]) missed += 1;
     }
 
     if (missed > MAX_MISSED_CHECKINS) {

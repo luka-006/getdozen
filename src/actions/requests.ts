@@ -19,6 +19,7 @@ import {
 } from "@/lib/constants";
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
 import { encryptCredentials } from "@/lib/crypto";
+import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -237,7 +238,11 @@ export async function createFeedbackRequest(
     };
   }
 
-  const creditCost = creditCostForQuestionCount(totalQuestions);
+  const creditCost = priorityCost(
+    creditCostForQuestionCount(totalQuestions),
+    parsePriorityMultiplier(formData.get("priority_multiplier")),
+  );
+  const bountyMultiplier = parsePriorityMultiplier(formData.get("priority_multiplier"));
   if (profile.credits < creditCost) {
     return { error: "Not enough credits — use Buy credits below." };
   }
@@ -262,6 +267,7 @@ export async function createFeedbackRequest(
       focus_tag: focusTag,
       question_count: totalQuestions,
       credit_cost: creditCost,
+      bounty_multiplier: bountyMultiplier,
       test_credentials_encrypted: encrypted,
       expires_at: expiresAt.toISOString(),
     })
@@ -351,7 +357,11 @@ export async function createTesterRequest(
   }
 
   const data = parsed.data;
-  const totalCost = data.testers_needed * TESTER_COST;
+  const bountyMultiplier = parsePriorityMultiplier(formData.get("priority_multiplier"));
+  const totalCost = priorityCost(
+    data.testers_needed * TESTER_COST,
+    bountyMultiplier,
+  );
   if (profile.credits < totalCost) {
     return {
       error: `Need ${totalCost} credits for ${data.testers_needed} testers`,
@@ -372,6 +382,7 @@ export async function createTesterRequest(
       app_description: data.app_description,
       platform: data.platform,
       credit_cost: totalCost,
+      bounty_multiplier: bountyMultiplier,
       testers_needed: data.testers_needed,
       duration_days: data.duration_days,
       opt_in_link:
@@ -467,8 +478,12 @@ export async function createComboRequest(
     };
   }
 
-  if (profile.credits < pack.credits) {
-    return { error: `Need ${pack.credits} credits for this pack` };
+  const bountyMultiplier = parsePriorityMultiplier(formData.get("priority_multiplier"));
+  const totalCost = priorityCost(pack.credits, bountyMultiplier);
+  if (profile.credits < totalCost) {
+    return {
+      error: `Need ${totalCost} credits for this pack at ${bountyMultiplier}× priority`,
+    };
   }
 
   const supabase = await createClient();
@@ -487,7 +502,8 @@ export async function createComboRequest(
       app_url: data.app_url,
       app_description: data.app_description,
       platform: data.platform,
-      credit_cost: pack.credits,
+      credit_cost: totalCost,
+      bounty_multiplier: bountyMultiplier,
       testers_needed: pack.testers,
       duration_days: data.duration_days,
       question_count: pack.questions,
@@ -545,7 +561,7 @@ export async function createComboRequest(
   try {
     await spendCredits({
       userId: profile.id,
-      amount: pack.credits,
+      amount: totalCost,
       reason: "combo_request",
       refId: request.id,
     });

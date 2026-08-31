@@ -43,10 +43,14 @@ Credit-powered feedback and Google Play closed-test marketplace for indie develo
 2. **Inbound** (someone emails `hello@getdozen.dev`): Resend receives → webhook `POST /api/resend/inbound` → forwards to `MAIL_FORWARD_TO`.
 3. **Reply from Gmail as hello@**: Gmail → Settings → Accounts → “Send mail as” → add `hello@getdozen.dev` via SMTP `smtp.resend.com`, username `resend`, password = `RESEND_API_KEY`.
 
-Resend dashboard setup:
+### Resend inbound MX conflict
 
-- Domain `getdozen.dev`: verify sending + enable **Receiving** + add MX record.
-- Webhook: event `email.received`, URL `https://getdozen.dev/api/resend/inbound`.
+If Resend shows **“Conflicting MX records”** on `getdozen.dev`, your domain already has mail elsewhere (Google Workspace, etc.). Pick one:
+
+1. **Subdomain (recommended):** Enable receiving on `mail.getdozen.dev` in Resend, point webhook alias there, and use `hello@mail.getdozen.dev` — or forward root `hello@` from your existing provider to Resend.
+2. **Root domain:** Remove other MX records at your DNS host so only Resend’s `inbound-smtp…` MX remains (lowest priority number wins).
+
+Until MX verifies, inbound mail to `hello@getdozen.dev` will not reach the webhook. Outbound (contact form, etc.) still works.
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET` | Bot checks |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Analytics |
 

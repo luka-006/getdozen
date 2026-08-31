@@ -4,8 +4,15 @@ import { requireProfile } from "@/lib/auth";
 import {
   MAX_CONCURRENT_COMMITMENTS,
   MAX_CONCURRENT_COMMITMENTS_PRO,
+  TESTER_DAYS,
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
+import {
+  canCheckInToday,
+  commitmentDayIndex,
+} from "@/lib/tester-checkin";
+import { checkinQuestionForCommitment } from "@/lib/tester-checkin-questions";
+import { clampTesterDuration } from "@/lib/tester-progress";
 import type { CommitmentStatus, RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -42,6 +49,32 @@ export default async function TestersPage({ searchParams }: Props) {
 
   const activeRows = rows.filter((c) => c.status === "active");
   const historyRows = rows.filter((c) => isHistoryStatus(c.status));
+
+  const checkinMeta = await Promise.all(
+    activeRows.map(async (commitment) => {
+      const request = requestMap.get(commitment.request_id);
+      const duration = clampTesterDuration(
+        commitment.duration_days ?? request?.duration_days ?? TESTER_DAYS,
+      );
+      const days = [...(commitment.checkin_days as boolean[])];
+      const show = canCheckInToday({
+        optedInAt: commitment.opted_in_at,
+        durationDays: duration,
+        checkinDays: days,
+        status: commitment.status,
+      });
+      const dayIndex = commitmentDayIndex(commitment.opted_in_at);
+      const question = show
+        ? await checkinQuestionForCommitment({
+            requestId: commitment.request_id,
+            optedInAt: commitment.opted_in_at,
+            dayIndex,
+          })
+        : undefined;
+      return { id: commitment.id, show, question };
+    }),
+  );
+  const checkinMap = new Map(checkinMeta.map((m) => [m.id, m]));
 
   const maxSlots = profile.is_pro
     ? MAX_CONCURRENT_COMMITMENTS_PRO
@@ -84,26 +117,31 @@ export default async function TestersPage({ searchParams }: Props) {
             In progress
           </h2>
           <p className="mt-1 text-[13px] text-ink/60">
-            Check in every other day until your run completes.
+            Every 3 days you get a feedback question (+1 credit). Finish the run
+            for +2 more.
           </p>
         </div>
 
         {activeRows.length === 0 ? (
           <p className="well px-4 py-5 text-[14px] text-ink/65">
             No active tests. Join a closed test from the board, opt in with your
-            device, and check in every other day.
+            device, and check in every 3 days.
           </p>
         ) : (
           <div className="space-y-4">
-            {activeRows.map((commitment) => (
-              <TesterCommitmentCard
-                key={commitment.id}
-                commitment={commitment}
-                request={requestMap.get(commitment.request_id)}
-                variant="active"
-                showCheckinForm={Boolean(query.error)}
-              />
-            ))}
+            {activeRows.map((commitment) => {
+              const meta = checkinMap.get(commitment.id);
+              return (
+                <TesterCommitmentCard
+                  key={commitment.id}
+                  commitment={commitment}
+                  request={requestMap.get(commitment.request_id)}
+                  variant="active"
+                  showCheckinForm={meta?.show ?? false}
+                  checkinQuestion={meta?.question}
+                />
+              );
+            })}
           </div>
         )}
       </section>

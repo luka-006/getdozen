@@ -6,6 +6,7 @@ import {
   type RequestFormState,
 } from "@/lib/request-form";
 import { PlatformField } from "@/components/platform-field";
+import { PriorityPicker } from "@/components/priority-picker";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
 import {
@@ -216,6 +217,8 @@ export function ComboRequestForm({ balance, action }: Props) {
           <span className="text-flag"> · you have {balance}</span>
         ) : null}
       </p>
+
+      <PriorityPicker baseCost={pack.credits} />
 
       <button
         type="submit"

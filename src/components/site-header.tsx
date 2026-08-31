@@ -69,7 +69,7 @@ export function SiteHeader({
         <div className="flex items-center gap-3">
           {profile ? (
             <>
-              <Link href="/wallet" className="shrink-0" title="Wallet">
+              <Link href="/wallet" className="shrink-0 w-[4.75rem]" title="Wallet">
                 <CreditBadge
                   value={profile.credits}
                   pending={profile.credits_pending}

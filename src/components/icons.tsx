@@ -6,14 +6,31 @@ export function CreditIcon({ className = "h-4 w-4" }: { className?: string }) {
       fill="none"
       aria-hidden="true"
     >
-      <circle cx="12" cy="12" r="9.5" fill="currentColor" opacity="0.35" />
-      <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d="M12 7.5v9M9.2 10.2c.5-1 1.5-1.5 2.8-1.5 1.7 0 2.8.9 2.8 2.1 0 1.1-.8 1.8-2.4 2.2l-1.4.3c-1.3.3-1.9.8-1.9 1.7 0 1 .9 1.7 2.4 1.7 1.2 0 2.1-.5 2.6-1.3"
+      {/* Dozen mark: 12 dots in a 4×3 grid */}
+      {Array.from({ length: 12 }, (_, i) => {
+        const col = i % 4;
+        const row = Math.floor(i / 4);
+        const cx = 5 + col * 4.5;
+        const cy = 6 + row * 4;
+        return (
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r="1.35"
+            fill="currentColor"
+            opacity={0.35 + (i % 3) * 0.15}
+          />
+        );
+      })}
+      <rect
+        x="3.5"
+        y="4.5"
+        width="17"
+        height="15"
+        rx="3"
         stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
+        strokeWidth="1.5"
       />
     </svg>
   );

@@ -4,7 +4,14 @@ import {
   submitCheckin,
 } from "@/actions/testers";
 import { DayStrip, StatusChip } from "@/components/day-strip";
-import { TESTER_DAYS } from "@/lib/constants";
+import {
+  CHECKIN_INTERVAL_DAYS,
+  TESTER_DAYS,
+} from "@/lib/constants";
+import {
+  testerCheckinEarnAmount,
+  testerCompletionEarnAmount,
+} from "@/lib/tester-checkin";
 import { testerCubes, testerJoinedLabel } from "@/lib/tester-progress";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
@@ -13,6 +20,7 @@ type Props = {
   request: RequestRow | undefined;
   variant: "active" | "history";
   showCheckinForm?: boolean;
+  checkinQuestion?: string;
 };
 
 function historyEndedLabel(commitment: TesterCommitment) {
@@ -38,6 +46,7 @@ export function TesterCommitmentCard({
   request,
   variant,
   showCheckinForm = false,
+  checkinQuestion,
 }: Props) {
   const isHistory = variant === "history";
   const durationDays =
@@ -108,6 +117,10 @@ export function TesterCommitmentCard({
     );
   }
 
+  const multiplier = Number(request?.bounty_multiplier ?? 1) || 1;
+  const checkinPayout = testerCheckinEarnAmount(multiplier);
+  const finishPayout = testerCompletionEarnAmount(multiplier);
+
   return (
     <article className="surface p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -125,6 +138,13 @@ export function TesterCommitmentCard({
             <span className="font-mono">
               {new Date(commitment.completes_at).toLocaleDateString()}
             </span>
+            {multiplier > 1 ? (
+              <span className="text-blue"> · {multiplier}× priority</span>
+            ) : null}
+          </p>
+          <p className="mt-1 text-[12px] text-ink/50">
+            Check-in every {CHECKIN_INTERVAL_DAYS} days (+{checkinPayout} each) ·
+            finish +{finishPayout}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -147,13 +167,13 @@ export function TesterCommitmentCard({
       </div>
 
       {commitment.status === "active" && showCheckinForm ? (
-        <details className="tester-fold mt-4" open={showCheckinForm}>
-          <summary>Check in</summary>
+        <details className="tester-fold mt-4" open>
+          <summary>Check in (+{checkinPayout})</summary>
           <form action={submitCheckin} className="tester-fold-body">
             <input type="hidden" name="commitment_id" value={commitment.id} />
             <div className="field">
               <label htmlFor={`checkin-${commitment.id}`}>
-                What did you see in the app today?
+                {checkinQuestion ?? "What did you see in the app today?"}
               </label>
               <textarea
                 id={`checkin-${commitment.id}`}
@@ -163,7 +183,7 @@ export function TesterCommitmentCard({
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Save check-in
+              Save check-in (+{checkinPayout})
             </button>
           </form>
         </details>
@@ -186,7 +206,7 @@ export function TesterCommitmentCard({
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Complete commitment
+              Complete commitment (+{finishPayout})
             </button>
           </form>
         </details>

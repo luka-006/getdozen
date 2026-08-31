@@ -6,6 +6,7 @@ import {
   type RequestFormState,
 } from "@/lib/request-form";
 import { PlatformField } from "@/components/platform-field";
+import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
 import {
   MIN_TESTERS,
@@ -180,6 +181,8 @@ export function TesterRequestForm({ action }: Props) {
           required
         />
       </div>
+
+      <PriorityPicker baseCost={testersNeeded * TESTER_COST} />
 
       <button
         type="submit"

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { CreditIcon } from "@/components/icons";
 import { formatCredits } from "@/lib/utils";
 
 type Props = {
@@ -56,26 +57,11 @@ export function CreditBadge({ value, pending = 0, pulseKey }: Props) {
 
   return (
     <div
-      className={`inline-flex items-center gap-1.5 rounded-[6px] border border-border bg-credit px-2.5 py-1 text-ink ${pulse ? "credit-pulse" : ""}`}
+      className={`inline-flex min-w-[4.75rem] items-center justify-end gap-1.5 rounded-[6px] border border-border bg-credit px-2.5 py-1 text-ink ${pulse ? "credit-pulse" : ""}`}
       aria-live="polite"
     >
-      <svg
-        className="h-3.5 w-3.5 shrink-0"
-        viewBox="0 0 24 24"
-        fill="none"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="9.5" fill="currentColor" opacity="0.35" />
-        <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="1.6" />
-        <path
-          d="M12 7.5v9M9.2 10.2c.5-1 1.5-1.5 2.8-1.5 1.7 0 2.8.9 2.8 2.1 0 1.1-.8 1.8-2.4 2.2l-1.4.3c-1.3.3-1.9.8-1.9 1.7 0 1 .9 1.7 2.4 1.7 1.2 0 2.1-.5 2.6-1.3"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="font-mono text-[13px] font-medium">
+      <CreditIcon className="h-3.5 w-3.5 shrink-0" />
+      <span className="min-w-[1.75rem] text-right font-mono text-[13px] font-medium tabular-nums">
         {formatCredits(display)}
       </span>
       {pendingAmount > 0 ? (

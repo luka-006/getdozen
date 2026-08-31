@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { purchaseCreditsAmount } from "@/actions/billing";
 import { QuestionBuilder } from "@/components/question-builder";
+import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
 import { PlatformField } from "@/components/platform-field";
 import { FOCUS_TAGS } from "@/lib/constants";
@@ -131,6 +132,8 @@ export function FeedbackRequestForm({ balance, action }: Props) {
         </div>
 
         <QuestionBuilder balance={balance} />
+
+        <PriorityPicker baseCost={10} />
 
         <button
           type="submit"
