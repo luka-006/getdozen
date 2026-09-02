@@ -29,7 +29,11 @@ export async function submitBugReport(formData: FormData) {
 
   const awardUrl = bugAwardClickUrl(saved.id);
   const mailed = await sendBugReportEmail(parsed, awardUrl);
-  if (!mailed.ok) return { ok: false as const, error: mailed.error };
+  if (!mailed.ok) {
+    console.error("bug report saved but email failed", saved.id, mailed.error);
+    // Report is in site_bug_reports — do not fail the user when mail is down.
+    return { ok: true as const };
+  }
   return { ok: true as const };
 }
 
