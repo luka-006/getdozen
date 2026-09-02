@@ -17,6 +17,13 @@ import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
 import { BOOST_PRICE_EUR } from "@/lib/pricing";
 import { formatDots } from "@/lib/currency";
 import { formatWait } from "@/lib/utils";
+import {
+  joinOptInButtonLabel,
+  joinOptInEmailLabel,
+  joinOptInEmailPlaceholder,
+  normalizePlatform,
+  playConsoleOptInRequired,
+} from "@/lib/platform-access";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -59,6 +66,9 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
   if (!request) notFound();
   const row = request as RequestRow;
+  const platform = normalizePlatform(row.platform);
+  const needsPlayEmail =
+    playConsoleOptInRequired(platform) && Boolean(row.opt_in_link);
   const isOwner = row.user_id === profile.id;
 
   const { data: owner } = await supabase
@@ -377,17 +387,27 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
       !myCommitment ? (
         <form action={joinTesterRequest} className="mt-8 space-y-4">
           <input type="hidden" name="request_id" value={row.id} />
-          <div className="field">
-            <label htmlFor="google_email">Google account for opt-in</label>
-            <input
-              id="google_email"
-              name="google_email"
-              type="email"
-              className="input"
-              required
-              placeholder="you@gmail.com"
-            />
-          </div>
+          {needsPlayEmail ? (
+            <div className="field">
+              <label htmlFor="google_email">{joinOptInEmailLabel(platform)}</label>
+              <input
+                id="google_email"
+                name="google_email"
+                type="email"
+                className="input"
+                required
+                placeholder={joinOptInEmailPlaceholder(platform)}
+              />
+            </div>
+          ) : (
+            <p className="text-[13px] text-ink/65">
+              {platform === "ios"
+                ? "Install from the App Store link above"
+                : "Open the app from the link above"}
+              {row.opt_in_link ? " or TestFlight below" : ""}. Check-ins run from
+              My tests.
+            </p>
+          )}
           {row.opt_in_link ? (
             <a
               href={row.opt_in_link}
@@ -395,7 +415,16 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               rel="noreferrer"
               className="btn btn-secondary"
             >
-              Open opt-in link
+              {joinOptInButtonLabel(platform)}
+            </a>
+          ) : row.app_url ? (
+            <a
+              href={row.app_url}
+              target="_blank"
+              rel="noreferrer"
+              className="btn btn-secondary"
+            >
+              Open app
             </a>
           ) : null}
           <button type="submit" className="btn btn-primary">

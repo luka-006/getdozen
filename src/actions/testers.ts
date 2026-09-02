@@ -23,16 +23,15 @@ import {
 } from "@/lib/tester-checkin";
 import { clampTesterDuration } from "@/lib/tester-progress";
 import { sendJoinConfirmationEmail } from "@/lib/join-mail";
+import {
+  joinStartedMessage,
+  normalizePlatform,
+  playConsoleOptInRequired,
+} from "@/lib/platform-access";
 
 export async function joinTesterRequest(formData: FormData) {
   const profile = await requireProfile();
   const requestId = String(formData.get("request_id") ?? "");
-  const googleEmail = String(formData.get("google_email") ?? "").trim().toLowerCase();
-
-  if (!googleEmail || !googleEmail.includes("@")) {
-    redirect(`/requests/${requestId}?error=${encodeURIComponent("Enter the Google account email you will use to opt in")}`);
-  }
-
   const admin = createAdminClient();
   const { data: request } = await admin
     .from("requests")
@@ -47,6 +46,21 @@ export async function joinTesterRequest(formData: FormData) {
   ) {
     redirect(`/board?error=${encodeURIComponent("Tester request is not open")}`);
   }
+
+  const platform = normalizePlatform(request.platform);
+  const needsPlayEmail = playConsoleOptInRequired(platform) && Boolean(request.opt_in_link);
+  let googleEmail = String(formData.get("google_email") ?? "").trim().toLowerCase();
+  if (!googleEmail) {
+    googleEmail = profile.email.trim().toLowerCase();
+  }
+
+  if (needsPlayEmail && (!googleEmail || !googleEmail.includes("@"))) {
+    redirect(`/requests/${requestId}?error=${encodeURIComponent("Enter the Google account email you will use to opt in on Play Console")}`);
+  }
+  if (!googleEmail || !googleEmail.includes("@")) {
+    redirect(`/requests/${requestId}?error=${encodeURIComponent("Enter a valid email for tester updates")}`);
+  }
+
   if (request.user_id === profile.id) {
     redirect(`/requests/${requestId}?error=${encodeURIComponent("You cannot join your own test")}`);
   }
@@ -157,13 +171,16 @@ export async function joinTesterRequest(formData: FormData) {
     durationDays: duration,
     optInLink: request.opt_in_link,
     requestId,
+    platform: request.platform,
   }).catch((err) => {
     console.error("join confirmation email failed", err);
   });
 
   revalidatePath("/testers");
   revalidatePath(`/requests/${requestId}`);
-  redirect("/testers?message=Commitment started. Opt in through the Play Console link today.");
+  redirect(
+    `/testers?message=${encodeURIComponent(joinStartedMessage(platform, Boolean(request.opt_in_link)))}`,
+  );
 }
 
 export async function submitCheckin(formData: FormData) {

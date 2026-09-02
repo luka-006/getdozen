@@ -229,6 +229,30 @@ h3,
   box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
+@keyframes bug-btn-attention {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 10%, transparent);
+  }
+  35% {
+    transform: translateY(-1.5px);
+  }
+  55% {
+    transform: translateY(0);
+    box-shadow: 0 9px 26px color-mix(in srgb, var(--credit) 16%, transparent);
+  }
+  78% {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bug-report-btn:not(.bug-report-btn-open):not(:hover):not(:focus-visible) {
+    animation: bug-btn-attention 4.2s ease-in-out infinite;
+  }
+}
+
 .bug-report-btn:hover {
   background: var(--mist);
 }
@@ -236,6 +260,23 @@ h3,
 .bug-report-btn-open {
   border-color: color-mix(in srgb, var(--blue) 45%, var(--border));
   background: var(--mist);
+  animation: none;
+}
+
+.bug-report-reward {
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink) 74%, transparent);
+  background: color-mix(in srgb, var(--credit) 14%, var(--paper));
+  border: 1px solid color-mix(in srgb, var(--credit) 26%, transparent);
+}
+
+.bug-report-reward strong {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .bug-report-dropdown.dropdown-panel {

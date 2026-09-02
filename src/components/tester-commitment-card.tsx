@@ -13,6 +13,10 @@ import {
   testerCompletionEarnAmount,
 } from "@/lib/tester-checkin";
 import { testerCubes, testerJoinedLabel } from "@/lib/tester-progress";
+import {
+  commitmentOptInLinkLabel,
+  normalizePlatform,
+} from "@/lib/platform-access";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -156,7 +160,7 @@ export function TesterCommitmentCard({
               rel="noreferrer"
               className="text-[13px] text-blue"
             >
-              Opt-in link
+              {commitmentOptInLinkLabel(normalizePlatform(request.platform))}
             </a>
           ) : null}
         </div>

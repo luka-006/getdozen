@@ -20,6 +20,11 @@ import {
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
 import { formatDots, currencyName } from "@/lib/currency";
 import { encryptCredentials } from "@/lib/crypto";
+import {
+  betaAccessLinkLabel,
+  isValidOptInUrl,
+  playConsoleOptInRequired,
+} from "@/lib/platform-access";
 import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
 import { createClient } from "@/lib/supabase/server";
@@ -32,19 +37,18 @@ const customQuestionSchema = z.object({
 
 const platformSchema = z.enum(PLATFORMS);
 
-function refineMobileOptInLink<
+function refinePlatformAccessLink<
   T extends { platform: Platform; opt_in_link?: string | undefined },
 >(schema: z.ZodType<T>) {
   return schema.superRefine((data, ctx) => {
-    if (data.platform === "web") return;
-    const result = z.string().url().safeParse(data.opt_in_link?.trim() ?? "");
-    if (!result.success) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["opt_in_link"],
-        message: "Opt-in link must be a full URL (https://…)",
-      });
-    }
+    if (data.platform === "web" || data.platform === "ios") return;
+    if (!playConsoleOptInRequired(data.platform)) return;
+    if (isValidOptInUrl(data.opt_in_link)) return;
+    ctx.addIssue({
+      code: "custom",
+      path: ["opt_in_link"],
+      message: `${betaAccessLinkLabel(data.platform)} must be a full URL (https://…)`,
+    });
   });
 }
 
@@ -62,7 +66,7 @@ const feedbackSchema = z.object({
   proof_answer: z.string().min(1).max(200),
 });
 
-const testerSchema = refineMobileOptInLink(
+const testerSchema = refinePlatformAccessLink(
   z.object({
     app_name: z.string().min(2).max(120),
     app_url: z.string().url(),
@@ -387,7 +391,7 @@ export async function createTesterRequest(
       testers_needed: data.testers_needed,
       duration_days: data.duration_days,
       opt_in_link:
-        data.platform === "web" ? null : (data.opt_in_link ?? null),
+        data.platform === "web" ? null : data.opt_in_link?.trim() || null,
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       expires_at: expiresAt.toISOString(),
@@ -430,7 +434,7 @@ export async function createComboRequest(
     return { error: "Pick a pack" };
   }
 
-  const parsed = refineMobileOptInLink(
+  const parsed = refinePlatformAccessLink(
     z.object({
       app_name: z.string().min(2).max(120),
       app_url: z.string().url(),
@@ -509,7 +513,7 @@ export async function createComboRequest(
       duration_days: data.duration_days,
       question_count: pack.questions,
       opt_in_link:
-        data.platform === "web" ? null : (data.opt_in_link ?? null),
+        data.platform === "web" ? null : data.opt_in_link?.trim() || null,
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       test_credentials_encrypted: encrypted,

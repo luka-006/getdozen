@@ -1,4 +1,9 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
+import type { Platform } from "@/lib/constants";
+import {
+  joinOptInButtonLabel,
+  normalizePlatform,
+} from "@/lib/platform-access";
 import { sendResendEmail } from "@/lib/resend-mail";
 
 type JoinMailInput = {
@@ -7,12 +12,15 @@ type JoinMailInput = {
   durationDays: number;
   optInLink?: string | null;
   requestId: string;
+  platform?: string | null;
 };
 
 export async function sendJoinConfirmationEmail(input: JoinMailInput) {
   const requestUrl = `${SITE_ORIGIN}/requests/${input.requestId}`;
   const testersUrl = `${SITE_ORIGIN}/testers`;
   const optIn = input.optInLink?.trim();
+  const platform = normalizePlatform(input.platform);
+  const optInLabel = joinOptInButtonLabel(platform);
 
   const text = [
     `You're signed up to test "${input.appName}" on Dozen.`,
@@ -20,8 +28,8 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     `Duration: ${input.durationDays} days. Check in on alternate days from My tests.`,
     "",
     optIn
-      ? `Opt in today with the Play Console link on the post:`
-      : `Open the post for tester details:`,
+      ? `Install or opt in today (${optInLabel}):`
+      : `Open the post and use the App URL:`,
     optIn || requestUrl,
     "",
     `Track progress: ${testersUrl}`,
@@ -32,8 +40,8 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     `<p>You're signed up to test <strong>${escapeHtml(input.appName)}</strong> on Dozen.</p>`,
     `<p>Duration: <strong>${input.durationDays} days</strong>. Check in on alternate days from <a href="${testersUrl}">My tests</a>.</p>`,
     optIn
-      ? `<p><a href="${escapeHtml(optIn)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">Opt in on Play Console</a></p>`
-      : `<p><a href="${requestUrl}">Open the post</a> for tester details.</p>`,
+      ? `<p><a href="${escapeHtml(optIn)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">${escapeHtml(optInLabel)}</a></p>`
+      : `<p><a href="${requestUrl}">Open the post</a> for the app link.</p>`,
     `<p style="font-size:13px;color:#666">Post: <a href="${requestUrl}">${requestUrl}</a></p>`,
   ].join("");
 

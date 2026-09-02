@@ -6,6 +6,8 @@ import {
   type RequestFormState,
 } from "@/lib/request-form";
 import { PlatformField } from "@/components/platform-field";
+import { BetaAccessLinkField } from "@/components/beta-access-link-field";
+import { PlatformDistributionHint } from "@/components/platform-distribution-hint";
 import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
 import {
@@ -15,6 +17,7 @@ import {
   type Platform,
 } from "@/lib/constants";
 import { formatDots } from "@/lib/currency";
+import { appUrlHint, appUrlPlaceholder } from "@/lib/platform-access";
 import { randomDescriptionExample, TESTER_COUNT_OPTIONS } from "@/lib/placeholders";
 
 function RequiredMark() {
@@ -79,8 +82,11 @@ export function TesterRequestForm({ action }: Props) {
           type="url"
           className="input"
           required
-          placeholder="https://…"
+          placeholder={appUrlPlaceholder(platform)}
         />
+        {appUrlHint(platform) ? (
+          <p className="text-[12px] text-ink/55">{appUrlHint(platform)}</p>
+        ) : null}
       </div>
       <div className="field">
         <label htmlFor="app_description">
@@ -100,22 +106,8 @@ export function TesterRequestForm({ action }: Props) {
         defaultValue="android"
         onPlatformChange={setPlatform}
       />
-      {platform !== "web" ? (
-        <div className="field">
-          <label htmlFor="opt_in_link">
-            Play Console opt-in link
-            <RequiredMark />
-          </label>
-          <input
-            id="opt_in_link"
-            name="opt_in_link"
-            type="url"
-            className="input"
-            required
-            placeholder="Play Console link"
-          />
-        </div>
-      ) : null}
+      <PlatformDistributionHint platform={platform} />
+      {platform !== "web" ? <BetaAccessLinkField platform={platform} /> : null}
       <div className="field">
         <label htmlFor="testers_needed">
           Testers needed

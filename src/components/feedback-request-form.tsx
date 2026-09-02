@@ -6,7 +6,8 @@ import { QuestionBuilder } from "@/components/question-builder";
 import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
 import { PlatformField } from "@/components/platform-field";
-import { FOCUS_TAGS } from "@/lib/constants";
+import { FOCUS_TAGS, type Platform } from "@/lib/constants";
+import { appUrlHint, appUrlPlaceholder } from "@/lib/platform-access";
 import { randomDescriptionExample } from "@/lib/placeholders";
 import {
   emptyRequestFormState,
@@ -37,6 +38,7 @@ export function FeedbackRequestForm({ balance, action }: Props) {
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
     "What it does",
   );
+  const [platform, setPlatform] = useState<Platform>("web");
 
   useEffect(() => {
     setDescriptionPlaceholder(randomDescriptionExample());
@@ -77,15 +79,18 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             App URL
             <RequiredMark />
           </label>
-          <input
-            id="app_url"
-            name="app_url"
-            type="url"
-            className="input"
-            required
-            placeholder="https://…"
-          />
-        </div>
+        <input
+          id="app_url"
+          name="app_url"
+          type="url"
+          className="input"
+          required
+          placeholder={appUrlPlaceholder(platform)}
+        />
+        {appUrlHint(platform) ? (
+          <p className="text-[12px] text-ink/55">{appUrlHint(platform)}</p>
+        ) : null}
+      </div>
         <div className="field">
           <label htmlFor="app_description">
             Description
@@ -100,7 +105,7 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             placeholder={descriptionPlaceholder}
           />
         </div>
-        <PlatformField />
+        <PlatformField onPlatformChange={setPlatform} />
         <div className="field">
           <label htmlFor="focus_tag">Focus</label>
           <select

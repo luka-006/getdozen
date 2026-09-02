@@ -62,17 +62,23 @@ export function BugReportButton({ email = "" }: { email?: string }) {
             </div>
           ) : (
             <form action={onSubmit} className="space-y-3 motion-fade-in">
-              <div className="flex items-start justify-between gap-3">
-                <p className="font-display text-[16px] font-semibold">
-                  Report a bug
+              <div>
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-display text-[16px] font-semibold">
+                    Report a bug
+                  </p>
+                  <button
+                    type="button"
+                    className="text-[12px] text-ink/55 hover:text-ink"
+                    onClick={() => setOpen(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className="bug-report-reward">
+                  Earn <strong>{formatDots(BUG_REPORT_AWARD)}</strong> for a proper
+                  report.
                 </p>
-                <button
-                  type="button"
-                  className="text-[12px] text-ink/55 hover:text-ink"
-                  onClick={() => setOpen(false)}
-                >
-                  Close
-                </button>
               </div>
               {error ? (
                 <p className="rounded-[6px] border border-flag/40 bg-flag/5 px-3 py-2 text-[12px] text-flag">
