@@ -29,7 +29,7 @@ export function canPurchaseDots(
   if (Number(profile.reviews_given ?? 0) < 1) {
     return {
       ok: false,
-      error: `Complete one confirmed review before buying ${currencyName().toLowerCase()}.`,
+      error: `Complete one confirmed review before buying ${currencyName()}.`,
     };
   }
 

@@ -4,7 +4,7 @@ import { ledgerReasonLabel, ledgerRowMeta } from "./ledger-labels";
 
 describe("ledgerReasonLabel", () => {
   it("maps known reasons to plain labels", () => {
-    assert.equal(ledgerReasonLabel("stripe_purchase"), "Bought dots");
+    assert.equal(ledgerReasonLabel("stripe_purchase"), "Bought Dots");
     assert.equal(ledgerReasonLabel("tester_checkin"), "Tester check-in");
   });
 

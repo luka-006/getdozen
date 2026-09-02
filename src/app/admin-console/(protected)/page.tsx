@@ -10,6 +10,7 @@ import {
   signOutAdminConsole,
 } from "@/actions/admin-console";
 import { BUG_REPORT_AWARD } from "@/lib/constants";
+import { currencyName, formatDots } from "@/lib/currency";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type Props = {
@@ -204,7 +205,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
         <div className="surface p-5">
           <h2 className="font-display text-[20px] font-semibold">Dot refund</h2>
           <p className="mt-1 text-[13px] text-ink/60">
-            Add dots to a user wallet (max 500).
+            Add {currencyName()} to a user wallet (max 500).
           </p>
           <form action={adminRefundCredits} className="mt-4 space-y-3">
             <div className="field">
@@ -229,7 +230,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
               <input id="refund-note" name="note" className="input" maxLength={200} />
             </div>
             <button type="submit" className="btn btn-primary">
-              Refund dots
+              Refund {currencyName()}
             </button>
           </form>
         </div>
@@ -237,7 +238,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
         <div className="surface p-5">
           <h2 className="font-display text-[20px] font-semibold">Credit adjust</h2>
           <p className="mt-1 text-[13px] text-ink/60">
-            Positive adds dots; negative removes (max ±500).
+            Positive adds {currencyName()}; negative removes (max ±500).
           </p>
           <form action={adminAdjustCredits} className="mt-4 space-y-3">
             <div className="field">
@@ -278,7 +279,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
           <form action={awardBugReport} className="mt-3">
             <input type="hidden" name="bug_id" value={focusedBug.id} />
             <button type="submit" className="btn btn-primary">
-              Award {BUG_REPORT_AWARD} dots
+              Award {formatDots(BUG_REPORT_AWARD)}
             </button>
           </form>
         </section>
@@ -440,7 +441,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
                   <form action={awardBugReport} className="mt-2">
                     <input type="hidden" name="bug_id" value={bug.id} />
                     <button type="submit" className="btn btn-secondary min-h-9 text-[13px]">
-                      Award {BUG_REPORT_AWARD} dots
+                      Award {formatDots(BUG_REPORT_AWARD)}
                     </button>
                   </form>
                 )}
@@ -461,7 +462,7 @@ export default async function AdminConsolePage({ searchParams }: Props) {
               <div>
                 <p className="font-medium">{user.display_name}</p>
                 <p className="font-mono text-[12px] text-ink/55">
-                  {user.email} · {user.credits} dots · {user.reviews_given} reviews
+                  {user.email} · {formatDots(user.credits)} · {user.reviews_given} reviews
                   {user.is_banned ? " · banned" : ""}
                 </p>
                 <p className="font-mono text-[11px] text-ink/45">{user.id}</p>

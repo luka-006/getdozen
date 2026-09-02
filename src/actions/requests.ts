@@ -245,7 +245,7 @@ export async function createFeedbackRequest(
   );
   const bountyMultiplier = parsePriorityMultiplier(formData.get("priority_multiplier"));
   if (profile.credits < creditCost) {
-    return { error: `Not enough ${currencyName().toLowerCase()} — use Buy ${currencyName().toLowerCase()} below.` };
+    return { error: `Not enough ${currencyName()} — use Buy ${currencyName()} below.` };
   }
 
   const supabase = await createClient();

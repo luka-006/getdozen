@@ -19,7 +19,7 @@ export function BuyDotsSection({ isPro, purchaseErrors }: Props) {
   return (
     <section className="mt-10 space-y-8">
       <div>
-        <h2 className="font-display text-[24px] font-semibold">Buy {currencyName().toLowerCase()}</h2>
+        <h2 className="font-display text-[24px] font-semibold">Buy {currencyName()}</h2>
 
         <div className="mt-4 space-y-3">
           {DOT_PACKS.map((pack) => {

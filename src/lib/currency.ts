@@ -1,30 +1,31 @@
 import { formatCredits } from "@/lib/utils";
 
-/** Public currency name — change to "beads" / "bead" if you prefer that flavor. */
+/** Internal unit id (Stripe metadata, form fields). Display via currencyUnits/formatDots. */
 export const CURRENCY_UNIT = "dots";
-export const CURRENCY_UNIT_SINGULAR = "dot";
+export const CURRENCY_UNIT_SINGULAR = "Dot";
+export const CURRENCY_UNIT_PLURAL = "Dots";
 
 export function currencyUnits(count: number | string): string {
   const n = Number(formatCredits(Number(count)));
-  return Math.abs(n) === 1 ? CURRENCY_UNIT_SINGULAR : CURRENCY_UNIT;
+  return Math.abs(n) === 1 ? CURRENCY_UNIT_SINGULAR : CURRENCY_UNIT_PLURAL;
 }
 
-/** e.g. "12 dots" or "1.5 dots" */
+/** e.g. "12 Dots" or "1.5 Dots" */
 export function formatDots(value: number | string): string {
   const amount = formatCredits(Number(value));
   return `${amount} ${currencyUnits(amount)}`;
 }
 
-/** Shorter inline label, e.g. "+2 dots" */
+/** Shorter inline label, e.g. "+2 Dots" */
 export function formatDotsDelta(value: number | string): string {
   const n = Number(value);
   const prefix = n > 0 ? "+" : "";
   return `${prefix}${formatDots(Math.abs(n))}`;
 }
 
-/** Capitalized for buttons/titles: "Dots" */
+/** For buttons/titles: "Dots" */
 export function currencyName(): string {
-  return CURRENCY_UNIT.charAt(0).toUpperCase() + CURRENCY_UNIT.slice(1);
+  return CURRENCY_UNIT_PLURAL;
 }
 
 /** Stripe Checkout line item copy */

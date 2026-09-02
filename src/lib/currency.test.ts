@@ -15,14 +15,14 @@ describe("currency (Dots)", () => {
   });
 
   it("pluralizes correctly", () => {
-    assert.equal(formatDots(1), "1 dot");
-    assert.equal(formatDots(2), "2 dots");
-    assert.equal(formatDots(1.5), "1.5 dots");
-    assert.equal(currencyUnits(1), "dot");
-    assert.equal(currencyUnits(2), "dots");
+    assert.equal(formatDots(1), "1 Dot");
+    assert.equal(formatDots(2), "2 Dots");
+    assert.equal(formatDots(1.5), "1.5 Dots");
+    assert.equal(currencyUnits(1), "Dot");
+    assert.equal(currencyUnits(2), "Dots");
   });
 
   it("formats deltas", () => {
-    assert.equal(formatDotsDelta(2), "+2 dots");
+    assert.equal(formatDotsDelta(2), "+2 Dots");
   });
 });

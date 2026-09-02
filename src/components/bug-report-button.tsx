@@ -5,6 +5,8 @@ import { submitBugReport } from "@/actions/bug-report";
 import { Captcha } from "@/components/captcha";
 import { DropdownPanel } from "@/components/dropdown-panel";
 import { BugIcon } from "@/components/icons";
+import { BUG_REPORT_AWARD } from "@/lib/constants";
+import { formatDots } from "@/lib/currency";
 
 export function BugReportButton({ email = "" }: { email?: string }) {
   const [open, setOpen] = useState(false);
@@ -48,7 +50,7 @@ export function BugReportButton({ email = "" }: { email?: string }) {
             <div className="space-y-3 motion-fade-in">
               <p className="font-display text-[16px] font-semibold">Sent</p>
               <p className="text-[13px] text-ink/70">
-                Thanks. A proper report can earn 2 dots.
+                Thanks. A proper report can earn {formatDots(BUG_REPORT_AWARD)}.
               </p>
               <button
                 type="button"

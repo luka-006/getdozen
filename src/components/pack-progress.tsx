@@ -58,7 +58,7 @@ export function PackProgress({
       <h2 className="font-display text-[24px] font-semibold">Pack progress</h2>
       <p className="mt-1 text-[13px] text-ink/60">
         {formatDots(creditCost)} locked · unused tester slots refund
-        at 2 dots each when the pack expires
+        at {formatDots(2)} each when the pack expires
       </p>
       <div className="mt-4">
         <Step

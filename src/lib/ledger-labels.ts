@@ -6,7 +6,7 @@ import {
 import type { CreditLedgerEntry } from "@/lib/types";
 
 const REASON_LABELS: Record<string, string> = {
-  stripe_purchase: "Bought dots",
+  stripe_purchase: "Bought Dots",
   receive_review: "Feedback post",
   recruit_testers: "Tester post",
   combo_request: "Combo pack",
