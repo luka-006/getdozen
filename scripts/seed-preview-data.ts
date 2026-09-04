@@ -1,8 +1,10 @@
 #!/usr/bin/env npx tsx
 /**
- * Seed demo board posts for preview recordings (is_demo = true).
+ * Seed fictional demo board posts for preview recordings (is_demo = true).
+ * All names, URLs, and studios are made up — nothing links to real products.
+ *
  * Usage: npx tsx scripts/seed-preview-data.ts
- * Remove: npx tsx scripts/seed-preview-data.ts --clear
+ * Reseed: npx tsx scripts/seed-preview-data.ts --clear && npx tsx scripts/seed-preview-data.ts
  */
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -36,6 +38,7 @@ loadEnvLocal();
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
 const clear = process.argv.includes("--clear");
+const force = process.argv.includes("--force");
 
 if (!url || !serviceKey) {
   console.error("Need NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
@@ -102,16 +105,34 @@ const MAKERS: Maker[] = [
     rating_avg: 4.7,
     rating_count: 15,
   },
+  {
+    email: "preview-hollow@demo.getdozen.dev",
+    display_name: "Hollow Lantern Games",
+    avatar_url: "https://api.dicebear.com/9.x/shapes/svg?seed=hollow",
+    is_pro: true,
+    reviews_given: 18,
+    rating_avg: 4.6,
+    rating_count: 9,
+  },
+  {
+    email: "preview-kite@demo.getdozen.dev",
+    display_name: "Kitefall Interactive",
+    avatar_url: "https://api.dicebear.com/9.x/shapes/svg?seed=kite",
+    reviews_given: 11,
+    rating_avg: 4.4,
+    rating_count: 5,
+  },
 ];
 
 type DemoPost = {
   makerIndex: number;
   type: "tester" | "feedback" | "combo";
+  product_type: "app" | "game";
   app_name: string;
   app_url: string;
   app_description: string;
-  platform: "web" | "ios" | "android";
-  focus_tag?: "UX" | "Market" | "Technical" | null;
+  platform: "web" | "ios" | "android" | "steam" | "itch";
+  focus_tag?: "UX" | "Market" | "Technical" | "Gameplay" | null;
   testers_needed?: number;
   testers_filled?: number;
   question_count?: number;
@@ -121,12 +142,14 @@ type DemoPost = {
   hoursAgo?: number;
 };
 
+/** Fictional URLs only — preview.example is a reserved documentation TLD pattern. */
 const POSTS: DemoPost[] = [
   {
     makerIndex: 0,
     type: "tester",
+    product_type: "app",
     app_name: "Focus Flow",
-    app_url: "https://focusflow.example",
+    app_url: "https://preview.example/apps/focus-flow",
     app_description: "Minimal Pomodoro timer with widget and weekly streaks.",
     platform: "ios",
     focus_tag: "UX",
@@ -136,10 +159,26 @@ const POSTS: DemoPost[] = [
     hoursAgo: 6,
   },
   {
+    makerIndex: 5,
+    type: "tester",
+    product_type: "game",
+    app_name: "Starlit Courier",
+    app_url: "https://preview.example/games/starlit-courier",
+    app_description:
+      "Cozy delivery roguelite — fly fragile parcels through asteroid lanes.",
+    platform: "steam",
+    focus_tag: "Gameplay",
+    testers_needed: 12,
+    testers_filled: 6,
+    duration_days: 14,
+    hoursAgo: 10,
+  },
+  {
     makerIndex: 1,
     type: "feedback",
+    product_type: "app",
     app_name: "Receipt Snap",
-    app_url: "https://receiptsnap.example",
+    app_url: "https://preview.example/apps/receipt-snap",
     app_description: "Scan receipts for freelancers — need clarity on onboarding.",
     platform: "android",
     focus_tag: "Market",
@@ -149,10 +188,25 @@ const POSTS: DemoPost[] = [
     hoursAgo: 18,
   },
   {
+    makerIndex: 6,
+    type: "feedback",
+    product_type: "game",
+    app_name: "Pinefolk Tavern",
+    app_url: "https://preview.example/itch/pinefolk-tavern",
+    app_description:
+      "Management sim about running a fantasy inn — demo build on page.",
+    platform: "itch",
+    focus_tag: "Gameplay",
+    question_count: 10,
+    credit_cost: 20,
+    hoursAgo: 5,
+  },
+  {
     makerIndex: 2,
     type: "combo",
+    product_type: "app",
     app_name: "Trailhead Maps",
-    app_url: "https://trailheadmaps.example",
+    app_url: "https://preview.example/apps/trailhead-maps",
     app_description: "Offline hiking maps with GPX import and elevation profiles.",
     platform: "android",
     focus_tag: "Technical",
@@ -164,10 +218,28 @@ const POSTS: DemoPost[] = [
     hoursAgo: 30,
   },
   {
+    makerIndex: 5,
+    type: "combo",
+    product_type: "game",
+    app_name: "Vaultbreaker 2084",
+    app_url: "https://preview.example/games/vaultbreaker-2084",
+    app_description:
+      "Top-down stealth puzzler in a neon archive — needs playtest pacing notes.",
+    platform: "steam",
+    focus_tag: "Gameplay",
+    testers_needed: 12,
+    testers_filled: 3,
+    question_count: 10,
+    credit_cost: 30,
+    duration_days: 20,
+    hoursAgo: 14,
+  },
+  {
     makerIndex: 3,
     type: "tester",
+    product_type: "app",
     app_name: "Sleep Ledger",
-    app_url: "https://sleepledger.example",
+    app_url: "https://preview.example/apps/sleep-ledger",
     app_description: "Track sleep debt without wearables — manual check-ins only.",
     platform: "web",
     testers_needed: 12,
@@ -178,8 +250,9 @@ const POSTS: DemoPost[] = [
   {
     makerIndex: 4,
     type: "feedback",
+    product_type: "app",
     app_name: "Orbit Notes",
-    app_url: "https://orbitnotes.example",
+    app_url: "https://preview.example/apps/orbit-notes",
     app_description: "Markdown notes with bi-directional links for indie makers.",
     platform: "web",
     focus_tag: "UX",
@@ -188,10 +261,25 @@ const POSTS: DemoPost[] = [
     hoursAgo: 8,
   },
   {
+    makerIndex: 6,
+    type: "tester",
+    product_type: "game",
+    app_name: "Relay Protocol",
+    app_url: "https://preview.example/games/relay-protocol",
+    app_description: "Co-op programming puzzle game about routing signal packets.",
+    platform: "web",
+    focus_tag: "Gameplay",
+    testers_needed: 12,
+    testers_filled: 8,
+    duration_days: 14,
+    hoursAgo: 22,
+  },
+  {
     makerIndex: 0,
     type: "tester",
+    product_type: "app",
     app_name: "Palette Kit",
-    app_url: "https://palettekit.example",
+    app_url: "https://preview.example/apps/palette-kit",
     app_description: "Export Figma tokens to Tailwind and SwiftUI.",
     platform: "ios",
     testers_needed: 12,
@@ -202,8 +290,9 @@ const POSTS: DemoPost[] = [
   {
     makerIndex: 2,
     type: "feedback",
+    product_type: "app",
     app_name: "Campfire Chat",
-    app_url: "https://campfirechat.example",
+    app_url: "https://preview.example/apps/campfire-chat",
     app_description: "Async standups for remote teams — testing pricing page copy.",
     platform: "web",
     focus_tag: "Market",
@@ -262,9 +351,15 @@ async function seed() {
     .select("*", { count: "exact", head: true })
     .eq("is_demo", true);
 
-  if ((count ?? 0) > 0) {
-    console.log(`Demo data already present (${count} posts). Use --clear first to reseed.`);
+  if ((count ?? 0) > 0 && !force) {
+    console.log(
+      `Demo data already present (${count} posts). Use --clear or --force to reseed.`,
+    );
     return;
+  }
+
+  if (force && (count ?? 0) > 0) {
+    await clearDemo();
   }
 
   const makerIds: string[] = [];
@@ -280,6 +375,7 @@ async function seed() {
     const { error } = await admin.from("requests").insert({
       user_id: makerIds[post.makerIndex],
       type: post.type,
+      product_type: post.product_type,
       app_name: post.app_name,
       app_url: post.app_url,
       app_description: post.app_description,
@@ -299,7 +395,7 @@ async function seed() {
     if (error) throw new Error(`insert ${post.app_name}: ${error.message}`);
   }
 
-  console.log(`Seeded ${POSTS.length} demo posts for ${MAKERS.length} makers.`);
+  console.log(`Seeded ${POSTS.length} fictional demo posts for ${MAKERS.length} makers.`);
 }
 
 async function main() {

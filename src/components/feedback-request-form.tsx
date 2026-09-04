@@ -2,11 +2,18 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { purchaseDotsAmount } from "@/actions/billing";
+import { DotsTopUpLink } from "@/components/dots-topup-link";
 import { QuestionBuilder } from "@/components/question-builder";
 import { PriorityPicker } from "@/components/priority-picker";
+import { ProductTypeField } from "@/components/product-type-field";
 import { StarIcon } from "@/components/icons";
 import { PlatformField } from "@/components/platform-field";
-import { FOCUS_TAGS, type Platform } from "@/lib/constants";
+import {
+  FOCUS_TAGS,
+  defaultPlatformForProductType,
+  type Platform,
+  type ProductType,
+} from "@/lib/constants";
 import { appUrlHint, appUrlPlaceholder } from "@/lib/platform-access";
 import { randomDescriptionExample } from "@/lib/placeholders";
 import {
@@ -35,14 +42,21 @@ export function FeedbackRequestForm({ balance, action }: Props) {
     action,
     emptyRequestFormState,
   );
+  const [productType, setProductType] = useState<ProductType>("app");
+  const [platform, setPlatform] = useState<Platform>(
+    defaultPlatformForProductType("app"),
+  );
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
     "What it does",
   );
-  const [platform, setPlatform] = useState<Platform>("web");
 
   useEffect(() => {
     setDescriptionPlaceholder(randomDescriptionExample());
   }, []);
+
+  useEffect(() => {
+    setPlatform(defaultPlatformForProductType(productType));
+  }, [productType]);
 
   return (
     <>
@@ -56,14 +70,16 @@ export function FeedbackRequestForm({ balance, action }: Props) {
 
       <form action={formAction} className="mt-8 space-y-6">
         {state.error ? (
-          <p className="rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
-            {state.error}
-          </p>
+          <div className="space-y-2 rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
+            <p>{state.error}</p>
+            <DotsTopUpLink />
+          </div>
         ) : null}
 
+        <ProductTypeField value={productType} onProductTypeChange={setProductType} />
         <div className="field">
           <label htmlFor="app_name">
-            App name
+            {productType === "game" ? "Game name" : "App name"}
             <RequiredMark />
           </label>
           <input
@@ -71,26 +87,26 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             name="app_name"
             className="input"
             required
-            placeholder="MyApp"
+            placeholder={productType === "game" ? "Vaultbreaker 2084" : "MyApp"}
           />
         </div>
         <div className="field">
           <label htmlFor="app_url">
-            App URL
+            {productType === "game" ? "Store or page URL" : "App URL"}
             <RequiredMark />
           </label>
-        <input
-          id="app_url"
-          name="app_url"
-          type="url"
-          className="input"
-          required
-          placeholder={appUrlPlaceholder(platform)}
-        />
-        {appUrlHint(platform) ? (
-          <p className="text-[12px] text-ink/55">{appUrlHint(platform)}</p>
-        ) : null}
-      </div>
+          <input
+            id="app_url"
+            name="app_url"
+            type="url"
+            className="input"
+            required
+            placeholder={appUrlPlaceholder(platform)}
+          />
+          {appUrlHint(platform) ? (
+            <p className="text-[12px] text-ink/55">{appUrlHint(platform)}</p>
+          ) : null}
+        </div>
         <div className="field">
           <label htmlFor="app_description">
             Description
@@ -105,7 +121,11 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             placeholder={descriptionPlaceholder}
           />
         </div>
-        <PlatformField onPlatformChange={setPlatform} />
+        <PlatformField
+          productType={productType}
+          defaultValue={platform}
+          onPlatformChange={setPlatform}
+        />
         <div className="field">
           <label htmlFor="focus_tag">Focus</label>
           <select
@@ -129,16 +149,16 @@ export function FeedbackRequestForm({ balance, action }: Props) {
             id="test_credentials"
             name="test_credentials"
             className="textarea"
-            placeholder="demo@app.com / temp-password"
+            placeholder="demo@preview.example / temp-password"
           />
           <p className="text-[12px] text-ink/55">
-            A fake account so reviewers can open the app. Never share a real login.
+            A fake account so reviewers can try it. Never share a real login.
           </p>
         </div>
 
         <QuestionBuilder balance={balance} />
 
-        <PriorityPicker baseCost={10} />
+        <PriorityPicker baseCost={10} balance={balance} />
 
         <button
           type="submit"

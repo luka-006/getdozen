@@ -3,7 +3,10 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { DayStrip } from "@/components/day-strip";
-import { PLATFORMS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/constants";
+import { PreviewDataBanner } from "@/components/preview-data-banner";
+import { PLATFORMS, TESTER_DAYS, FOCUS_TAGS, reviewEarnForQuestionCount } from "@/lib/constants";
+import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
+import { PlatformIcon } from "@/components/platform-icon";
 import { isBoostActive } from "@/lib/boost";
 import { testerCubes } from "@/lib/tester-progress";
 import { formatCredits, formatWaitLabel, waitHours } from "@/lib/utils";
@@ -29,13 +32,9 @@ type CommitmentRow = Pick<
   "request_id" | "opted_in_at" | "status" | "duration_days"
 >;
 
-const PLATFORM_LABEL: Record<string, string> = {
-  web: "Web",
-  ios: "iOS",
-  android: "Android",
-};
+const PLATFORM_LABEL = PLATFORM_LABELS;
 
-const FOCUS_TAGS = ["Everything", "UX", "Market", "Technical"] as const;
+const FOCUS_FILTER_TAGS = FOCUS_TAGS;
 
 function filterChipClass(active: boolean) {
   return active ? "filter-chip filter-chip-active" : "filter-chip";
@@ -60,6 +59,7 @@ type Props = {
   initialFocus?: string;
   initialPlatform?: string;
   error?: string;
+  showPreviewBanner?: boolean;
 };
 
 export function BoardView({
@@ -71,6 +71,7 @@ export function BoardView({
   initialFocus,
   initialPlatform,
   error,
+  showPreviewBanner,
 }: Props) {
   const [type, setType] = useState<TrackId>(initialType);
   const [focus, setFocus] = useState<string | undefined>(initialFocus);
@@ -154,6 +155,7 @@ export function BoardView({
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <BoardHeader post={type !== "language"} />
+      {showPreviewBanner ? <PreviewDataBanner /> : null}
       <TrackTabs active={type} onSelect={setTrack} />
 
       {error ? <p className="mt-4 text-[13px] text-flag">{error}</p> : null}
@@ -193,7 +195,7 @@ export function BoardView({
             >
               All
             </button>
-            {FOCUS_TAGS.map((tag) => (
+            {FOCUS_FILTER_TAGS.map((tag) => (
               <button
                 key={tag}
                 type="button"
@@ -219,8 +221,9 @@ export function BoardView({
                 key={p}
                 type="button"
                 onClick={() => setPlatformFilter(p)}
-                className={filterChipClass(platform === p)}
+                className={`${filterChipClass(platform === p)} inline-flex items-center gap-1`}
               >
+                <PlatformIcon platform={p} className="h-3.5 w-3.5" />
                 {PLATFORM_LABEL[p]}
               </button>
             ))}
@@ -307,7 +310,8 @@ function RequestCard({
 }) {
   const wait = formatWaitLabel(request.created_at);
   const platformLabel = request.platform
-    ? PLATFORM_LABEL[request.platform] ?? request.platform
+    ? PLATFORM_LABEL[request.platform as keyof typeof PLATFORM_LABEL] ??
+      request.platform
     : null;
   const duration =
     type === "feedback" ? null : request.duration_days ?? TESTER_DAYS;
@@ -340,8 +344,16 @@ function RequestCard({
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{request.app_name}</span>
+            {request.product_type === "game" ? (
+              <span className="rounded-[6px] bg-mist px-1.5 py-0.5 text-[11px] font-medium text-ink/70">
+                {PRODUCT_TYPE_LABELS.game}
+              </span>
+            ) : null}
             {platformLabel ? (
-              <span className="text-[13px] text-ink/60">{platformLabel}</span>
+              <span className="inline-flex items-center gap-1 text-[13px] text-ink/60">
+                <PlatformIcon platform={request.platform ?? "web"} className="h-3.5 w-3.5" />
+                {platformLabel}
+              </span>
             ) : null}
             {request.focus_tag ? (
               <span className="text-[13px] text-ink/60">{request.focus_tag}</span>
@@ -401,7 +413,7 @@ function BoardHeader({ post = true }: { post?: boolean }) {
           Open feedback & tests
         </h1>
         <p className="mt-2 max-w-xl text-[15px] text-ink/65">
-          Pick a post, leave structured feedback, or join a tester run.
+          Pick an app or game, leave structured feedback, or join a tester run.
         </p>
       </div>
       {post ? (

@@ -1,4 +1,4 @@
-import type { FOCUS_TAGS } from "./constants";
+import type { FOCUS_TAGS, ProductType } from "./constants";
 
 export type FocusTag = (typeof FOCUS_TAGS)[number];
 export type RequestType = "feedback" | "tester" | "combo" | "language" | "play" | "testflight";
@@ -72,6 +72,7 @@ export type RequestRow = {
   test_start_date: string | null;
   is_demo?: boolean;
   platform?: string | null;
+  product_type?: ProductType | string | null;
   duration_days?: number | null;
   boosted_until?: string | null;
   boost_offer_sent_at?: string | null;

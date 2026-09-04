@@ -4,12 +4,15 @@ import { useMemo, useState } from "react";
 import { formatDots, formatDotsDelta } from "@/lib/currency";
 import { PRIORITY_OPTIONS } from "@/lib/priority";
 
+import { DotsTopUpLink } from "@/components/dots-topup-link";
+
 type Props = {
   baseCost: number;
+  balance?: number;
   name?: string;
 };
 
-export function PriorityPicker({ baseCost, name = "priority_multiplier" }: Props) {
+export function PriorityPicker({ baseCost, balance, name = "priority_multiplier" }: Props) {
   const [multiplier, setMultiplier] = useState<number>(1);
 
   const total = useMemo(
@@ -44,6 +47,11 @@ export function PriorityPicker({ baseCost, name = "priority_multiplier" }: Props
       <p className="mt-2 font-mono text-[13px] text-ink/70">
         Total: {formatDots(total)} ({PRIORITY_OPTIONS.find((o) => o.value === multiplier)?.hint})
       </p>
+      {balance != null && balance < total ? (
+        <p className="mt-1 text-[13px] text-flag">
+          You have {formatDots(balance)}. <DotsTopUpLink />
+        </p>
+      ) : null}
     </div>
   );
 }

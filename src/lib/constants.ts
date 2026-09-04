@@ -22,7 +22,7 @@ export const BUG_REPORT_AWARD = 2;
 export const BOOST_WAIT_DAYS = 3;
 export const BOOST_HOURS = 48;
 
-/** Testers + feedback bundles (cheaper than buying both separately). */
+/** @deprecated use dots — legacy Stripe pack ids still resolve. */
 export const COMBO_PACKS = [
   {
     id: "combo_12_10",
@@ -71,9 +71,36 @@ export const BOUNTY_MULTIPLIER = 1.5;
 export const REQUEST_EXPIRY_DAYS = 30;
 export const CREDIT_EXPIRY_MONTHS = 6;
 export const LAUNCH_BONUS_DAYS = 14;
-export const FOCUS_TAGS = ["Everything", "UX", "Market", "Technical"] as const;
-export const PLATFORMS = ["web", "ios", "android"] as const;
+
+export const PRODUCT_TYPES = ["app", "game"] as const;
+export type ProductType = (typeof PRODUCT_TYPES)[number];
+
+export const APP_PLATFORMS = ["web", "ios", "android"] as const;
+export const GAME_PLATFORMS = ["steam", "itch", "web"] as const;
+export const PLATFORMS = [
+  "web",
+  "ios",
+  "android",
+  "steam",
+  "itch",
+] as const;
 export type Platform = (typeof PLATFORMS)[number];
+
+export function platformsForProductType(type: ProductType): readonly Platform[] {
+  return type === "game" ? GAME_PLATFORMS : APP_PLATFORMS;
+}
+
+export function defaultPlatformForProductType(type: ProductType): Platform {
+  return type === "game" ? "steam" : "web";
+}
+
+export const FOCUS_TAGS = [
+  "Everything",
+  "UX",
+  "Market",
+  "Technical",
+  "Gameplay",
+] as const;
 export const FIRST_REVIEW_GIFT = 1;
 
 export const QUESTION_LIBRARY = [
@@ -115,6 +142,15 @@ export const QUESTION_LIBRARY = [
       "After reading the landing page, what do you think this product is for?",
       "What claim felt unconvincing?",
       "What would make you click the main CTA?",
+    ],
+  },
+  {
+    category: "Gameplay",
+    questions: [
+      "What was fun in the first 10 minutes — and what felt boring?",
+      "Were the controls or inputs intuitive on your device?",
+      "What would you change about difficulty, pacing, or tutorials?",
+      "Would you come back tomorrow? Why or why not?",
     ],
   },
 ] as const;

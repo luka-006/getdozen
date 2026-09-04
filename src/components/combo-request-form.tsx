@@ -5,17 +5,21 @@ import {
   emptyRequestFormState,
   type RequestFormState,
 } from "@/lib/request-form";
-import { PlatformField } from "@/components/platform-field";
 import { BetaAccessLinkField } from "@/components/beta-access-link-field";
+import { DotsTopUpLink } from "@/components/dots-topup-link";
+import { PlatformField } from "@/components/platform-field";
 import { PlatformDistributionHint } from "@/components/platform-distribution-hint";
+import { ProductTypeField } from "@/components/product-type-field";
 import { PriorityPicker } from "@/components/priority-picker";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
 import {
   COMBO_PACKS,
   TESTER_DURATION_OPTIONS,
+  defaultPlatformForProductType,
   type ComboPackId,
   type Platform,
+  type ProductType,
 } from "@/lib/constants";
 import { formatDots } from "@/lib/currency";
 import { appUrlHint, appUrlPlaceholder } from "@/lib/platform-access";
@@ -42,7 +46,10 @@ export function ComboRequestForm({ balance, action }: Props) {
     action,
     emptyRequestFormState,
   );
-  const [platform, setPlatform] = useState<Platform>("android");
+  const [productType, setProductType] = useState<ProductType>("app");
+  const [platform, setPlatform] = useState<Platform>(
+    defaultPlatformForProductType("app"),
+  );
   const [packId, setPackId] = useState<ComboPackId>("combo_12_10");
   const pack = COMBO_PACKS.find((p) => p.id === packId)!;
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
@@ -53,12 +60,17 @@ export function ComboRequestForm({ balance, action }: Props) {
     setDescriptionPlaceholder(randomDescriptionExample());
   }, []);
 
+  useEffect(() => {
+    setPlatform(defaultPlatformForProductType(productType));
+  }, [productType]);
+
   return (
     <form action={formAction} className="mt-8 space-y-6">
       {state.error ? (
-        <p className="rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
-          {state.error}
-        </p>
+        <div className="space-y-2 rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
+          <p>{state.error}</p>
+          <DotsTopUpLink />
+        </div>
       ) : null}
 
       <div className="field">
@@ -83,9 +95,10 @@ export function ComboRequestForm({ balance, action }: Props) {
         </p>
       </div>
 
+      <ProductTypeField value={productType} onProductTypeChange={setProductType} />
       <div className="field">
         <label htmlFor="app_name">
-          App name
+          {productType === "game" ? "Game name" : "App name"}
           <RequiredMark />
         </label>
         <input
@@ -93,12 +106,12 @@ export function ComboRequestForm({ balance, action }: Props) {
           name="app_name"
           className="input"
           required
-          placeholder="MyApp"
+          placeholder={productType === "game" ? "Pinefolk Tavern" : "MyApp"}
         />
       </div>
       <div className="field">
         <label htmlFor="app_url">
-          App URL
+          {productType === "game" ? "Store or page URL" : "App URL"}
           <RequiredMark />
         </label>
         <input
@@ -128,11 +141,14 @@ export function ComboRequestForm({ balance, action }: Props) {
         />
       </div>
       <PlatformField
-        defaultValue="android"
+        productType={productType}
+        defaultValue={platform}
         onPlatformChange={setPlatform}
       />
-      <PlatformDistributionHint platform={platform} />
-      {platform !== "web" ? <BetaAccessLinkField platform={platform} /> : null}
+      <PlatformDistributionHint platform={platform} productType={productType} />
+      {platform !== "web" && platform !== "itch" ? (
+        <BetaAccessLinkField platform={platform} />
+      ) : null}
       <div className="field">
         <label htmlFor="test_focus">
           What to focus on
@@ -144,7 +160,11 @@ export function ComboRequestForm({ balance, action }: Props) {
           className="textarea"
           required
           minLength={10}
-          placeholder="Signup + paywall"
+          placeholder={
+            productType === "game"
+              ? "Tutorial pacing, combat feel, performance"
+              : "Signup + paywall"
+          }
         />
       </div>
       <div className="field">
@@ -187,10 +207,10 @@ export function ComboRequestForm({ balance, action }: Props) {
           id="test_credentials"
           name="test_credentials"
           className="textarea"
-          placeholder="demo@app.com / temp-password"
+          placeholder="demo@preview.example / temp-password"
         />
         <p className="text-[12px] text-ink/55">
-          A fake account so reviewers can open the app. Never share a real login.
+          A fake account so reviewers can try it. Never share a real login.
         </p>
       </div>
 
@@ -207,8 +227,13 @@ export function ComboRequestForm({ balance, action }: Props) {
           <span className="text-flag"> · you have {formatDots(balance)}</span>
         ) : null}
       </p>
+      {balance < pack.credits ? (
+        <p className="text-[13px]">
+          <DotsTopUpLink />
+        </p>
+      ) : null}
 
-      <PriorityPicker baseCost={pack.credits} />
+      <PriorityPicker baseCost={pack.credits} balance={balance} />
 
       <button
         type="submit"

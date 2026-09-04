@@ -11,11 +11,14 @@ import {
   MIN_QUESTIONS,
   MIN_TESTERS,
   PLATFORMS,
+  PRODUCT_TYPES,
   REQUEST_EXPIRY_DAYS,
   TESTER_COST,
   TESTER_DURATION_OPTIONS,
   getComboPack,
+  platformsForProductType,
   type Platform,
+  type ProductType,
 } from "@/lib/constants";
 import { creditCostForQuestionCount, spendCredits } from "@/lib/credits";
 import { formatDots, currencyName } from "@/lib/currency";
@@ -24,6 +27,7 @@ import {
   betaAccessLinkLabel,
   isValidOptInUrl,
   playConsoleOptInRequired,
+  showsBetaAccessField,
 } from "@/lib/platform-access";
 import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
@@ -36,12 +40,26 @@ const customQuestionSchema = z.object({
 });
 
 const platformSchema = z.enum(PLATFORMS);
+const productTypeSchema = z.enum(PRODUCT_TYPES);
+
+function refineProductPlatform<
+  T extends { product_type: ProductType; platform: Platform },
+>(schema: z.ZodType<T>) {
+  return schema.superRefine((data, ctx) => {
+    if (!platformsForProductType(data.product_type).includes(data.platform)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["platform"],
+        message: `That platform does not match the selected product type`,
+      });
+    }
+  });
+}
 
 function refinePlatformAccessLink<
   T extends { platform: Platform; opt_in_link?: string | undefined },
 >(schema: z.ZodType<T>) {
   return schema.superRefine((data, ctx) => {
-    if (data.platform === "web" || data.platform === "ios") return;
     if (!playConsoleOptInRequired(data.platform)) return;
     if (isValidOptInUrl(data.opt_in_link)) return;
     ctx.addIssue({
@@ -52,48 +70,59 @@ function refinePlatformAccessLink<
   });
 }
 
-const feedbackSchema = z.object({
-  app_name: z.string().min(2).max(120),
-  app_url: z.string().url(),
-  app_description: z.string().min(20).max(2000),
-  platform: platformSchema,
-  focus_tag: z.enum(FOCUS_TAGS).default("Everything"),
-  test_credentials: z.string().max(500).optional(),
-  custom_questions: z
-    .array(customQuestionSchema)
-    .min(MIN_QUESTIONS - CORE_QUESTIONS.length),
-  proof_question: z.string().min(8).max(300),
-  proof_answer: z.string().min(1).max(200),
-});
+function storeOptInLink(platform: Platform, optInLink?: string) {
+  return showsBetaAccessField(platform) ? optInLink?.trim() || null : null;
+}
 
-const testerSchema = refinePlatformAccessLink(
+const feedbackSchema = refineProductPlatform(
   z.object({
+    product_type: productTypeSchema.default("app"),
     app_name: z.string().min(2).max(120),
     app_url: z.string().url(),
     app_description: z.string().min(20).max(2000),
     platform: platformSchema,
-    opt_in_link: z.string().optional(),
-    testers_needed: z
-      .number()
-      .int()
-      .min(MIN_TESTERS)
-      .max(100)
-      .default(MIN_TESTERS),
-    duration_days: z.coerce
-      .number()
-      .int()
-      .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
-        message: "Pick a test length",
-      }),
-    test_focus: z.string().min(10).max(1000),
-    test_start_date: z.string().min(8),
+    focus_tag: z.enum(FOCUS_TAGS).default("Everything"),
+    test_credentials: z.string().max(500).optional(),
+    custom_questions: z
+      .array(customQuestionSchema)
+      .min(MIN_QUESTIONS - CORE_QUESTIONS.length),
+    proof_question: z.string().min(8).max(300),
+    proof_answer: z.string().min(1).max(200),
   }),
+);
+
+const testerSchema = refineProductPlatform(
+  refinePlatformAccessLink(
+    z.object({
+      product_type: productTypeSchema.default("app"),
+      app_name: z.string().min(2).max(120),
+      app_url: z.string().url(),
+      app_description: z.string().min(20).max(2000),
+      platform: platformSchema,
+      opt_in_link: z.string().optional(),
+      testers_needed: z
+        .number()
+        .int()
+        .min(MIN_TESTERS)
+        .max(100)
+        .default(MIN_TESTERS),
+      duration_days: z.coerce
+        .number()
+        .int()
+        .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
+          message: "Pick a test length",
+        }),
+      test_focus: z.string().min(10).max(1000),
+      test_start_date: z.string().min(8),
+    }),
+  ),
 );
 
 type CustomQuestionInput = z.infer<typeof customQuestionSchema>;
 
 const FIELD_LABELS: Record<string, string> = {
-  app_name: "App name",
+  app_name: "Name",
+  product_type: "Product type",
   app_url: "App URL",
   app_description: "Description",
   platform: "Platform",
@@ -218,6 +247,7 @@ export async function createFeedbackRequest(
 ): Promise<RequestFormState> {
   const profile = await requireProfile();
   const parsed = feedbackSchema.safeParse({
+    product_type: formData.get("product_type") || "app",
     app_name: formData.get("app_name"),
     app_url: formData.get("app_url"),
     app_description: formData.get("app_description"),
@@ -265,6 +295,7 @@ export async function createFeedbackRequest(
     .insert({
       user_id: profile.id,
       type: "feedback",
+      product_type: data.product_type,
       app_name: data.app_name,
       app_url: data.app_url,
       app_description: data.app_description,
@@ -346,6 +377,7 @@ export async function createTesterRequest(
 ): Promise<RequestFormState> {
   const profile = await requireProfile();
   const parsed = testerSchema.safeParse({
+    product_type: formData.get("product_type") || "app",
     app_name: formData.get("app_name"),
     app_url: formData.get("app_url"),
     app_description: formData.get("app_description"),
@@ -382,6 +414,7 @@ export async function createTesterRequest(
     .insert({
       user_id: profile.id,
       type: "tester",
+      product_type: data.product_type,
       app_name: data.app_name,
       app_url: data.app_url,
       app_description: data.app_description,
@@ -390,8 +423,7 @@ export async function createTesterRequest(
       bounty_multiplier: bountyMultiplier,
       testers_needed: data.testers_needed,
       duration_days: data.duration_days,
-      opt_in_link:
-        data.platform === "web" ? null : data.opt_in_link?.trim() || null,
+      opt_in_link: storeOptInLink(data.platform, data.opt_in_link),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       expires_at: expiresAt.toISOString(),
@@ -434,27 +466,31 @@ export async function createComboRequest(
     return { error: "Pick a pack" };
   }
 
-  const parsed = refinePlatformAccessLink(
-    z.object({
-      app_name: z.string().min(2).max(120),
-      app_url: z.string().url(),
-      app_description: z.string().min(20).max(2000),
-      platform: platformSchema,
-      opt_in_link: z.string().optional(),
-      test_focus: z.string().min(10).max(1000),
-      test_start_date: z.string().min(8),
-      duration_days: z.coerce
-        .number()
-        .int()
-        .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
-          message: "Pick a test length",
-        }),
-      test_credentials: z.string().max(500).optional(),
-      custom_questions: z.array(customQuestionSchema),
-      proof_question: z.string().min(8).max(300),
-      proof_answer: z.string().min(1).max(200),
-    }),
+  const parsed = refineProductPlatform(
+    refinePlatformAccessLink(
+      z.object({
+        product_type: productTypeSchema.default("app"),
+        app_name: z.string().min(2).max(120),
+        app_url: z.string().url(),
+        app_description: z.string().min(20).max(2000),
+        platform: platformSchema,
+        opt_in_link: z.string().optional(),
+        test_focus: z.string().min(10).max(1000),
+        test_start_date: z.string().min(8),
+        duration_days: z.coerce
+          .number()
+          .int()
+          .refine((n) => (TESTER_DURATION_OPTIONS as readonly number[]).includes(n), {
+            message: "Pick a test length",
+          }),
+        test_credentials: z.string().max(500).optional(),
+        custom_questions: z.array(customQuestionSchema),
+        proof_question: z.string().min(8).max(300),
+        proof_answer: z.string().min(1).max(200),
+      }),
+    ),
   ).safeParse({
+      product_type: formData.get("product_type") || "app",
       app_name: formData.get("app_name"),
       app_url: formData.get("app_url"),
       app_description: formData.get("app_description"),
@@ -503,6 +539,7 @@ export async function createComboRequest(
     .insert({
       user_id: profile.id,
       type: "combo",
+      product_type: data.product_type,
       app_name: data.app_name,
       app_url: data.app_url,
       app_description: data.app_description,
@@ -512,8 +549,7 @@ export async function createComboRequest(
       testers_needed: pack.testers,
       duration_days: data.duration_days,
       question_count: pack.questions,
-      opt_in_link:
-        data.platform === "web" ? null : data.opt_in_link?.trim() || null,
+      opt_in_link: storeOptInLink(data.platform, data.opt_in_link),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       test_credentials_encrypted: encrypted,

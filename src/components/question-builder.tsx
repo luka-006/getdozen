@@ -10,6 +10,7 @@ import {
   creditCostForQuestionCount,
 } from "@/lib/constants";
 import { formatDots, formatDotsDelta, currencyUnits } from "@/lib/currency";
+import { DotsTopUpLink } from "@/components/dots-topup-link";
 
 type LibraryItem = { category: string; text: string };
 type CustomQuestion = { text: string; suggestions: string[] };
@@ -307,7 +308,7 @@ export function QuestionBuilder({
           ) : null}
           {short ? (
             <span className="text-[13px] text-flag">
-              You have {formatDots(balance)}
+              You have {formatDots(balance)} · <DotsTopUpLink className="text-[13px] font-medium text-blue" />
             </span>
           ) : null}
         </div>

@@ -5,16 +5,20 @@ import {
   emptyRequestFormState,
   type RequestFormState,
 } from "@/lib/request-form";
-import { PlatformField } from "@/components/platform-field";
 import { BetaAccessLinkField } from "@/components/beta-access-link-field";
+import { DotsTopUpLink } from "@/components/dots-topup-link";
+import { PlatformField } from "@/components/platform-field";
 import { PlatformDistributionHint } from "@/components/platform-distribution-hint";
+import { ProductTypeField } from "@/components/product-type-field";
 import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
 import {
   MIN_TESTERS,
   TESTER_COST,
   TESTER_DURATION_OPTIONS,
+  defaultPlatformForProductType,
   type Platform,
+  type ProductType,
 } from "@/lib/constants";
 import { formatDots } from "@/lib/currency";
 import { appUrlHint, appUrlPlaceholder } from "@/lib/platform-access";
@@ -29,18 +33,22 @@ function RequiredMark() {
 }
 
 type Props = {
+  balance: number;
   action: (
     prev: RequestFormState,
     formData: FormData,
   ) => Promise<RequestFormState>;
 };
 
-export function TesterRequestForm({ action }: Props) {
+export function TesterRequestForm({ balance, action }: Props) {
   const [state, formAction, pending] = useActionState(
     action,
     emptyRequestFormState,
   );
-  const [platform, setPlatform] = useState<Platform>("android");
+  const [productType, setProductType] = useState<ProductType>("app");
+  const [platform, setPlatform] = useState<Platform>(
+    defaultPlatformForProductType("app"),
+  );
   const [testersNeeded, setTestersNeeded] = useState<number>(MIN_TESTERS);
   const [descriptionPlaceholder, setDescriptionPlaceholder] = useState(
     "What it does",
@@ -50,17 +58,26 @@ export function TesterRequestForm({ action }: Props) {
     setDescriptionPlaceholder(randomDescriptionExample());
   }, []);
 
+  useEffect(() => {
+    setPlatform(defaultPlatformForProductType(productType));
+  }, [productType]);
+
+  const baseCost = testersNeeded * TESTER_COST;
+  const short = balance < baseCost;
+
   return (
     <form action={formAction} className="mt-8 space-y-4">
       {state.error ? (
-        <p className="rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
-          {state.error}
-        </p>
+        <div className="space-y-2 rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
+          <p>{state.error}</p>
+          <DotsTopUpLink />
+        </div>
       ) : null}
 
+      <ProductTypeField value={productType} onProductTypeChange={setProductType} />
       <div className="field">
         <label htmlFor="app_name">
-          App name
+          {productType === "game" ? "Game name" : "App name"}
           <RequiredMark />
         </label>
         <input
@@ -68,12 +85,12 @@ export function TesterRequestForm({ action }: Props) {
           name="app_name"
           className="input"
           required
-          placeholder="MyApp"
+          placeholder={productType === "game" ? "Starlit Courier" : "MyApp"}
         />
       </div>
       <div className="field">
         <label htmlFor="app_url">
-          App URL
+          {productType === "game" ? "Store or page URL" : "App URL"}
           <RequiredMark />
         </label>
         <input
@@ -103,11 +120,14 @@ export function TesterRequestForm({ action }: Props) {
         />
       </div>
       <PlatformField
-        defaultValue="android"
+        productType={productType}
+        defaultValue={platform}
         onPlatformChange={setPlatform}
       />
-      <PlatformDistributionHint platform={platform} />
-      {platform !== "web" ? <BetaAccessLinkField platform={platform} /> : null}
+      <PlatformDistributionHint platform={platform} productType={productType} />
+      {platform !== "web" && platform !== "itch" ? (
+        <BetaAccessLinkField platform={platform} />
+      ) : null}
       <div className="field">
         <label htmlFor="testers_needed">
           Testers needed
@@ -158,7 +178,11 @@ export function TesterRequestForm({ action }: Props) {
           className="textarea"
           required
           minLength={10}
-          placeholder="Signup + paywall"
+          placeholder={
+            productType === "game"
+              ? "First hour, controls, difficulty curve"
+              : "Signup + paywall"
+          }
         />
       </div>
       <div className="field">
@@ -175,7 +199,13 @@ export function TesterRequestForm({ action }: Props) {
         />
       </div>
 
-      <PriorityPicker baseCost={testersNeeded * TESTER_COST} />
+      <PriorityPicker baseCost={baseCost} balance={balance} />
+
+      {short ? (
+        <p className="text-[13px] text-ink/65">
+          You have {formatDots(balance)}. <DotsTopUpLink />
+        </p>
+      ) : null}
 
       <button
         type="submit"

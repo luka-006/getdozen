@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { SITE_ORIGIN } from "@/lib/app-url";
 
 export const SITE_NAME = "Dozen";
-export const SITE_TAGLINE = "Test apps. Earn. Get feedback.";
+export const SITE_TAGLINE = "Test apps and games. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
-  "Earn by testing other makers' apps. Post yours and get structured feedback from real testers — not friends who nod along.";
+  "Earn by testing other makers' apps and indie games. Post yours and get structured feedback from real testers — not friends who nod along.";
 
 export const SITE_KEYWORDS = [
   "Dozen",
@@ -19,7 +19,9 @@ export const SITE_KEYWORDS = [
   "structured feedback",
   "app review platform",
   "test apps earn dots",
-  "get app feedback",
+  "indie game feedback",
+  "Steam playtest feedback",
+  "itch.io game feedback",
 ] as const;
 
 export const NO_INDEX: Metadata = {

@@ -48,7 +48,10 @@ export default async function NewRequestPage({ searchParams }: Props) {
       <TrackTabs active={track} variant="post" />
 
       {track === "tester" ? (
-        <TesterRequestForm action={createTesterRequest} />
+        <TesterRequestForm
+          balance={Number(profile.credits)}
+          action={createTesterRequest}
+        />
       ) : track === "combo" ? (
         <ComboRequestForm
           balance={Number(profile.credits)}

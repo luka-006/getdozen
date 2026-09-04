@@ -42,14 +42,16 @@ export default async function HomePage({
               </p>
             </div>
             <h1 className="hero-title mt-3">
-              Real feedback from real testers.
+              Real feedback on apps and games.
             </h1>
             <p className="hero-lead mt-4">
-              Earn by testing other makers&apos; apps. Post yours and get
-              structured feedback when we open.
+              Earn by testing other makers&apos; work — mobile apps, web tools,
+              and indie games. Post yours and get structured feedback when we
+              open.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               <span className="pill pill-blue">Structured feedback</span>
+              <span className="pill">Apps &amp; games</span>
               <span className="pill">Tester programs</span>
             </div>
             <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
