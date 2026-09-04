@@ -2,7 +2,6 @@ import { BoardView } from "@/components/board-view";
 import { parseBoardTrack } from "@/lib/board-filters";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
 import type { Profile, RequestRow } from "@/lib/types";
 
 type Props = {
@@ -36,18 +35,6 @@ export default async function BoardPage({ searchParams }: Props) {
   const rows = (requests ?? []) as RequestRow[];
   const userIds = [...new Set(rows.map((r) => r.user_id))];
 
-  let hasPreviewData = false;
-  try {
-    const admin = createAdminClient();
-    const { count } = await admin
-      .from("requests")
-      .select("*", { count: "exact", head: true })
-      .eq("is_demo", true);
-    hasPreviewData = (count ?? 0) > 0;
-  } catch {
-    hasPreviewData = rows.some((row) => row.is_demo);
-  }
-
   const { data: profiles } = userIds.length
     ? await supabase
         .from("profiles")
@@ -79,7 +66,6 @@ export default async function BoardPage({ searchParams }: Props) {
       initialFocus={params.focus}
       initialPlatform={params.platform}
       error={params.error}
-      showPreviewBanner={hasPreviewData}
     />
   );
 }

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { joinTesterRequest } from "@/actions/testers";
 import { purchaseBoardBoost } from "@/actions/billing";
 import { AnswerInsights } from "@/components/answer-insights";
+import { AppIcon } from "@/components/app-icon";
 import { TesterProgressRow } from "@/components/day-strip";
 import { PackProgress } from "@/components/pack-progress";
 import { requireProfile } from "@/lib/auth";
@@ -100,9 +101,11 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
   let commitments: TesterCommitment[] = [];
   let testerNames = new Map<string, string>();
+  let testerAvatars = new Map<string, string | null>();
   let myCommitment: TesterCommitment | null = null;
+  const showTesterRoster = isOwner || Boolean(row.is_demo);
   if (row.type === "tester" || row.type === "combo") {
-    if (isOwner) {
+    if (showTesterRoster) {
       const admin = createAdminClient();
       const { data } = await admin
         .from("tester_commitments")
@@ -114,13 +117,25 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
       if (testerIds.length) {
         const { data: testers } = await admin
           .from("profiles")
-          .select("id, display_name")
+          .select("id, display_name, avatar_url")
           .in("id", testerIds);
         testerNames = new Map(
           (testers ?? []).map((t) => [t.id, t.display_name]),
         );
+        testerAvatars = new Map(
+          (testers ?? []).map((t) => [t.id, t.avatar_url]),
+        );
       }
-    } else {
+    }
+    if (!showTesterRoster) {
+      const { data } = await supabase
+        .from("tester_commitments")
+        .select("*")
+        .eq("request_id", id)
+        .eq("tester_id", profile.id)
+        .maybeSingle();
+      myCommitment = (data as TesterCommitment | null) ?? null;
+    } else if (!isOwner) {
       const { data } = await supabase
         .from("tester_commitments")
         .select("*")
@@ -191,11 +206,18 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         </Link>{" "}
         / request
       </p>
-      <div className="mt-3">
-        <p className="eyebrow">Feedback request</p>
-        <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight sm:text-[38px]">
-          {row.app_name}
-        </h1>
+      <div className="mt-3 flex items-start gap-4">
+        <AppIcon
+          name={row.app_name}
+          iconUrl={row.app_icon_url}
+          className="h-14 w-14 shrink-0"
+        />
+        <div className="min-w-0">
+          <p className="eyebrow">Feedback request</p>
+          <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight sm:text-[38px]">
+            {row.app_name}
+          </h1>
+        </div>
       </div>
       <p className="mt-3 text-[16px] leading-relaxed text-ink/75">{row.app_description}</p>
 
@@ -463,7 +485,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             Each tester starts their own {row.duration_days ?? TESTER_DAYS}-day
             clock on the day they join.
           </p>
-          {isOwner ? (
+          {showTesterRoster ? (
             commitments.length === 0 ? (
               <p className="text-[13px] text-ink/55">No testers yet.</p>
             ) : (
@@ -471,6 +493,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
                 <TesterProgressRow
                   key={c.id}
                   name={testerNames.get(c.tester_id) ?? "Tester"}
+                  avatarUrl={testerAvatars.get(c.tester_id)}
                   href={`/profile/${c.tester_id}`}
                   optedInAt={c.opted_in_at}
                   durationDays={

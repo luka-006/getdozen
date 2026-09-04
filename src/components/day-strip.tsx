@@ -4,6 +4,7 @@ import {
   testerJoinedLabel,
   testerStatusLabel,
 } from "@/lib/tester-progress";
+import { UserAvatar } from "@/components/user-avatar";
 
 type Props = {
   total: number;
@@ -71,12 +72,14 @@ export function StatusChip({ status }: { status: string }) {
 export function TesterProgressRow({
   name,
   href,
+  avatarUrl,
   optedInAt,
   durationDays,
   status,
 }: {
   name: string;
   href?: string;
+  avatarUrl?: string | null;
   optedInAt: string;
   durationDays: unknown;
   status: string;
@@ -91,13 +94,16 @@ export function TesterProgressRow({
   return (
     <div className="space-y-2 border-b border-border py-3 last:border-b-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {href ? (
-          <Link href={href} className="font-medium text-blue">
-            {title}
-          </Link>
-        ) : (
-          <p className="font-medium">{title}</p>
-        )}
+        <div className="flex min-w-0 items-center gap-2.5">
+          <UserAvatar name={title} avatarUrl={avatarUrl} className="h-8 w-8 shrink-0" />
+          {href ? (
+            <Link href={href} className="font-medium text-blue">
+              {title}
+            </Link>
+          ) : (
+            <p className="font-medium">{title}</p>
+          )}
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="font-mono text-[12px] text-ink/55">
             {testerJoinedLabel(optedInAt)}

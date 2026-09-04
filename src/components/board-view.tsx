@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { DayStrip } from "@/components/day-strip";
-import { PreviewDataBanner } from "@/components/preview-data-banner";
+import { AppIcon } from "@/components/app-icon";
 import { PLATFORMS, TESTER_DAYS, FOCUS_TAGS, reviewEarnForQuestionCount } from "@/lib/constants";
 import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
 import { PlatformIcon } from "@/components/platform-icon";
@@ -59,7 +59,6 @@ type Props = {
   initialFocus?: string;
   initialPlatform?: string;
   error?: string;
-  showPreviewBanner?: boolean;
 };
 
 export function BoardView({
@@ -71,7 +70,6 @@ export function BoardView({
   initialFocus,
   initialPlatform,
   error,
-  showPreviewBanner,
 }: Props) {
   const [type, setType] = useState<TrackId>(initialType);
   const [focus, setFocus] = useState<string | undefined>(initialFocus);
@@ -155,7 +153,6 @@ export function BoardView({
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <BoardHeader post={type !== "language"} />
-      {showPreviewBanner ? <PreviewDataBanner /> : null}
       <TrackTabs active={type} onSelect={setTrack} />
 
       {error ? <p className="mt-4 text-[13px] text-flag">{error}</p> : null}
@@ -340,8 +337,14 @@ function RequestCard({
 
   return (
     <Link href={`/requests/${request.id}`} className="board-row">
-      <div className="grid grid-cols-[1fr_auto] items-center gap-4">
-        <div className="min-w-0 space-y-1">
+      <div className="grid grid-cols-[1fr_auto] items-start gap-4">
+        <div className="flex min-w-0 gap-3">
+          <AppIcon
+            name={request.app_name}
+            iconUrl={request.app_icon_url}
+            className="mt-0.5 h-11 w-11 shrink-0"
+          />
+          <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{request.app_name}</span>
             {request.product_type === "game" ? (
@@ -390,6 +393,7 @@ function RequestCard({
                 ? ` · ${request.testers_filled}/${request.testers_needed} testers · ${request.question_count}q · ${duration}d`
                 : ` · ${request.testers_filled}/${request.testers_needed} testers · ${duration}d`}
           </p>
+          </div>
         </div>
         <div className="text-right">
           <p className="font-mono text-[13px] text-ink/80">{wait}</p>

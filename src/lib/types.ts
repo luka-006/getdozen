@@ -76,6 +76,7 @@ export type RequestRow = {
   duration_days?: number | null;
   boosted_until?: string | null;
   boost_offer_sent_at?: string | null;
+  app_icon_url?: string | null;
 };
 
 export type Question = {
