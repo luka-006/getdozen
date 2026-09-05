@@ -27,6 +27,18 @@ export default async function ReviewPage({ params, searchParams }: Props) {
   if (request.user_id === profile.id) {
     redirect(`/requests/${id}?error=${encodeURIComponent("You cannot review your own request")}`);
   }
+
+  const { data: existingReview } = await admin
+    .from("reviews")
+    .select("id")
+    .eq("request_id", id)
+    .eq("reviewer_id", profile.id)
+    .maybeSingle();
+
+  if (existingReview) {
+    redirect(`/requests/${id}?error=${encodeURIComponent("You already reviewed this post")}`);
+  }
+
   if (request.status !== "open") {
     redirect(`/requests/${id}?error=${encodeURIComponent("This request is no longer open")}`);
   }

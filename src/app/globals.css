@@ -454,6 +454,19 @@ button.filter-chip {
   color: var(--blue);
 }
 
+.board-row-reviewed {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.board-filters-dropdown {
+  z-index: 40;
+}
+
+.review-next-overlay {
+  z-index: 50;
+}
+
 .feature-card {
   border: 1px solid var(--border);
   border-radius: calc(var(--radius-app) + 2px);

@@ -88,6 +88,19 @@ export async function submitReview(formData: FormData) {
     redirect(`/requests/${requestId}?error=${encodeURIComponent("You cannot review your own request")}`);
   }
 
+  const { data: existingMine } = await admin
+    .from("reviews")
+    .select("id")
+    .eq("request_id", requestId)
+    .eq("reviewer_id", profile.id)
+    .maybeSingle();
+
+  if (existingMine) {
+    redirect(
+      `/requests/${requestId}?error=${encodeURIComponent("You already reviewed this post")}`,
+    );
+  }
+
   if (request.type === "combo") {
     const { count: existingReviews } = await admin
       .from("reviews")
@@ -211,21 +224,23 @@ export async function submitReview(formData: FormData) {
     availableAt: autoConfirmAt(),
   });
 
-  if (request.type === "combo") {
-    const testersFull =
-      Number(request.testers_filled) >= Number(request.testers_needed);
-    await admin
-      .from("requests")
-      .update({
-        claimed_at: new Date().toISOString(),
-        status: testersFull ? "in_progress" : "open",
-      })
-      .eq("id", requestId);
-  } else {
-    await admin
-      .from("requests")
-      .update({ status: "in_progress", claimed_at: new Date().toISOString() })
-      .eq("id", requestId);
+  if (!isDemo) {
+    if (request.type === "combo") {
+      const testersFull =
+        Number(request.testers_filled) >= Number(request.testers_needed);
+      await admin
+        .from("requests")
+        .update({
+          claimed_at: new Date().toISOString(),
+          status: testersFull ? "in_progress" : "open",
+        })
+        .eq("id", requestId);
+    } else {
+      await admin
+        .from("requests")
+        .update({ status: "in_progress", claimed_at: new Date().toISOString() })
+        .eq("id", requestId);
+    }
   }
 
   if (isDemo) {
@@ -266,20 +281,11 @@ export async function submitReview(formData: FormData) {
         await maybeGiftFirstReview(profile.id, review.id);
       }
     }
-
-    const testersFull =
-      Number(request.testers_filled) >= Number(request.testers_needed);
-    if (request.type !== "combo" || testersFull) {
-      await admin
-        .from("requests")
-        .update({ status: "completed" })
-        .eq("id", requestId);
-    }
   }
 
   revalidatePath("/board");
   revalidatePath("/wallet");
-  redirect(`/reviews/${review.id}/submitted`);
+  redirect(`/reviews/${review.id}/submitted?from=${encodeURIComponent(requestId)}`);
 }
 
 export async function confirmReview(formData: FormData) {

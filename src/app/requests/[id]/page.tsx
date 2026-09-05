@@ -148,16 +148,18 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
   let hasReview = false;
   let reviewConfirmed = false;
+  let myReview = false;
   if (row.type === "feedback" || row.type === "combo") {
     const { data: reviewRows } = await supabase
       .from("reviews")
-      .select("id, confirm_status")
+      .select("id, confirm_status, reviewer_id")
       .eq("request_id", id)
       .limit(5);
     hasReview = (reviewRows?.length ?? 0) > 0;
     reviewConfirmed = (reviewRows ?? []).some(
       (r) => r.confirm_status === "confirmed",
     );
+    myReview = (reviewRows ?? []).some((r) => r.reviewer_id === profile.id);
   }
 
   let peerNotes: { body: string; rating: number | null }[] = [];
@@ -166,7 +168,8 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
     !isOwner &&
     (row.type === "feedback" || row.type === "combo") &&
     row.status === "open" &&
-    !hasReview
+    !hasReview &&
+    !myReview
   ) {
     const { data: notes } = await supabase
       .from("profile_reviews")
@@ -373,10 +376,14 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
         {!isOwner &&
         (row.type === "feedback" || row.type === "combo") &&
         row.status === "open" &&
-        !hasReview ? (
+        !hasReview &&
+        !myReview ? (
           <Link href={`/requests/${row.id}/review`} className="btn btn-primary">
             Start review
           </Link>
+        ) : null}
+        {!isOwner && myReview ? (
+          <p className="text-[13px] text-ink/60">You already reviewed this post.</p>
         ) : null}
       </div>
 

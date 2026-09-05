@@ -1,5 +1,5 @@
 import { BoardView } from "@/components/board-view";
-import { parseBoardTrack } from "@/lib/board-filters";
+import { parseBoardSort, parseBoardTrack } from "@/lib/board-filters";
 import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile, RequestRow } from "@/lib/types";
@@ -10,6 +10,9 @@ type Props = {
     error?: string;
     platform?: string;
     focus?: string;
+    product?: string;
+    sort?: string;
+    boosted?: string;
   }>;
 };
 
@@ -20,7 +23,11 @@ export default async function BoardPage({ searchParams }: Props) {
 
   const supabase = await createClient();
 
-  const [{ data: requests }, { data: myCommitments }] = await Promise.all([
+  const [
+    { data: requests },
+    { data: myCommitments },
+    { data: myReviews },
+  ] = await Promise.all([
     supabase
       .from("requests")
       .select("*")
@@ -30,10 +37,12 @@ export default async function BoardPage({ searchParams }: Props) {
       .from("tester_commitments")
       .select("request_id, opted_in_at, status, duration_days")
       .eq("tester_id", me.id),
+    supabase.from("reviews").select("request_id").eq("reviewer_id", me.id),
   ]);
 
   const rows = (requests ?? []) as RequestRow[];
   const userIds = [...new Set(rows.map((r) => r.user_id))];
+  const reviewedRequestIds = (myReviews ?? []).map((r) => r.request_id);
 
   const { data: profiles } = userIds.length
     ? await supabase
@@ -65,6 +74,10 @@ export default async function BoardPage({ searchParams }: Props) {
       initialType={type}
       initialFocus={params.focus}
       initialPlatform={params.platform}
+      initialProduct={params.product}
+      initialSort={parseBoardSort(params.sort ?? null)}
+      initialBoosted={params.boosted === "1"}
+      reviewedRequestIds={reviewedRequestIds}
       error={params.error}
     />
   );

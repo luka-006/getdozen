@@ -11,6 +11,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { CORE_QUESTIONS, QUESTION_LIBRARY } from "../src/lib/constants";
 
 const CHECKIN_INTERVAL_DAYS = 3;
 
@@ -339,6 +340,49 @@ const POSTS: DemoPost[] = [
     hoursAgo: 4,
     icon_seed: "campfire-chat",
   },
+  {
+    makerIndex: 3,
+    type: "feedback",
+    product_type: "game",
+    app_name: "Driftwood Rally",
+    app_url: "https://preview.example/games/driftwood-rally",
+    app_description: "Arcade time-trial racer with daily ghost challenges.",
+    platform: "itch",
+    focus_tag: "Gameplay",
+    question_count: 8,
+    credit_cost: 16,
+    hoursAgo: 3,
+    icon_seed: "driftwood-rally",
+  },
+  {
+    makerIndex: 4,
+    type: "feedback",
+    product_type: "app",
+    app_name: "Ledger Lite",
+    app_url: "https://preview.example/apps/ledger-lite",
+    app_description: "Simple expense tracker for side projects — onboarding needs work.",
+    platform: "ios",
+    focus_tag: "UX",
+    question_count: 7,
+    credit_cost: 14,
+    hoursAgo: 7,
+    icon_seed: "ledger-lite",
+  },
+  {
+    makerIndex: 1,
+    type: "feedback",
+    product_type: "game",
+    app_name: "Neon Dockyard",
+    app_url: "https://preview.example/games/neon-dockyard",
+    app_description: "Puzzle game about arranging cargo in a space port.",
+    platform: "steam",
+    focus_tag: "Gameplay",
+    question_count: 10,
+    credit_cost: 20,
+    bounty_multiplier: 1.5,
+    hoursAgo: 9,
+    icon_seed: "neon-dockyard",
+  },
 ];
 
 function hashEmail(email: string): string {
@@ -442,6 +486,8 @@ async function clearDemo() {
     return;
   }
 
+  await admin.from("reviews").delete().in("request_id", ids);
+
   const { data: commitments } = await admin
     .from("tester_commitments")
     .select("id")
@@ -456,6 +502,56 @@ async function clearDemo() {
   await admin.from("questions").delete().in("request_id", ids);
   await admin.from("requests").delete().in("id", ids);
   console.log(`Removed ${ids.length} demo request(s) and ${commitmentIds.length} commitment(s).`);
+}
+
+function demoCustomQuestions(count: number): string[] {
+  const pool = QUESTION_LIBRARY.flatMap((g) => g.questions);
+  const out: string[] = [];
+  for (let i = 0; i < count; i++) {
+    out.push(pool[i % pool.length]!);
+  }
+  return out;
+}
+
+async function seedQuestions(requestId: string, post: DemoPost) {
+  if (post.type !== "feedback" && post.type !== "combo") return;
+
+  const total = post.question_count ?? 7;
+  const customCount = Math.max(0, total - CORE_QUESTIONS.length - 1);
+  const custom = demoCustomQuestions(customCount);
+
+  const rows = [
+    ...CORE_QUESTIONS.map((text, i) => ({
+      request_id: requestId,
+      position: i,
+      text,
+      is_core: true,
+      is_proof: false,
+      expected_answer: null,
+      suggested_answers: [] as string[],
+    })),
+    ...custom.map((text, i) => ({
+      request_id: requestId,
+      position: CORE_QUESTIONS.length + i,
+      text,
+      is_core: false,
+      is_proof: false,
+      expected_answer: null,
+      suggested_answers: [] as string[],
+    })),
+    {
+      request_id: requestId,
+      position: CORE_QUESTIONS.length + custom.length,
+      text: "Type the word test to prove you opened the demo.",
+      is_core: false,
+      is_proof: true,
+      expected_answer: "test",
+      suggested_answers: [] as string[],
+    },
+  ];
+
+  const { error } = await admin.from("questions").insert(rows);
+  if (error) throw new Error(`questions ${post.app_name}: ${error.message}`);
 }
 
 async function seedCommitments(
@@ -606,6 +702,10 @@ async function seed() {
     if (filled > 0 && (post.type === "tester" || post.type === "combo")) {
       await seedCommitments(inserted.id, post, postIndex, testerIds);
       commitmentTotal += filled;
+    }
+
+    if (post.type === "feedback" || post.type === "combo") {
+      await seedQuestions(inserted.id, post);
     }
   }
 
