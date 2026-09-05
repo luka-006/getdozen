@@ -16,6 +16,8 @@ type Props = {
   }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function BoardPage({ searchParams }: Props) {
   const me = await requireProfile();
   const params = await searchParams;

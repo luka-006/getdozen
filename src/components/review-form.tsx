@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { submitReview } from "@/actions/reviews";
 import { MIN_ANSWER_WORDS } from "@/lib/constants";
+import { coreUiElementHint, proofOpenHint } from "@/lib/product-copy";
 import { countWords } from "@/lib/utils";
 
 type Question = {
@@ -19,11 +20,13 @@ export function ReviewForm({
   questions,
   isDemo = false,
   proofHint = null,
+  productType = "app",
 }: {
   requestId: string;
   questions: Question[];
   isDemo?: boolean;
   proofHint?: string | null;
+  productType?: string | null;
 }) {
   const ordered = useMemo(
     () => [...questions].sort((a, b) => a.position - b.position),
@@ -53,7 +56,7 @@ export function ReviewForm({
         next[q.id] = proofHint ?? "test";
       } else {
         next[q.id] =
-          `Demo answer ${i + 1}: this product feels clear enough for a first pass. I would keep exploring the main flow and note a few rough edges around signup and pricing clarity on Dozen (${stamp}).`;
+          `Demo answer ${i + 1} (${requestId.slice(0, 8)}): this product feels clear enough for a first pass. I would keep exploring the main flow and note a few rough edges around signup and pricing clarity.`;
       }
     });
     setAnswers(next);
@@ -138,13 +141,13 @@ export function ReviewForm({
           <p className="text-[13px] text-ink/55">
             Core question
             {index === 0
-              ? " — mention a concrete UI element (button, screen, menu…)"
+              ? ` — mention a concrete UI element (${coreUiElementHint(productType)})`
               : ""}
           </p>
         ) : null}
         {current.is_proof ? (
           <p className="text-[13px] text-ink/55">
-            Proof — open the app first
+            {proofOpenHint(productType)}
             {proofHint ? (
               <>
                 {" "}

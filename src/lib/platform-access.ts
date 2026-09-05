@@ -1,4 +1,5 @@
-import type { Platform } from "@/lib/constants";
+import type { Platform, ProductType } from "@/lib/constants";
+import { productArticle } from "@/lib/product-copy";
 
 /**
  * Distribution access rules:
@@ -78,11 +79,14 @@ export function appUrlHint(platform: Platform): string | null {
   return null;
 }
 
-export function joinOptInButtonLabel(platform: Platform): string {
+export function joinOptInButtonLabel(
+  platform: Platform,
+  productType?: ProductType | string | null,
+): string {
   if (platform === "android") return "Open Play Console opt-in";
   if (platform === "steam") return "Open Playtest";
   if (platform === "ios") return "Open TestFlight";
-  return "Open app";
+  return productType === "game" ? "Open game" : "Open app";
 }
 
 export function joinOptInEmailLabel(platform: Platform): string {
@@ -95,7 +99,11 @@ export function joinOptInEmailPlaceholder(platform: Platform): string {
   return "you@example.com";
 }
 
-export function joinStartedMessage(platform: Platform, hasOptInLink: boolean): string {
+export function joinStartedMessage(
+  platform: Platform,
+  hasOptInLink: boolean,
+  productType?: ProductType | string | null,
+): string {
   if (platform === "android" && hasOptInLink) {
     return "Commitment started. Opt in through the Play Console link today.";
   }
@@ -105,7 +113,7 @@ export function joinStartedMessage(platform: Platform, hasOptInLink: boolean): s
   if (platform === "ios" && hasOptInLink) {
     return "Commitment started. Install via TestFlight, then check in from My tests.";
   }
-  return "Commitment started. Open the game from the post link, then check in from My tests.";
+  return `Commitment started. Open ${productArticle(productType)} from the post link, then check in from My tests.`;
 }
 
 export function commitmentOptInLinkLabel(platform: Platform): string {

@@ -15,6 +15,7 @@ import {
   maybeGiftFirstReview,
 } from "@/lib/credits";
 import { grantReviewBugAward } from "@/lib/bug-award";
+import { coreUiElementHint, proofFailedMessage } from "@/lib/product-copy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -139,7 +140,7 @@ export async function submitReview(formData: FormData) {
   const proofPassed = proofAnswer.length > 0 && proofAnswer === expected;
 
   if (!proofPassed) {
-    redirect(`/requests/${requestId}/review?error=${encodeURIComponent("Proof question failed. Open the app and try again.")}`);
+    redirect(`/requests/${requestId}/review?error=${encodeURIComponent(proofFailedMessage(request.product_type))}`);
   }
 
   for (const q of questions) {
@@ -158,7 +159,7 @@ export async function submitReview(formData: FormData) {
   if (coreQ1 && !mentionsConcreteUi(answers[coreQ1.id] ?? "")) {
     redirect(
       `/requests/${requestId}/review?error=${encodeURIComponent(
-        "First answer: name a concrete UI element (button, screen, menu…)",
+        `First answer: name a concrete UI element (${coreUiElementHint(request.product_type)})`,
       )}`,
     );
   }

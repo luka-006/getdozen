@@ -70,6 +70,7 @@ export default async function TestersPage({ searchParams }: Props) {
             requestId: commitment.request_id,
             optedInAt: commitment.opted_in_at,
             dayIndex,
+            productType: request?.product_type,
           })
         : undefined;
       return { id: commitment.id, show, question };

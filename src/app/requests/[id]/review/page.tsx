@@ -4,6 +4,7 @@ import { ReviewForm } from "@/components/review-form";
 import { requireProfile } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { decryptCredentials } from "@/lib/crypto";
+import { openProductLabel } from "@/lib/product-copy";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -61,6 +62,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
   }
 
   const isDemo = Boolean(request.is_demo);
+  const productType = request.product_type ?? "app";
   const proofHint = isDemo ? "test" : null;
   const loginHint =
     credentials ??
@@ -83,7 +85,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
           rel="noreferrer"
           className="btn btn-primary"
         >
-          Open app
+          {openProductLabel(productType)}
         </a>
         <a
           href={request.app_url}
@@ -121,6 +123,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
           questions={questions}
           isDemo={isDemo}
           proofHint={proofHint}
+          productType={productType}
         />
       </div>
     </div>

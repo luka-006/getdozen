@@ -4,6 +4,7 @@ import {
   QUESTION_LIBRARY,
   TESTER_COMPLETION_EARN,
 } from "@/lib/constants";
+import { checkinFallbackPrompt as checkinPromptForProduct } from "@/lib/product-copy";
 import { priorityPayout } from "@/lib/priority";
 import { isLaunchBonusActive } from "@/lib/utils";
 
@@ -69,8 +70,11 @@ export function testerCompletionEarnAmount(
 }
 
 /** Fallback when the request has no feedback questions (tester-only posts). */
-export function fallbackCheckinPrompt(slotIndex: number): string {
+export function fallbackCheckinPrompt(
+  slotIndex: number,
+  productType?: string | null,
+): string {
   const pool = QUESTION_LIBRARY.flatMap((g) => g.questions);
-  if (!pool.length) return "What did you notice in the app today?";
+  if (!pool.length) return checkinPromptForProduct(productType);
   return pool[slotIndex % pool.length] ?? pool[0]!;
 }

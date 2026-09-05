@@ -1,9 +1,10 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
-import type { Platform } from "@/lib/constants";
+import type { Platform, ProductType } from "@/lib/constants";
 import {
   joinOptInButtonLabel,
   normalizePlatform,
 } from "@/lib/platform-access";
+import { joinMailProductLinkHint } from "@/lib/product-copy";
 import { sendResendEmail } from "@/lib/resend-mail";
 
 type JoinMailInput = {
@@ -13,6 +14,7 @@ type JoinMailInput = {
   optInLink?: string | null;
   requestId: string;
   platform?: string | null;
+  productType?: ProductType | string | null;
 };
 
 export async function sendJoinConfirmationEmail(input: JoinMailInput) {
@@ -20,7 +22,7 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
   const testersUrl = `${SITE_ORIGIN}/testers`;
   const optIn = input.optInLink?.trim();
   const platform = normalizePlatform(input.platform);
-  const optInLabel = joinOptInButtonLabel(platform);
+  const optInLabel = joinOptInButtonLabel(platform, input.productType);
 
   const text = [
     `You're signed up to test "${input.appName}" on Dozen.`,
@@ -29,7 +31,7 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     "",
     optIn
       ? `Install or opt in today (${optInLabel}):`
-      : `Open the post and use the App URL:`,
+      : `Open the post and use the ${input.productType === "game" ? "game" : "app"} URL:`,
     optIn || requestUrl,
     "",
     `Track progress: ${testersUrl}`,
@@ -41,7 +43,7 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     `<p>Duration: <strong>${input.durationDays} days</strong>. Check in on alternate days from <a href="${testersUrl}">My tests</a>.</p>`,
     optIn
       ? `<p><a href="${escapeHtml(optIn)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">${escapeHtml(optInLabel)}</a></p>`
-      : `<p><a href="${requestUrl}">Open the post</a> for the app link.</p>`,
+      : `<p><a href="${requestUrl}">${joinMailProductLinkHint(input.productType)}</a></p>`,
     `<p style="font-size:13px;color:#666">Post: <a href="${requestUrl}">${requestUrl}</a></p>`,
   ].join("");
 

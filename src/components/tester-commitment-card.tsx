@@ -17,6 +17,7 @@ import {
   commitmentOptInLinkLabel,
   normalizePlatform,
 } from "@/lib/platform-access";
+import { checkinFallbackPromptAlt } from "@/lib/product-copy";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -177,7 +178,8 @@ export function TesterCommitmentCard({
             <input type="hidden" name="commitment_id" value={commitment.id} />
             <div className="field">
               <label htmlFor={`checkin-${commitment.id}`}>
-                {checkinQuestion ?? "What did you see in the app today?"}
+                {checkinQuestion ??
+                  checkinFallbackPromptAlt(request?.product_type)}
               </label>
               <textarea
                 id={`checkin-${commitment.id}`}

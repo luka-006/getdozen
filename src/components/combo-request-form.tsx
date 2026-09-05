@@ -57,8 +57,8 @@ export function ComboRequestForm({ balance, action }: Props) {
   );
 
   useEffect(() => {
-    setDescriptionPlaceholder(randomDescriptionExample());
-  }, []);
+    setDescriptionPlaceholder(randomDescriptionExample(productType));
+  }, [productType]);
 
   useEffect(() => {
     setPlatform(defaultPlatformForProductType(productType));

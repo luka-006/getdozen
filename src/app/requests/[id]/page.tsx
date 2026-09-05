@@ -25,6 +25,12 @@ import {
   normalizePlatform,
   playConsoleOptInRequired,
 } from "@/lib/platform-access";
+import {
+  joinInstallHint,
+  openProductLabel,
+  productLabel,
+  requestTrackEyebrow,
+} from "@/lib/product-copy";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
 type Props = {
@@ -67,6 +73,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
 
   if (!request) notFound();
   const row = request as RequestRow;
+  const productType = row.product_type ?? "app";
   const platform = normalizePlatform(row.platform);
   const needsPlayEmail =
     playConsoleOptInRequired(platform) && Boolean(row.opt_in_link);
@@ -216,7 +223,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           className="h-14 w-14 shrink-0"
         />
         <div className="min-w-0">
-          <p className="eyebrow">Feedback request</p>
+          <p className="eyebrow">{requestTrackEyebrow(row.type)}</p>
           <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight sm:text-[38px]">
             {row.app_name}
           </h1>
@@ -266,7 +273,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           </dd>
         </div>
         <div className="stat-cell">
-          <dt className="text-ink/60">App</dt>
+          <dt className="text-ink/60">{productLabel(productType)}</dt>
           <dd className="text-ink/70 truncate">{row.app_url}</dd>
         </div>
         <div className="stat-cell">
@@ -371,7 +378,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           target="_blank"
           rel="noreferrer"
         >
-          Open app
+          {openProductLabel(productType)}
         </a>
         {!isOwner &&
         (row.type === "feedback" || row.type === "combo") &&
@@ -430,9 +437,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             </div>
           ) : (
             <p className="text-[13px] text-ink/65">
-              {platform === "ios"
-                ? "Install from the App Store link above"
-                : "Open the app from the link above"}
+              {joinInstallHint(platform, productType)}
               {row.opt_in_link ? " or TestFlight below" : ""}. Check-ins run from
               My tests.
             </p>
@@ -444,7 +449,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               rel="noreferrer"
               className="btn btn-secondary"
             >
-              {joinOptInButtonLabel(platform)}
+              {joinOptInButtonLabel(platform, productType)}
             </a>
           ) : row.app_url ? (
             <a
@@ -453,7 +458,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               rel="noreferrer"
               className="btn btn-secondary"
             >
-              Open app
+              {openProductLabel(productType)}
             </a>
           ) : null}
           <button type="submit" className="btn btn-primary">

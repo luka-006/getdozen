@@ -5,6 +5,7 @@ export async function checkinQuestionForCommitment(opts: {
   requestId: string;
   optedInAt: string;
   dayIndex: number;
+  productType?: string | null;
 }): Promise<string> {
   const slot = checkinSlotIndex(opts.dayIndex);
   const admin = createAdminClient();
@@ -19,5 +20,5 @@ export async function checkinQuestionForCommitment(opts: {
   if (texts.length > 0) {
     return texts[slot % texts.length]!;
   }
-  return fallbackCheckinPrompt(slot);
+  return fallbackCheckinPrompt(slot, opts.productType);
 }

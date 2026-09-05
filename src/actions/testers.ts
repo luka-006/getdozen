@@ -23,6 +23,7 @@ import {
 } from "@/lib/tester-checkin";
 import { clampTesterDuration } from "@/lib/tester-progress";
 import { sendJoinConfirmationEmail } from "@/lib/join-mail";
+import { concurrentTesterLimitMessage } from "@/lib/product-copy";
 import {
   joinStartedMessage,
   normalizePlatform,
@@ -81,9 +82,11 @@ export async function joinTesterRequest(formData: FormData) {
   if ((count ?? 0) >= maxSlots) {
     redirect(
       `/requests/${requestId}?error=${encodeURIComponent(
-        profile.is_pro
-          ? `You're already testing ${maxSlots} apps`
-          : `You're already testing ${maxSlots} app. Pro lets you test ${MAX_CONCURRENT_COMMITMENTS_PRO} at once.`,
+        concurrentTesterLimitMessage(
+          maxSlots,
+          Boolean(profile.is_pro),
+          MAX_CONCURRENT_COMMITMENTS_PRO,
+        ),
       )}`,
     );
   }
@@ -172,6 +175,7 @@ export async function joinTesterRequest(formData: FormData) {
     optInLink: request.opt_in_link,
     requestId,
     platform: request.platform,
+    productType: request.product_type,
   }).catch((err) => {
     console.error("join confirmation email failed", err);
   });
@@ -179,7 +183,7 @@ export async function joinTesterRequest(formData: FormData) {
   revalidatePath("/testers");
   revalidatePath(`/requests/${requestId}`);
   redirect(
-    `/testers?message=${encodeURIComponent(joinStartedMessage(platform, Boolean(request.opt_in_link)))}`,
+    `/testers?message=${encodeURIComponent(joinStartedMessage(platform, Boolean(request.opt_in_link), request.product_type))}`,
   );
 }
 
