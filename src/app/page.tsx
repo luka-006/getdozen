@@ -35,7 +35,7 @@ export default async function HomePage({
     return (
       <div className="atmosphere">
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,22rem)] lg:items-center lg:gap-10 xl:gap-14">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,22rem)] lg:items-center lg:gap-8 xl:gap-12">
             <div className="max-w-xl space-y-5 lg:max-w-none">
               <div className="flex items-center gap-3">
                 <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />

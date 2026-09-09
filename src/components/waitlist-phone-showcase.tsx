@@ -1,113 +1,92 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
 
-const SLIDES = [
-  {
-    src: "/marketing/waitlist/board-feedback.png",
-    eyebrow: "Feedback board",
-    title: "Browse open requests",
-    description: "Apps and games from indie makers — pick one and leave structured feedback.",
-  },
+type PhoneCard = {
+  src: string;
+  slot: "hero" | "tl" | "tr" | "bl" | "br";
+  eyebrow: string;
+  title: string;
+  description: string;
+};
+
+const PHONES: PhoneCard[] = [
   {
     src: "/marketing/waitlist/board-testers.png",
-    eyebrow: "Tester runs",
-    title: "Join a 14-day test",
-    description: "Opt in, check in every few days, and help shape the product as it ships.",
+    slot: "hero",
+    eyebrow: "Test",
+    title: "14-day runs",
+    description: "Opt in once, check in every few days.",
+  },
+  {
+    src: "/marketing/waitlist/board-feedback.png",
+    slot: "tl",
+    eyebrow: "Feedback",
+    title: "Browse requests",
+    description: "Pick an app or game and leave structured feedback.",
   },
   {
     src: "/marketing/waitlist/request-detail.png",
+    slot: "tr",
     eyebrow: "Progress",
-    title: "Track day by day",
-    description: "Makers see tester check-ins, ratings, and how the run is filling up.",
+    title: "Track the run",
+    description: "Check-ins, ratings, and tester slots live.",
   },
   {
     src: "/marketing/waitlist/review-form.png",
-    eyebrow: "Reviews",
-    title: "Earn Dots for quality",
-    description: "Thoughtful answers beat one-liners — the loop rewards people who show up.",
+    slot: "br",
+    eyebrow: "Earn",
+    title: "Quality pays",
+    description: "Thoughtful reviews earn Dots.",
   },
-] as const;
+];
 
-const INTERVAL_MS = 3800;
+function PhoneDevice({ src, priority }: { src: string; priority?: boolean }) {
+  return (
+    <div className="waitlist-phone-device">
+      <div className="waitlist-phone-shell">
+        <div className="waitlist-phone-notch" aria-hidden />
+        <div className="waitlist-phone-screen">
+          <Image
+            src={src}
+            alt=""
+            fill
+            sizes="280px"
+            className="waitlist-phone-shot"
+            priority={priority}
+            unoptimized
+          />
+        </div>
+        <div className="waitlist-phone-shine" aria-hidden />
+        <div className="waitlist-phone-scan" aria-hidden />
+      </div>
+      <div className="waitlist-phone-shadow" aria-hidden />
+    </div>
+  );
+}
 
 export function WaitlistPhoneShowcase() {
-  const [index, setIndex] = useState(0);
-  const [reduceMotion, setReduceMotion] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => setReduceMotion(mq.matches);
-    apply();
-    mq.addEventListener("change", apply);
-    return () => mq.removeEventListener("change", apply);
-  }, []);
-
-  useEffect(() => {
-    if (reduceMotion) return;
-    const t = window.setInterval(
-      () => setIndex((i) => (i + 1) % SLIDES.length),
-      INTERVAL_MS,
-    );
-    return () => window.clearInterval(t);
-  }, [reduceMotion]);
-
-  const slide = SLIDES[index]!;
-
   return (
-    <div className="waitlist-phone-showcase" aria-live="polite">
-      <div className="waitlist-phone-glow" aria-hidden />
-      <div className="waitlist-phone-stage">
-        <div
-          className={`waitlist-phone-device${reduceMotion ? " waitlist-phone-device-static" : ""}`}
-        >
-          <div className="waitlist-phone-shell">
-            <div className="waitlist-phone-notch" aria-hidden />
-            <div className="waitlist-phone-screen">
-              {SLIDES.map((s, i) => (
-                <div
-                  key={s.src}
-                  className={`waitlist-phone-slide${
-                    i === index ? " waitlist-phone-slide-active" : ""
-                  }`}
-                  aria-hidden={i !== index}
-                >
-                  <Image
-                    src={s.src}
-                    alt=""
-                    fill
-                    sizes="(max-width: 768px) 260px, 290px"
-                    className="waitlist-phone-shot"
-                    priority={i === 0}
-                  />
-                </div>
-              ))}
-            </div>
-            <div className="waitlist-phone-shine" aria-hidden />
-          </div>
-          <div className="waitlist-phone-shadow" aria-hidden />
+    <div className="waitlist-phone-showcase" aria-label="App preview">
+      <div className="waitlist-3d-field">
+        <div className="waitlist-3d-orb waitlist-3d-orb-a" aria-hidden />
+        <div className="waitlist-3d-orb waitlist-3d-orb-b" aria-hidden />
+        <div className="waitlist-3d-grid-floor" aria-hidden />
+        <div className="waitlist-3d-scene">
+          {PHONES.map((phone, i) => (
+            <article
+              key={phone.src}
+              className={`waitlist-3d-unit waitlist-3d-unit--${phone.slot}`}
+            >
+              <PhoneDevice src={phone.src} priority={i === 0} />
+              <div className={`waitlist-3d-caption waitlist-3d-caption--${phone.slot}`}>
+                <p className="waitlist-phone-eyebrow">{phone.eyebrow}</p>
+                <p className="waitlist-phone-title">{phone.title}</p>
+                <p className="waitlist-phone-desc">{phone.description}</p>
+              </div>
+            </article>
+          ))}
         </div>
-      </div>
-
-      <div className="waitlist-phone-copy" key={slide.eyebrow}>
-        <p className="waitlist-phone-eyebrow">{slide.eyebrow}</p>
-        <p className="waitlist-phone-title">{slide.title}</p>
-        <p className="waitlist-phone-desc">{slide.description}</p>
-      </div>
-
-      <div className="waitlist-phone-dots" role="tablist" aria-label="Preview screens">
-        {SLIDES.map((s, i) => (
-          <button
-            key={s.src}
-            type="button"
-            role="tab"
-            aria-selected={i === index}
-            aria-label={s.title}
-            className={`waitlist-phone-dot${i === index ? " waitlist-phone-dot-active" : ""}`}
-            onClick={() => setIndex(i)}
-          />
-        ))}
       </div>
     </div>
   );
