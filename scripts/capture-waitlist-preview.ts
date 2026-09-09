@@ -14,12 +14,12 @@ async function main() {
     viewport: { width: 1280, height: 900 },
   });
   await page.goto(BASE, { waitUntil: "domcontentloaded", timeout: 60_000 });
-  await page.waitForSelector(".waitlist-3d-scene", { timeout: 15_000 });
+  await page.waitForSelector(".waitlist-spread", { timeout: 15_000 });
   await page.waitForFunction(
     () => {
       const imgs = document.querySelectorAll(".waitlist-phone-shot");
       return (
-        imgs.length >= 4 &&
+        imgs.length >= 3 &&
         [...imgs].every((img) => (img as HTMLImageElement).naturalWidth > 0)
       );
     },

@@ -948,320 +948,221 @@ a.tester-history-card .stat-cell {
   }
 }
 
-/* —— Waitlist phone showcase (3D constellation) —— */
+/* —— Waitlist phone showcase (spaced frontal layout) —— */
 
 .waitlist-phone-showcase {
   position: relative;
   display: flex;
   justify-content: center;
   width: 100%;
-  padding: 0.25rem 0 0.5rem;
+  padding: 0.5rem 0;
   animation: fade-up 520ms ease-out both;
 }
 
-.waitlist-3d-field {
-  position: relative;
-  width: min(520px, 100%);
-  height: min(560px, 68vh);
-  min-height: 420px;
-  perspective: 1100px;
-  perspective-origin: 50% 42%;
-}
-
-.waitlist-3d-orb {
+.waitlist-spread-glow {
   position: absolute;
+  inset: 8% 0 12%;
+  margin: auto;
+  width: 70%;
+  height: 70%;
   border-radius: 50%;
-  filter: blur(40px);
-  pointer-events: none;
-  animation: waitlist-glow-pulse 6s ease-in-out infinite;
-}
-
-.waitlist-3d-orb-a {
-  top: 8%;
-  left: 18%;
-  width: 180px;
-  height: 180px;
   background: radial-gradient(
     circle,
-    color-mix(in srgb, var(--blue) 35%, transparent) 0%,
-    transparent 70%
-  );
-}
-
-.waitlist-3d-orb-b {
-  right: 10%;
-  bottom: 14%;
-  width: 140px;
-  height: 140px;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, #38bdf8 28%, transparent) 0%,
+    color-mix(in srgb, var(--blue) 14%, transparent) 0%,
     transparent 72%
   );
-  animation-delay: -2.5s;
-}
-
-.waitlist-3d-grid-floor {
-  position: absolute;
-  left: 50%;
-  bottom: 6%;
-  width: 120%;
-  height: 55%;
-  transform: translateX(-50%) rotateX(72deg);
-  transform-origin: center bottom;
-  background:
-    linear-gradient(
-      180deg,
-      transparent 0%,
-      color-mix(in srgb, var(--blue) 6%, transparent) 100%
-    ),
-    repeating-linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--blue) 8%, transparent) 0 1px,
-      transparent 1px 48px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      color-mix(in srgb, var(--blue) 8%, transparent) 0 1px,
-      transparent 1px 48px
-    );
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 20%, transparent 78%);
-  opacity: 0.55;
+  filter: blur(32px);
   pointer-events: none;
 }
 
-.waitlist-3d-scene {
+.waitlist-spread {
   position: relative;
-  width: 100%;
-  height: 100%;
-  transform-style: preserve-3d;
-  animation: waitlist-scene-drift 14s ease-in-out infinite;
+  width: min(480px, 100%);
+  height: min(540px, 66vh);
+  min-height: 430px;
 }
 
-.waitlist-3d-unit {
+.waitlist-spread-card {
   position: absolute;
-  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: calc(100% - 0.5rem);
 }
 
-.waitlist-3d-unit--hero {
-  left: 50%;
-  top: 50%;
-  z-index: 5;
-  transform: translate(-50%, -52%) translateZ(72px) rotateY(-10deg) rotateX(5deg);
-  animation: waitlist-unit-float 8s ease-in-out infinite;
-}
-
-.waitlist-3d-unit--tl {
-  left: -2%;
+.waitlist-spread-card--tl {
   top: 2%;
-  z-index: 1;
-  transform: translateZ(-90px) rotateY(22deg) rotateX(-10deg) scale(0.58);
-  opacity: 0.82;
-  animation: waitlist-unit-float 9.5s ease-in-out infinite -1.2s;
+  left: 0;
+  z-index: 2;
 }
 
-.waitlist-3d-unit--tr {
-  right: -4%;
-  top: 10%;
+.waitlist-spread-card--mr {
+  top: 38%;
+  right: 0;
   z-index: 3;
-  transform: translateZ(-18px) rotateY(-24deg) rotateX(8deg) scale(0.66);
-  animation: waitlist-unit-float 7.5s ease-in-out infinite -0.6s;
 }
 
-.waitlist-3d-unit--bl {
-  left: 2%;
-  bottom: 6%;
-  z-index: 0;
-  transform: translateZ(-130px) rotateY(16deg) rotateX(12deg) scale(0.5);
-  opacity: 0.68;
-  filter: blur(0.4px);
-}
-
-.waitlist-3d-unit--br {
-  right: -2%;
+.waitlist-spread-card--bl {
   bottom: 2%;
-  z-index: 4;
-  transform: translateZ(36px) rotateY(-30deg) rotateX(-5deg) scale(0.62);
-  animation: waitlist-unit-float 8.8s ease-in-out infinite -2s;
+  left: 0;
+  z-index: 1;
+}
+
+.waitlist-spread-card--caption-left .waitlist-phone-caption {
+  text-align: right;
+}
+
+.waitlist-spread-card--caption-below {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.waitlist-spread-card--caption-below .waitlist-phone-caption {
+  max-width: 9rem;
+}
+
+.waitlist-phone-caption {
+  flex: 0 1 7.5rem;
+  min-width: 0;
 }
 
 .waitlist-phone-device {
   position: relative;
-  transform-style: preserve-3d;
+  flex-shrink: 0;
 }
 
-.waitlist-3d-unit--hero .waitlist-phone-shell {
-  width: 200px;
+.waitlist-phone-device--sm .waitlist-phone-shell {
+  width: 118px;
+  padding: 7px;
+  border-radius: 28px;
 }
 
-.waitlist-3d-unit--tl .waitlist-phone-shell,
-.waitlist-3d-unit--bl .waitlist-phone-shell {
+.waitlist-phone-device--md .waitlist-phone-shell {
+  width: 142px;
+  padding: 8px;
+  border-radius: 32px;
+}
+
+.waitlist-phone-device--lg .waitlist-phone-shell {
   width: 168px;
-}
-
-.waitlist-3d-unit--tr .waitlist-phone-shell,
-.waitlist-3d-unit--br .waitlist-phone-shell {
-  width: 176px;
-}
-
-.waitlist-phone-shell {
-  position: relative;
   padding: 9px;
   border-radius: 36px;
-  background: linear-gradient(
-    155deg,
-    #48484f 0%,
-    #1a1a1e 32%,
-    #08080a 100%
-  );
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 22%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, black 40%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--blue) 18%, transparent),
-    0 32px 64px color-mix(in srgb, var(--ink) 32%, transparent),
-    0 8px 20px color-mix(in srgb, var(--blue) 12%, transparent);
 }
 
 @media (min-width: 640px) {
-  .waitlist-3d-unit--hero .waitlist-phone-shell {
-    width: 228px;
+  .waitlist-spread {
+    width: min(460px, 100%);
+    height: min(520px, 64vh);
+  }
+
+  .waitlist-phone-device--sm .waitlist-phone-shell {
+    width: 128px;
+  }
+
+  .waitlist-phone-device--md .waitlist-phone-shell {
+    width: 152px;
+  }
+
+  .waitlist-phone-device--lg .waitlist-phone-shell {
+    width: 182px;
     padding: 10px;
-    border-radius: 40px;
+    border-radius: 38px;
   }
 
-  .waitlist-3d-unit--tl .waitlist-phone-shell,
-  .waitlist-3d-unit--bl .waitlist-phone-shell {
-    width: 188px;
-  }
-
-  .waitlist-3d-unit--tr .waitlist-phone-shell,
-  .waitlist-3d-unit--br .waitlist-phone-shell {
-    width: 196px;
+  .waitlist-phone-caption {
+    flex-basis: 8.5rem;
   }
 }
 
 @media (min-width: 1024px) {
-  .waitlist-3d-unit--hero .waitlist-phone-shell {
-    width: 248px;
-    padding: 11px;
-    border-radius: 42px;
+  .waitlist-phone-device--lg .waitlist-phone-shell {
+    width: 196px;
+    padding: 10px;
+    border-radius: 40px;
   }
+}
+
+.waitlist-phone-shell {
+  position: relative;
+  background: linear-gradient(165deg, #3d3d42 0%, #141416 45%, #0a0a0c 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 20%, transparent),
+    0 20px 40px color-mix(in srgb, var(--ink) 18%, transparent),
+    0 4px 12px color-mix(in srgb, var(--ink) 10%, transparent);
 }
 
 .waitlist-phone-notch {
   position: absolute;
-  top: 16px;
+  top: 11px;
   left: 50%;
   z-index: 3;
-  width: 88px;
-  height: 24px;
+  width: 28%;
+  min-width: 52px;
+  max-width: 72px;
+  height: 14px;
   transform: translateX(-50%);
-  border-radius: 14px;
+  border-radius: 10px;
   background: #0a0a0c;
+}
+
+.waitlist-phone-device--lg .waitlist-phone-notch {
+  top: 14px;
+  height: 16px;
 }
 
 .waitlist-phone-screen {
   position: relative;
   overflow: hidden;
+  isolation: isolate;
   aspect-ratio: 390 / 844;
   width: 100%;
-  border-radius: 30px;
-  background: #000;
+  border-radius: 22px;
+  background: #fff;
 }
 
-@media (min-width: 640px) {
-  .waitlist-phone-screen {
-    border-radius: 32px;
-  }
+.waitlist-phone-device--md .waitlist-phone-screen {
+  border-radius: 24px;
+}
+
+.waitlist-phone-device--lg .waitlist-phone-screen {
+  border-radius: 28px;
 }
 
 .waitlist-phone-shot {
   object-fit: cover;
-  object-position: center 22%;
+  object-position: left top;
 }
 
 .waitlist-phone-shine {
   position: absolute;
   inset: 0;
+  z-index: 2;
   border-radius: inherit;
   background: linear-gradient(
-    125deg,
-    color-mix(in srgb, white 16%, transparent) 0%,
-    transparent 38%,
-    transparent 100%
+    140deg,
+    color-mix(in srgb, white 12%, transparent) 0%,
+    transparent 36%
   );
-  pointer-events: none;
-}
-
-.waitlist-phone-scan {
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent 0 3px,
-    color-mix(in srgb, white 3%, transparent) 3px 4px
-  );
-  opacity: 0.35;
-  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
 .waitlist-phone-shadow {
   position: absolute;
-  bottom: -14px;
+  bottom: -10px;
   left: 50%;
   z-index: -1;
-  width: 76%;
-  height: 18px;
-  transform: translateX(-50%) rotateX(78deg);
+  width: 70%;
+  height: 12px;
+  transform: translateX(-50%);
   border-radius: 50%;
-  background: radial-gradient(
-    ellipse,
-    color-mix(in srgb, var(--ink) 28%, transparent) 0%,
-    transparent 72%
-  );
-  filter: blur(8px);
-}
-
-.waitlist-3d-caption {
-  position: absolute;
-  z-index: 6;
-  max-width: 9.5rem;
-  padding: 0.45rem 0.55rem;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--paper) 72%, transparent);
-  border: 1px solid color-mix(in srgb, var(--blue) 14%, transparent);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 8%, transparent);
-  pointer-events: none;
-}
-
-.waitlist-3d-caption--hero {
-  left: calc(100% + 6px);
-  top: 14%;
-}
-
-.waitlist-3d-caption--tl {
-  left: calc(100% + 4px);
-  top: 8%;
-}
-
-.waitlist-3d-caption--tr {
-  right: calc(100% + 4px);
-  top: 6%;
-  text-align: right;
-}
-
-.waitlist-3d-caption--br {
-  right: calc(100% + 2px);
-  bottom: 18%;
-  text-align: right;
+  background: color-mix(in srgb, var(--ink) 20%, transparent);
+  filter: blur(10px);
 }
 
 .waitlist-phone-eyebrow {
   font-family: var(--font-plex-mono), monospace;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1269,61 +1170,29 @@ a.tester-history-card .stat-cell {
 }
 
 .waitlist-phone-title {
-  margin-top: 0.35rem;
+  margin-top: 0.2rem;
   font-family: var(--font-archivo), sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
+  line-height: 1.15;
   color: var(--ink);
 }
 
 .waitlist-phone-desc {
-  margin-top: 0.4rem;
-  font-size: 14px;
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  margin-top: 0.25rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
 }
 
-@keyframes waitlist-glow-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(1);
+@media (min-width: 640px) {
+  .waitlist-phone-title {
+    font-size: 17px;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.1);
-  }
-}
 
-@keyframes waitlist-scene-drift {
-  0%,
-  100% {
-    transform: rotateX(2deg) rotateY(-2deg);
-  }
-  50% {
-    transform: rotateX(-1deg) rotateY(3deg);
-  }
-}
-
-@keyframes waitlist-unit-float {
-  0%,
-  100% {
-    translate: 0 0;
-  }
-  50% {
-    translate: 0 -8px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .waitlist-3d-orb,
-  .waitlist-3d-scene,
-  .waitlist-3d-unit--hero,
-  .waitlist-3d-unit--tl,
-  .waitlist-3d-unit--tr,
-  .waitlist-3d-unit--br {
-    animation: none !important;
+  .waitlist-phone-desc {
+    font-size: 13px;
   }
 }
 
@@ -1333,48 +1202,31 @@ a.tester-history-card .stat-cell {
     margin-bottom: 0.5rem;
   }
 
-  .waitlist-3d-field {
-    height: min(480px, 62vh);
-    min-height: 380px;
+  .waitlist-spread {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    height: auto;
+    min-height: 0;
   }
 
-  .waitlist-3d-unit--tl {
-    left: -6%;
-    top: 0;
-    transform: translateZ(-90px) rotateY(18deg) rotateX(-8deg) scale(0.5);
+  .waitlist-spread-card {
+    position: static;
+    max-width: 100%;
+    justify-content: center;
   }
 
-  .waitlist-3d-unit--tr {
-    right: -8%;
-    top: 8%;
-    transform: translateZ(-18px) rotateY(-20deg) rotateX(6deg) scale(0.56);
+  .waitlist-spread-card--caption-left {
+    flex-direction: row-reverse;
   }
 
-  .waitlist-3d-unit--br {
-    right: -6%;
-    bottom: 0;
-    transform: translateZ(36px) rotateY(-26deg) rotateX(-4deg) scale(0.54);
+  .waitlist-spread-card--caption-left .waitlist-phone-caption {
+    text-align: left;
   }
 
-  .waitlist-3d-caption {
-    max-width: 7.5rem;
-    padding: 0.35rem 0.45rem;
-  }
-
-  .waitlist-3d-caption--hero {
-    left: auto;
-    right: -4px;
-    top: calc(100% + 6px);
-    text-align: center;
-    max-width: 11rem;
-  }
-
-  .waitlist-phone-title {
-    font-size: 15px;
-  }
-
-  .waitlist-phone-desc {
-    font-size: 11px;
+  .waitlist-phone-caption {
+    flex: 0 1 9rem;
   }
 }
 

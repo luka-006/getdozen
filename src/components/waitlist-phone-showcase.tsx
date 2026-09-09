@@ -4,46 +4,61 @@ import Image from "next/image";
 
 type PhoneCard = {
   src: string;
-  slot: "hero" | "tl" | "tr" | "bl" | "br";
+  placement: "tl" | "mr" | "bl";
+  size: "sm" | "md" | "lg";
   eyebrow: string;
   title: string;
   description: string;
+  captionSide: "left" | "right" | "below";
+  objectPosition: string;
 };
 
 const PHONES: PhoneCard[] = [
   {
     src: "/marketing/waitlist/board-testers.png",
-    slot: "hero",
+    placement: "tl",
+    size: "md",
     eyebrow: "Test",
     title: "14-day runs",
-    description: "Opt in once, check in every few days.",
-  },
-  {
-    src: "/marketing/waitlist/board-feedback.png",
-    slot: "tl",
-    eyebrow: "Feedback",
-    title: "Browse requests",
-    description: "Pick an app or game and leave structured feedback.",
+    description: "Opt in once. Check in every few days.",
+    captionSide: "right",
+    objectPosition: "left top",
   },
   {
     src: "/marketing/waitlist/request-detail.png",
-    slot: "tr",
+    placement: "mr",
+    size: "lg",
     eyebrow: "Progress",
     title: "Track the run",
     description: "Check-ins, ratings, and tester slots live.",
+    captionSide: "left",
+    objectPosition: "left top",
   },
   {
     src: "/marketing/waitlist/review-form.png",
-    slot: "br",
+    placement: "bl",
+    size: "sm",
     eyebrow: "Earn",
     title: "Quality pays",
     description: "Thoughtful reviews earn Dots.",
+    captionSide: "below",
+    objectPosition: "center top",
   },
 ];
 
-function PhoneDevice({ src, priority }: { src: string; priority?: boolean }) {
+function PhoneDevice({
+  src,
+  size,
+  priority,
+  objectPosition,
+}: {
+  src: string;
+  size: PhoneCard["size"];
+  priority?: boolean;
+  objectPosition: string;
+}) {
   return (
-    <div className="waitlist-phone-device">
+    <div className={`waitlist-phone-device waitlist-phone-device--${size}`}>
       <div className="waitlist-phone-shell">
         <div className="waitlist-phone-notch" aria-hidden />
         <div className="waitlist-phone-screen">
@@ -51,16 +66,26 @@ function PhoneDevice({ src, priority }: { src: string; priority?: boolean }) {
             src={src}
             alt=""
             fill
-            sizes="280px"
+            sizes="(max-width: 640px) 140px, 200px"
             className="waitlist-phone-shot"
+            style={{ objectPosition }}
             priority={priority}
             unoptimized
           />
         </div>
         <div className="waitlist-phone-shine" aria-hidden />
-        <div className="waitlist-phone-scan" aria-hidden />
       </div>
       <div className="waitlist-phone-shadow" aria-hidden />
+    </div>
+  );
+}
+
+function Caption({ phone }: { phone: PhoneCard }) {
+  return (
+    <div className="waitlist-phone-caption">
+      <p className="waitlist-phone-eyebrow">{phone.eyebrow}</p>
+      <p className="waitlist-phone-title">{phone.title}</p>
+      <p className="waitlist-phone-desc">{phone.description}</p>
     </div>
   );
 }
@@ -68,25 +93,46 @@ function PhoneDevice({ src, priority }: { src: string; priority?: boolean }) {
 export function WaitlistPhoneShowcase() {
   return (
     <div className="waitlist-phone-showcase" aria-label="App preview">
-      <div className="waitlist-3d-field">
-        <div className="waitlist-3d-orb waitlist-3d-orb-a" aria-hidden />
-        <div className="waitlist-3d-orb waitlist-3d-orb-b" aria-hidden />
-        <div className="waitlist-3d-grid-floor" aria-hidden />
-        <div className="waitlist-3d-scene">
-          {PHONES.map((phone, i) => (
-            <article
-              key={phone.src}
-              className={`waitlist-3d-unit waitlist-3d-unit--${phone.slot}`}
-            >
-              <PhoneDevice src={phone.src} priority={i === 0} />
-              <div className={`waitlist-3d-caption waitlist-3d-caption--${phone.slot}`}>
-                <p className="waitlist-phone-eyebrow">{phone.eyebrow}</p>
-                <p className="waitlist-phone-title">{phone.title}</p>
-                <p className="waitlist-phone-desc">{phone.description}</p>
-              </div>
-            </article>
-          ))}
-        </div>
+      <div className="waitlist-spread-glow" aria-hidden />
+      <div className="waitlist-spread">
+        {PHONES.map((phone, i) => (
+          <article
+            key={phone.src}
+            className={`waitlist-spread-card waitlist-spread-card--${phone.placement} waitlist-spread-card--caption-${phone.captionSide}`}
+          >
+            {phone.captionSide === "left" ? (
+              <>
+                <Caption phone={phone} />
+                <PhoneDevice
+                  src={phone.src}
+                  size={phone.size}
+                  objectPosition={phone.objectPosition}
+                  priority={i === 1}
+                />
+              </>
+            ) : phone.captionSide === "below" ? (
+              <>
+                <PhoneDevice
+                  src={phone.src}
+                  size={phone.size}
+                  objectPosition={phone.objectPosition}
+                  priority={i === 2}
+                />
+                <Caption phone={phone} />
+              </>
+            ) : (
+              <>
+                <PhoneDevice
+                  src={phone.src}
+                  size={phone.size}
+                  objectPosition={phone.objectPosition}
+                  priority={i === 0}
+                />
+                <Caption phone={phone} />
+              </>
+            )}
+          </article>
+        ))}
       </div>
     </div>
   );
