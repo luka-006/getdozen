@@ -399,9 +399,27 @@ function seededInt(seed: string, min: number, max: number): number {
 }
 
 function appIconUrl(seed: string, productType: "app" | "game"): string {
-  const style = productType === "game" ? "shapes" : "identicon";
+  const style = DEMO_ICON_STYLES[seed] ?? (productType === "game" ? "shapes" : "identicon");
   return `https://api.dicebear.com/9.x/${style}/svg?seed=${encodeURIComponent(seed)}`;
 }
+
+/** One style per demo post so board icons stay visually distinct. */
+const DEMO_ICON_STYLES: Record<string, string> = {
+  "focus-flow": "identicon",
+  "palette-kit": "glass",
+  "sleep-ledger": "bottts",
+  "orbit-notes": "shapes",
+  "receipt-snap": "icons",
+  "ledger-lite": "rings",
+  "campfire-chat": "fun-emoji",
+  "trailhead-maps": "pixel-art",
+  "starlit-courier": "shapes",
+  "pinefolk-tavern": "icons",
+  "relay-protocol": "glass",
+  "vaultbreaker-2084": "thumbs",
+  "driftwood-rally": "bottts",
+  "neon-dockyard": "rings",
+};
 
 function daysSinceJoin(seed: string, duration: number): number {
   const max = Math.max(1, Math.min(duration - 1, 12));

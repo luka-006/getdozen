@@ -1,0 +1,25 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1080px;height:1920px;overflow:hidden}
+  body{display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(900px 700px at 50% 25%,#dbeafe 0%,#f4f6fb 42%,#e8ecf4 100%);
+    font-family:system-ui,-apple-system,sans-serif}
+  .glow{position:absolute;width:520px;height:520px;border-radius:50%;background:#2563eb28;
+    filter:blur(70px);animation:pulse 3.2s ease-in-out infinite alternate}
+  .wrap{text-align:center;position:relative;z-index:1;padding:0 48px}
+  .logo{font-size:112px;font-weight:900;letter-spacing:-0.05em;color:#0b1f3a;
+    animation:rise 0.95s cubic-bezier(0.22,1,0.36,1) both}
+  .tag{margin-top:20px;font-size:34px;font-weight:600;color:#475569;line-height:1.25;
+    animation:rise 0.85s 0.3s cubic-bezier(0.22,1,0.36,1) both}
+  .pill{display:inline-block;margin-top:36px;padding:14px 28px;border-radius:999px;
+    background:#1e4fd8;color:#fff;font-size:18px;font-weight:600;
+    animation:rise 0.75s 0.55s cubic-bezier(0.22,1,0.36,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+  @keyframes pulse{from{transform:scale(1);opacity:.7}to{transform:scale(1.1);opacity:1}}
+  </style></head><body>
+  <div class="glow"></div>
+  <div class="wrap">
+    <div class="logo">Dozen</div>
+    <div class="tag">Test apps &amp; games.<br>Earn. Get feedback.</div>
+    <div class="pill">getdozen.dev</div>
+  </div></body></html>

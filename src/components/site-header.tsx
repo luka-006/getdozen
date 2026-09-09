@@ -80,7 +80,12 @@ export function SiteHeader({
                 className="shrink-0"
                 title="Profile"
               >
-                <Avatar name={profile.display_name} url={profile.avatar_url} />
+                <Avatar
+                  name={profile.display_name}
+                  url={profile.avatar_url}
+                  userId={profile.id}
+                  rounded="full"
+                />
               </Link>
               <MobileNav links={links} />
             </>

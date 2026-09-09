@@ -506,6 +506,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
                   key={c.id}
                   name={testerNames.get(c.tester_id) ?? "Tester"}
                   avatarUrl={testerAvatars.get(c.tester_id)}
+                  userId={c.tester_id}
                   href={`/profile/${c.tester_id}`}
                   optedInAt={c.opted_in_at}
                   durationDays={

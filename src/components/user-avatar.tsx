@@ -1,13 +1,14 @@
+import { resolveAvatarUrl } from "@/lib/avatar-presets";
+
 type Props = {
   name: string;
   avatarUrl?: string | null;
+  userId?: string;
   className?: string;
 };
 
-export function UserAvatar({ name, avatarUrl, className = "h-8 w-8" }: Props) {
-  const src =
-    avatarUrl?.trim() ||
-    `https://api.dicebear.com/9.x/thumbs/svg?seed=${encodeURIComponent(name)}`;
+export function UserAvatar({ name, avatarUrl, userId, className = "h-8 w-8" }: Props) {
+  const src = resolveAvatarUrl({ name, avatarUrl, userId });
 
   return (
     // eslint-disable-next-line @next/next/no-img-element

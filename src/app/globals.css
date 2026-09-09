@@ -948,6 +948,270 @@ a.tester-history-card .stat-cell {
   }
 }
 
+/* —— Waitlist phone showcase (Rotato-style mockup) —— */
+
+.waitlist-phone-showcase {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.5rem 0 1rem;
+  animation: fade-up 520ms ease-out both;
+}
+
+.waitlist-phone-glow {
+  position: absolute;
+  top: 12%;
+  left: 50%;
+  width: min(320px, 70vw);
+  height: min(320px, 70vw);
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--blue) 22%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(28px);
+  animation: waitlist-glow-pulse 5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.waitlist-phone-stage {
+  perspective: 1400px;
+  perspective-origin: 50% 40%;
+}
+
+.waitlist-phone-device {
+  position: relative;
+  transform: rotateY(-14deg) rotateX(6deg);
+  transform-style: preserve-3d;
+  animation: waitlist-phone-float 7s ease-in-out infinite;
+}
+
+.waitlist-phone-device-static {
+  animation: none;
+  transform: rotateY(-10deg) rotateX(4deg);
+}
+
+.waitlist-phone-shell {
+  position: relative;
+  width: 220px;
+  padding: 10px;
+  border-radius: 38px;
+  background: linear-gradient(
+    155deg,
+    #3a3a40 0%,
+    #121214 38%,
+    #0a0a0c 100%
+  );
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 18%, transparent),
+    0 40px 80px color-mix(in srgb, var(--ink) 28%, transparent),
+    0 12px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+}
+
+@media (min-width: 640px) {
+  .waitlist-phone-shell {
+    width: 248px;
+    padding: 11px;
+    border-radius: 42px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .waitlist-phone-shell {
+    width: 268px;
+    padding: 12px;
+    border-radius: 44px;
+  }
+}
+
+.waitlist-phone-notch {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  z-index: 3;
+  width: 88px;
+  height: 24px;
+  transform: translateX(-50%);
+  border-radius: 14px;
+  background: #0a0a0c;
+}
+
+.waitlist-phone-screen {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 390 / 844;
+  width: 100%;
+  border-radius: 30px;
+  background: #000;
+}
+
+@media (min-width: 640px) {
+  .waitlist-phone-screen {
+    border-radius: 32px;
+  }
+}
+
+.waitlist-phone-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: scale(1.04);
+  transition:
+    opacity 680ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 680ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.waitlist-phone-slide-active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.waitlist-phone-shot {
+  object-fit: cover;
+  object-position: top center;
+}
+
+.waitlist-phone-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, white 14%, transparent) 0%,
+    transparent 42%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
+
+.waitlist-phone-shadow {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  z-index: -1;
+  width: 72%;
+  height: 22px;
+  transform: translateX(-50%) rotateX(78deg);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--ink) 22%, transparent) 0%,
+    transparent 72%
+  );
+  filter: blur(8px);
+}
+
+.waitlist-phone-copy {
+  max-width: 20rem;
+  text-align: center;
+  animation: waitlist-copy-in 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.waitlist-phone-eyebrow {
+  font-family: var(--font-plex-mono), monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--blue) 85%, var(--ink));
+}
+
+.waitlist-phone-title {
+  margin-top: 0.35rem;
+  font-family: var(--font-archivo), sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.waitlist-phone-desc {
+  margin-top: 0.4rem;
+  font-size: 14px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+
+.waitlist-phone-dots {
+  display: flex;
+  gap: 0.45rem;
+}
+
+.waitlist-phone-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 16%, transparent);
+  cursor: pointer;
+  transition:
+    width 280ms ease,
+    background-color 280ms ease;
+}
+
+.waitlist-phone-dot-active {
+  width: 22px;
+  background: var(--blue);
+}
+
+@keyframes waitlist-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateX(-50%) scale(1.08);
+  }
+}
+
+@keyframes waitlist-phone-float {
+  0%,
+  100% {
+    transform: rotateY(-14deg) rotateX(6deg) translateY(0);
+  }
+  50% {
+    transform: rotateY(-9deg) rotateX(3deg) translateY(-10px);
+  }
+}
+
+@keyframes waitlist-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waitlist-phone-glow,
+  .waitlist-phone-device,
+  .waitlist-phone-slide {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .waitlist-phone-copy {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .waitlist-phone-showcase {
+    order: -1;
+    margin-bottom: 0.5rem;
+  }
+}
+
 /* —— Page & navigation motion —— */
 
 .nav-link {

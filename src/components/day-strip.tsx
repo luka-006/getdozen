@@ -73,6 +73,7 @@ export function TesterProgressRow({
   name,
   href,
   avatarUrl,
+  userId,
   optedInAt,
   durationDays,
   status,
@@ -80,6 +81,7 @@ export function TesterProgressRow({
   name: string;
   href?: string;
   avatarUrl?: string | null;
+  userId?: string;
   optedInAt: string;
   durationDays: unknown;
   status: string;
@@ -95,7 +97,12 @@ export function TesterProgressRow({
     <div className="space-y-2 border-b border-border py-3 last:border-b-0">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2.5">
-          <UserAvatar name={title} avatarUrl={avatarUrl} className="h-8 w-8 shrink-0" />
+          <UserAvatar
+            name={title}
+            avatarUrl={avatarUrl}
+            userId={userId}
+            className="h-8 w-8 shrink-0"
+          />
           {href ? (
             <Link href={href} className="font-medium text-blue">
               {title}

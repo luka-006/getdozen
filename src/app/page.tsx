@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { HeroClosedTest } from "@/components/hero-closed-test";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { WaitlistPhoneShowcase } from "@/components/waitlist-phone-showcase";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
 import { pageMetadata, SITE_DESCRIPTION } from "@/lib/seo";
@@ -33,42 +34,46 @@ export default async function HomePage({
 
     return (
       <div className="atmosphere">
-        <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
-          <div className="max-w-xl space-y-5">
-            <div className="flex items-center gap-3">
-              <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />
-              <p className="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]">
-                Dozen
+        <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_auto_minmax(0,22rem)] lg:items-center lg:gap-10 xl:gap-14">
+            <div className="max-w-xl space-y-5 lg:max-w-none">
+              <div className="flex items-center gap-3">
+                <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />
+                <p className="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]">
+                  Dozen
+                </p>
+              </div>
+              <h1 className="hero-title mt-3">
+                Real feedback on apps and games.
+              </h1>
+              <p className="hero-lead mt-4">
+                Earn by testing other makers&apos; work — mobile apps, web tools,
+                and indie games. Post yours and get structured feedback when we
+                open.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <span className="pill pill-blue">Structured feedback</span>
+                <span className="pill">Apps &amp; games</span>
+                <span className="pill">Tester programs</span>
+              </div>
+              <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
+              <p className="text-[13px] text-ink/60">
+                <Link href="/blog/why-12-testers" className="text-blue">
+                  Why 12 testers
+                </Link>
+                {" · "}
+                <Link href="/blog" className="text-blue">
+                  Blog
+                </Link>
               </p>
             </div>
-            <h1 className="hero-title mt-3">
-              Real feedback on apps and games.
-            </h1>
-            <p className="hero-lead mt-4">
-              Earn by testing other makers&apos; work — mobile apps, web tools,
-              and indie games. Post yours and get structured feedback when we
-              open.
-            </p>
-            <div className="flex flex-wrap gap-2 pt-1">
-              <span className="pill pill-blue">Structured feedback</span>
-              <span className="pill">Apps &amp; games</span>
-              <span className="pill">Tester programs</span>
-            </div>
-            <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
-            <p className="text-[13px] text-ink/60">
-              <Link href="/blog/why-12-testers" className="text-blue">
-                Why 12 testers
-              </Link>
-              {" · "}
-              <Link href="/blog" className="text-blue">
-                Blog
-              </Link>
-            </p>
-          </div>
 
-          <div className="w-full max-w-md space-y-6">
-            <WaitlistForm notice={notice} />
-            <HeroClosedTest />
+            <WaitlistPhoneShowcase />
+
+            <div className="w-full space-y-6 lg:max-w-[22rem]">
+              <WaitlistForm notice={notice} />
+              <HeroClosedTest />
+            </div>
           </div>
         </section>
       </div>

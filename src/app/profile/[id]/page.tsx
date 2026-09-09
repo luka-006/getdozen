@@ -5,6 +5,7 @@ import { signOut } from "@/actions/auth";
 import { deleteProfileReview } from "@/actions/profile-reviews";
 import { Avatar } from "@/components/avatar";
 import { CreditIcon } from "@/components/icons";
+import { ProfileAvatarPicker } from "@/components/profile-avatar-picker";
 import { ProfileNameEditor } from "@/components/profile-name-editor";
 import { ProfileReviewForm } from "@/components/profile-review-form";
 import { getProfile } from "@/lib/auth";
@@ -131,7 +132,9 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         <Avatar
           name={profile.display_name}
           url={profile.avatar_url}
+          userId={profile.id}
           size="md"
+          rounded="full"
         />
         <div className="min-w-0 flex-1 space-y-1">
           {isOwn ? (
@@ -154,6 +157,8 @@ export default async function ProfilePage({ params, searchParams }: Props) {
       {query.message ? (
         <p className="mt-4 text-[13px] text-ink/70">{query.message}</p>
       ) : null}
+
+      {isOwn ? <ProfileAvatarPicker userId={profile.id} avatarUrl={profile.avatar_url} /> : null}
 
       <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {stats.map(([label, value]) => (
@@ -220,7 +225,9 @@ export default async function ProfilePage({ params, searchParams }: Props) {
                   <Avatar
                     name={author?.display_name ?? "?"}
                     url={author?.avatar_url}
+                    userId={author?.id}
                     size="sm"
+                    rounded="full"
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline justify-between gap-2">

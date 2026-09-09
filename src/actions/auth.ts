@@ -8,6 +8,7 @@ import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
+import { avatarPresetById } from "@/lib/avatar-presets";
 
 function loginCredentialError(message: string) {
   return /invalid login credentials/i.test(message)
@@ -226,4 +227,33 @@ export async function updateProfile(formData: FormData) {
   }
 
   redirect(`/profile/${user.id}?message=${encodeURIComponent("Saved")}`);
+}
+
+export async function updateProfileAvatar(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
+  const presetId = String(formData.get("avatar_preset") ?? "").trim();
+  const preset = avatarPresetById(presetId);
+  if (!preset) {
+    redirect(
+      `/profile/${user.id}?error=${encodeURIComponent("Pick one of the avatars shown")}`,
+    );
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ avatar_url: preset.url })
+    .eq("id", user.id);
+
+  if (error) {
+    redirect(
+      `/profile/${user.id}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  redirect(`/profile/${user.id}?message=${encodeURIComponent("Avatar updated")}`);
 }
