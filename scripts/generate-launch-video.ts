@@ -1,2 +1,1 @@
-#!/usr/bin/env npx tsx
-// PLACEHOLDER - see workspace
+@file:/workspace/getdozen/scripts/generate-launch-video.ts
