@@ -7,6 +7,7 @@
  */
 import { spawnSync } from "node:child_process";
 import {
+  copyFileSync,
   readFileSync,
   writeFileSync,
   mkdirSync,
@@ -16,6 +17,7 @@ import {
   unlinkSync,
 } from "node:fs";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { chromium, type BrowserContext, type Page } from "playwright";
@@ -108,7 +110,7 @@ const MOBILE_RAW_PAD_SEC = 1.2;
 const MOTTO = {
   introLine1: "Test. Earn. Feedback.",
   introLine2: "Apps & games · 12 testers · 14 days",
-  outroCta: "Join the waitlist",
+  outroCta: "Create your account",
   outroSub: "Test apps. Earn Dots. Give feedback.",
 };
 
@@ -143,8 +145,11 @@ const BASE = process.env.PREVIEW_BASE_URL ?? "https://getdozen.dev";
 const OUT_DIR = resolve(process.cwd(), "marketing");
 const CLIPS_DIR = resolve(OUT_DIR, "clips");
 const VIDEO_PATH = resolve(OUT_DIR, "dozen-launch-preview.mp4");
+const PUBLIC_DIR = resolve(process.cwd(), "public/marketing");
 const SKIP_CAPTURE = process.argv.includes("--skip-capture");
 const COMPOSE_ONLY = process.argv.includes("--compose-only");
+const MOCK_CAPTURE = process.argv.includes("--mock");
+const MOCK_DIR = resolve(process.cwd(), "marketing/mockups");
 
 function resolveFfmpeg(): string {
   const mod = require("ffmpeg-static");
@@ -460,6 +465,50 @@ async function ensurePhoneFramePng(
   return pngPath;
 }
 
+async function recordMockMobileClip(
+  browser: Awaited<ReturnType<typeof chromium.launch>>,
+  seg: PhoneScene,
+) {
+  const slug = seg.mobileSlug!;
+  const out = resolve(CLIPS_DIR, `${slug}.webm`);
+  if (existsSync(out)) unlinkSync(out);
+
+  const mockMap: Record<string, string> = {
+    "m-feedback": "m-feedback.html",
+    "m-testers": "board-testers.html",
+    "m-request": "request-detail.html",
+    "m-review": "review-form.html",
+  };
+  const mockFile = resolve(MOCK_DIR, mockMap[slug] ?? `${slug}.html`);
+  const htmlPath = mockFile;
+  if (!existsSync(htmlPath)) {
+    throw new Error(`Mock HTML missing for ${slug} (tried ${mockFile})`);
+  }
+
+  const ctx = await browser.newContext({
+    viewport: { width: MOBILE_W, height: MOBILE_H },
+    isMobile: true,
+    hasTouch: true,
+    recordVideo: { dir: CLIPS_DIR, size: { width: MOBILE_W, height: MOBILE_H } },
+  });
+  const page = await ctx.newPage();
+  await page.goto(pathToFileURL(htmlPath).href, {
+    waitUntil: "load",
+    timeout: 30_000,
+  });
+  const holdMs = Math.max(
+    4500,
+    (CLIP_SEC + (MOCK_CAPTURE ? 0 : MOBILE_TRIM_START) + MOBILE_RAW_PAD_SEC) * 1000,
+  );
+  await page.waitForTimeout(holdMs);
+
+  const video = page.video();
+  await ctx.close();
+  if (!video) throw new Error(`No mock mobile recording: ${slug}`);
+  renameSync(await video.path(), out);
+  console.log(`  mock mobile ${slug}`);
+}
+
 async function recordMobileClip(
   browser: Awaited<ReturnType<typeof chromium.launch>>,
   authContext: BrowserContext,
@@ -510,17 +559,20 @@ function composePhoneScene(ffmpegBin: string, seg: PhoneScene, framePng: string)
   const { x, y, w, h } = PHONE_SCREEN;
   const assEsc = assPath.replace(/\\/g, "/").replace(/:/g, "\\:");
   const dur = CLIP_SEC.toFixed(3);
-  const trimStart = (seg.trimStart ?? MOBILE_TRIM_START).toFixed(3);
+  const trimStart = (MOCK_CAPTURE ? 0 : (seg.trimStart ?? MOBILE_TRIM_START)).toFixed(3);
   const trimDur = (CLIP_SEC + 0.4).toFixed(3);
   const kenFrames = Math.ceil(CLIP_SEC * FPS);
+  const appChain = MOCK_CAPTURE
+    ? `trim=start=${trimStart}:duration=${trimDur},setpts=PTS-STARTPTS,fps=${FPS},scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`
+    : `trim=start=${trimStart}:duration=${trimDur},setpts=PTS-STARTPTS,fps=${FPS},scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},zoompan=z='min(1.08,1+0.08*on/${kenFrames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=${FPS}`;
 
   const filter = [
     `color=c=0xf4f6fb:s=${OUT_W}x${OUT_H}:d=${dur}:r=${FPS}[bg]`,
-    `[0:v]trim=start=${trimStart}:duration=${trimDur},setpts=PTS-STARTPTS,fps=${FPS},scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},zoompan=z='min(1.08,1+0.08*on/${kenFrames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=${FPS}[app]`,
+    `[0:v]${appChain}[app]`,
     `[bg][app]overlay=${x}:${y}:format=auto[layer1]`,
     `[1:v]scale=${OUT_W}:${OUT_H}[frame]`,
     `[layer1][frame]overlay=0:0:format=auto[layer2]`,
-    `[layer2]subtitles='${assEsc}'[vout]`,
+    `[layer2]subtitles='${assEsc}',fps=${FPS}[vout]`,
   ].join(";");
 
   runFfmpeg(ffmpegBin, [
@@ -535,6 +587,8 @@ function composePhoneScene(ffmpegBin: string, seg: PhoneScene, framePng: string)
     "[vout]",
     "-t",
     dur,
+    "-vsync",
+    "cfr",
     "-c:v",
     "libx264",
     "-preset",
@@ -576,17 +630,26 @@ async function recordAll(ffmpegBin: string) {
   mkdirSync(CLIPS_DIR, { recursive: true });
 
   const browser = await chromium.launch({ headless: true });
-  const auth = await browser.newContext({
-    viewport: { width: MOBILE_W, height: MOBILE_H },
-    isMobile: true,
-    hasTouch: true,
-  });
-  await loginViaMagicLink(auth);
 
-  console.log("Recording authenticated mobile clips…");
-  await warmupMobileSession(browser, auth);
-  for (const seg of SEGMENTS) {
-    if (seg.kind === "phone") await recordMobileClip(browser, auth, seg);
+  if (MOCK_CAPTURE) {
+    console.log("Recording mock mobile clips (no auth)…");
+    for (const seg of SEGMENTS) {
+      if (seg.kind === "phone") await recordMockMobileClip(browser, seg);
+    }
+  } else {
+    const auth = await browser.newContext({
+      viewport: { width: MOBILE_W, height: MOBILE_H },
+      isMobile: true,
+      hasTouch: true,
+    });
+    await loginViaMagicLink(auth);
+
+    console.log("Recording authenticated mobile clips…");
+    await warmupMobileSession(browser, auth);
+    for (const seg of SEGMENTS) {
+      if (seg.kind === "phone") await recordMobileClip(browser, auth, seg);
+    }
+    await auth.close();
   }
 
   console.log("Compositing phone scenes + intro/outro…");
@@ -597,25 +660,26 @@ async function recordAll(ffmpegBin: string) {
   await recordStudioPage(browser, "01-intro", introHtml());
   await recordStudioPage(browser, "06-outro", outroHtml());
 
-  await auth.close();
   await browser.close();
 }
 
 function normalizeClip(ffmpegBin: string, input: string, output: string) {
   const ext = input.endsWith(".mp4") ? [] : ["-an"];
+  const frames = Math.round(CLIP_SEC * FPS);
   runFfmpeg(ffmpegBin, [
     "-y",
     "-i",
     input,
-    "-t",
-    CLIP_SEC.toFixed(3),
     "-vf",
     [
       `scale=${OUT_W}:${OUT_H}:force_original_aspect_ratio=increase`,
       `crop=${OUT_W}:${OUT_H}`,
       "setsar=1",
       `fps=${FPS}`,
+      `tpad=stop_mode=clone:stop_duration=0`,
     ].join(","),
+    "-frames:v",
+    String(frames),
     ...ext,
     "-c:v",
     "libx264",
@@ -625,6 +689,8 @@ function normalizeClip(ffmpegBin: string, input: string, output: string) {
     "18",
     "-pix_fmt",
     "yuv420p",
+    "-vsync",
+    "cfr",
     output,
   ]);
 }
@@ -635,7 +701,52 @@ function segmentSource(slug: string): string {
   return resolve(CLIPS_DIR, `${slug}.webm`);
 }
 
+function stitchMock(ffmpegBin: string) {
+  const slugs = SEGMENTS.map((s) => s.slug);
+  for (const slug of slugs) {
+    const src = segmentSource(slug);
+    if (!existsSync(src)) {
+      console.error(`Missing ${src}`);
+      process.exit(1);
+    }
+    normalizeClip(ffmpegBin, src, resolve(CLIPS_DIR, `${slug}.norm.mp4`));
+  }
+
+  const concatIn = slugs.map((_, i) => `[${i}:v]`).join("");
+  runFfmpeg(ffmpegBin, [
+    "-y",
+    ...slugs.flatMap((s) => ["-i", resolve(CLIPS_DIR, `${s}.norm.mp4`)]),
+    "-filter_complex",
+    `${concatIn}concat=n=${slugs.length}:v=1:a=0,fps=${FPS},fade=t=in:st=0:d=0.25,fade=t=out:st=${(TOTAL_SEC - 0.25).toFixed(3)}:d=0.25[vout]`,
+    "-map",
+    "[vout]",
+    "-t",
+    String(TOTAL_SEC),
+    "-c:v",
+    "libx264",
+    "-preset",
+    "slow",
+    "-crf",
+    "16",
+    "-pix_fmt",
+    "yuv420p",
+    "-r",
+    String(FPS),
+    "-movflags",
+    "+faststart",
+    VIDEO_PATH,
+  ]);
+
+  const dur = probeDuration(ffmpegBin, VIDEO_PATH);
+  console.log(`Wrote ${VIDEO_PATH} (${OUT_W}×${OUT_H}, ${dur?.toFixed(2) ?? "?"}s, mock concat)`);
+}
+
 function stitch(ffmpegBin: string) {
+  if (MOCK_CAPTURE) {
+    stitchMock(ffmpegBin);
+    return;
+  }
+
   const slugs = SEGMENTS.map((s) => s.slug);
 
   for (const slug of slugs) {
@@ -699,7 +810,7 @@ async function main() {
   const ffmpegBin = resolveFfmpeg();
   console.log(`9:16 vertical · ${TOTAL_SEC}s · ${SEGMENTS.length} segments × ${CLIP_SEC.toFixed(2)}s`);
 
-  if (COMPOSE_ONLY) {
+  if (COMPOSE_ONLY || (SKIP_CAPTURE && !MOCK_CAPTURE)) {
     mkdirSync(CLIPS_DIR, { recursive: true });
     const browser = await chromium.launch({ headless: true });
     const framePng = await ensurePhoneFramePng(browser);
@@ -716,6 +827,17 @@ async function main() {
   }
 
   stitch(ffmpegBin);
+  publishPublicVideos();
+}
+
+function publishPublicVideos() {
+  mkdirSync(PUBLIC_DIR, { recursive: true });
+  copyFileSync(VIDEO_PATH, resolve(PUBLIC_DIR, "dozen-launch-preview.mp4"));
+  const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
+  if (existsSync(horizontal)) {
+    copyFileSync(horizontal, resolve(PUBLIC_DIR, "dozen-launch-horizontal.mp4"));
+  }
+  console.log(`Published → ${PUBLIC_DIR}`);
 }
 
 main().catch((err) => {
