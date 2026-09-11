@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getBlogPosts } from "@/lib/blog";
+import { blogTagPath, getBlogPosts, getIndexableBlogTags } from "@/lib/blog";
 import { absoluteUrl, SITEMAP_PATHS } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -17,12 +17,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
-  const feed = {
-    url: absoluteUrl("/blog/rss.xml"),
+  const tags = getIndexableBlogTags().map((tag) => ({
+    url: absoluteUrl(blogTagPath(tag)),
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
-    priority: 0.5,
-  };
+    priority: 0.65,
+  }));
 
-  return [...pages, feed, ...posts];
+  return [...pages, ...tags, ...posts];
 }
