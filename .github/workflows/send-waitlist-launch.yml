@@ -1,0 +1,56 @@
+name: Send waitlist launch email
+
+concurrency:
+  group: send-waitlist-launch
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (list recipients only, no send)"
+        type: boolean
+        default: true
+      to:
+        description: "Optional single test recipient (overrides full list)"
+        type: string
+        required: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Dry run or send
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: ${{ secrets.RESEND_FROM }}
+          NEXT_PUBLIC_SITE_URL: https://getdozen.dev
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Missing GitHub secrets: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY"
+            exit 1
+          fi
+          ARGS=()
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            ARGS+=(--dry-run)
+          elif [ -z "$RESEND_API_KEY" ]; then
+            echo "::error::RESEND_API_KEY required when dry_run is false"
+            exit 1
+          fi
+          if [ -n "${{ inputs.to }}" ]; then
+            ARGS+=(--to "${{ inputs.to }}")
+          fi
+          npx tsx scripts/send-waitlist-launch.ts "${ARGS[@]}"
