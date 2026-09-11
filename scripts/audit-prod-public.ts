@@ -18,6 +18,18 @@ async function head(path: string, expect = 200, strict = false) {
   return { ok, detail: `${res.status} ${url}` };
 }
 
+/** Reject placeholder/corrupt uploads (GitHub MCP once wrote 68-byte stubs). */
+async function assetMinBytes(path: string, minBytes: number, label: string) {
+  const url = `${BASE}${path}`;
+  const res = await fetch(url, { redirect: "manual" });
+  const len = Number(res.headers.get("content-length") ?? 0);
+  const ok = res.status === 200 && len >= minBytes;
+  const detail = ok
+    ? `${res.status} ${len} bytes ${url}`
+    : `${res.status} ${len} bytes (need ≥${minBytes}) ${url}`;
+  return { ok, detail, name: label };
+}
+
 async function bodyIncludes(path: string, needle: string) {
   const url = `${BASE}${path}`;
   const res = await fetch(url);
@@ -37,15 +49,21 @@ async function main() {
     ["/login", "login", 200],
     ["/legal", "legal", 200],
     ["/marketing/waitlist/board-testers.png", "waitlist asset", 200],
+  ] as const) {
+    const r = await head(path, expect, path.endsWith(".mp4"));
+    checks.push({ name: label, ok: r.ok, detail: r.detail });
+  }
+
+  for (const [path, label, minBytes] of [
+    ["/marketing/dozen-launch-preview.mp4", "launch video (vertical)", 500_000],
     [
-      "/marketing/dozen-launch-preview.mp4",
-      "launch video (vertical)",
-      200,
+      "/marketing/dozen-launch-horizontal.mp4",
+      "launch video (horizontal)",
+      500_000,
     ],
   ] as const) {
-    const strict = path.endsWith(".mp4");
-    const r = await head(path, expect, strict);
-    checks.push({ name: label, ok: r.ok, detail: r.detail });
+    const r = await assetMinBytes(path, minBytes, label);
+    checks.push({ name: r.name, ok: r.ok, detail: r.detail });
   }
 
   const board = await head("/board", 307, true);
