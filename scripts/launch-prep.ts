@@ -54,8 +54,9 @@ async function main() {
   }
 
   console.log("\n--- Manual steps ---");
-  console.log("1. Vercel: LEGAL_OIB, LEGAL_OPERATOR_NAME, LEGAL_ADDRESS");
-  console.log("2. Post: marketing/launch/social-posts.md + video files");
+  console.log("1. Redeploy master on Vercel (legal defaults in src/lib/legal.ts → 12/12 audit)");
+  console.log("   If rate-limited: see marketing/launch/DEPLOYMENTS.md");
+  console.log("2. Post: marketing/launch/LAUNCH-NOW.md + video URLs on prod");
   console.log("3. Waitlist: npx tsx scripts/send-waitlist-launch.ts --dry-run");
   console.log("4. Smoke: npm run qa:smoke (needs .env.local)");
 
