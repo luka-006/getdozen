@@ -1,5 +1,9 @@
 name: Build launch marketing assets
 
+concurrency:
+  group: build-launch-assets
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
   push:
@@ -57,4 +61,4 @@ jobs:
           git add marketing/dozen-launch-*.mp4 public/marketing/dozen-launch-*.mp4 package-lock.json
           git diff --staged --quiet && echo "No changes" && exit 0
           git commit -m "build: regenerate launch marketing videos"
-          git push
+          git push origin HEAD:master
