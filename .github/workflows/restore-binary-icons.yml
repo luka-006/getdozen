@@ -1,0 +1,32 @@
+name: Restore binary icons
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/restore-binary-icons.yml
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Restore icon binaries from known-good commit
+        run: |
+          git checkout e7a9814a4babf312ec803d9e9553a974c85ce7ef -- \
+            src/app/favicon.ico \
+            public/icon-48.png \
+            public/icon-96.png
+          git add src/app/favicon.ico public/icon-48.png public/icon-96.png
+          if git diff --staged --quiet; then
+            echo "Icons already correct; nothing to commit."
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -m "fix: restore corrupted binary icon files from e7a9814"
+          git push
