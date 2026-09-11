@@ -1,2 +1,2 @@
 #!/usr/bin/env npx tsx
-// PLACEHOLDER - will use push_files with full content
+// PLACEHOLDER - loading full content via create_or_update_file next
