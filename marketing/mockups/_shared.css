@@ -1,0 +1,257 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+
+:root {
+  --ink: #0b1f3a;
+  --blue: #1e4fd8;
+  --credit: #ffc53d;
+  --paper: #ffffff;
+  --mist: #eef2f9;
+  --border: color-mix(in srgb, var(--ink) 12%, transparent);
+  --radius: 14px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 390px;
+  height: 844px;
+  overflow: hidden;
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.atmosphere {
+  min-height: 100%;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(ellipse 90% 60% at 8% -5%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 58%),
+    radial-gradient(ellipse 70% 50% at 92% 8%, color-mix(in srgb, var(--credit) 14%, transparent), transparent 52%);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: Archivo, sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2b7fff, #1e4fd8);
+}
+
+main {
+  padding: 14px 16px 24px;
+}
+
+.tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.tab {
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  white-space: nowrap;
+}
+
+.tab.active {
+  background: var(--blue);
+  color: #fff;
+  border-color: var(--blue);
+}
+
+.surface {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--paper) 94%, white);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 5%, transparent), 0 8px 24px color-mix(in srgb, var(--ink) 6%, transparent);
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--blue) 85%, var(--ink));
+}
+
+h1 {
+  font-family: Archivo, sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 6px;
+}
+
+.meta {
+  margin-top: 8px;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  padding: 3px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+  margin-top: 8px;
+}
+
+.pill-blue {
+  border-color: color-mix(in srgb, var(--blue) 25%, var(--border));
+  background: color-mix(in srgb, var(--blue) 8%, var(--paper));
+  color: var(--blue);
+}
+
+.pill-credit {
+  background: var(--credit);
+  border-color: transparent;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.app-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #dbeafe, #93c5fd);
+  flex-shrink: 0;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.card-sub {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+  margin-top: 2px;
+}
+
+.progress {
+  display: flex;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.cube {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--mist);
+  border: 1px solid var(--border);
+}
+
+.cube.on {
+  background: var(--blue);
+  border-color: var(--blue);
+}
+
+.cube.mid {
+  background: color-mix(in srgb, var(--blue) 35%, var(--mist));
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+textarea,
+input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  background: var(--paper);
+}
+
+textarea {
+  min-height: 72px;
+  resize: none;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  margin-top: 16px;
+}
+
+.btn-primary {
+  background: var(--blue);
+  color: #fff;
+  width: 100%;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stat {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  background: var(--mist);
+}
+
+.stat strong {
+  display: block;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 18px;
+}
+
+.stat span {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--ink) 58%, transparent);
+}
