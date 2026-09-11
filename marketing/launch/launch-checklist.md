@@ -2,8 +2,8 @@
 
 ## Pre-launch (product)
 
-- [ ] `npm test` — 96 unit tests green
-- [ ] `npm run audit:prod` — public route + asset checks
+- [x] `npm test` — 101 unit tests green
+- [x] `npm run audit:prod` — 11/12 (legal env pending)
 - [ ] `npm run qa:smoke` against prod (needs `.env.local` + `PREVIEW_LOGIN_EMAIL`)
 - [ ] `npx tsx scripts/verify-cron.ts https://getdozen.dev`
 - [ ] Legal env on Vercel: `LEGAL_OIB`, `LEGAL_OPERATOR_NAME`, `LEGAL_ADDRESS`
@@ -14,9 +14,9 @@
 ## Marketing assets
 
 - [ ] Waitlist phone PNGs: `npx tsx scripts/capture-waitlist-phones.ts`
-- [ ] Launch video: `npx tsx scripts/generate-launch-video.ts`
+- [x] Launch videos on prod (`dozen-launch-preview.mp4` + horizontal)
 - [ ] Optional: `npx tsx scripts/capture-waitlist-preview.ts` (3D showcase frame)
-- [ ] Commit assets: `public/marketing/waitlist/*.png`, `marketing/dozen-launch-preview.mp4`
+- [x] Commit assets: `public/marketing/waitlist/*.png`, `marketing/dozen-launch-preview.mp4`
 
 ## Launch mode
 
