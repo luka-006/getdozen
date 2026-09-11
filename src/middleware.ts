@@ -74,6 +74,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/api/stripe") ||
     path === "/wall" ||
     path === "/pricing" ||
+    path === "/guides" ||
     path === "/blog" ||
     path.startsWith("/blog/") ||
     path.startsWith("/profile/") ||
@@ -87,6 +88,7 @@ export async function middleware(request: NextRequest) {
     const waitlistOpen =
       path === "/" ||
       isLegal ||
+      path === "/guides" ||
       path === "/blog" ||
       path.startsWith("/blog/") ||
       path.startsWith("/waitlist") ||
@@ -136,6 +138,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|apple-icon|opengraph-image|twitter-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|apple-icon|opengraph-image|twitter-image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|mp4|webm)$).*)",
   ],
 };
