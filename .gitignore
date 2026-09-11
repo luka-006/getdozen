@@ -18,6 +18,12 @@
 # production
 /build
 
+# vercel deploy payloads (generated)
+.vercel-deploy*.json
+.deploy-*.json
+.launch-assets-deploy/
+.launch-assets-deploy-payload.json
+
 # misc
 .DS_Store
 *.pem
