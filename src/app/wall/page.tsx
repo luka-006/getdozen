@@ -5,9 +5,11 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
 
 export const metadata = pageMetadata({
-  title: "Wall",
-  description: "Apps that used Dozen for testing and feedback.",
+  title: "Wall — apps that shipped with Dozen testers",
+  description:
+    "Indie apps and games that used Dozen for closed testing and structured feedback before launch. See who shipped and when.",
   path: "/wall",
+  keywords: ["shipped indie apps", "Dozen wall", "apps that used Dozen"],
 });
 
 export default async function WallPage() {

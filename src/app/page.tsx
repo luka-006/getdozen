@@ -6,15 +6,25 @@ import { WaitlistForm } from "@/components/waitlist-form";
 import { WaitlistPhoneShowcase } from "@/components/waitlist-phone-showcase";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
+import { HomeJsonLd } from "@/components/home-json-ld";
 import { pageMetadata, SITE_DESCRIPTION } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
 
 export const metadata = pageMetadata({
-  title: "Dozen",
+  title: "Dozen — structured app & game feedback from real testers",
   description: SITE_DESCRIPTION,
   path: "/",
   absoluteTitle: true,
+  keywords: [
+    "app testing marketplace",
+    "Google Play closed testing",
+    "TestFlight beta testers",
+    "structured app feedback",
+    "indie game testing",
+    "SaaS user testing",
+    "beta tester recruitment",
+  ],
 });
 
 export default async function HomePage({
@@ -34,6 +44,7 @@ export default async function HomePage({
 
     return (
       <div className="atmosphere">
+        <HomeJsonLd />
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,22rem)] lg:items-center lg:gap-8 xl:gap-12">
             <div className="max-w-xl space-y-5 lg:max-w-none">
@@ -95,6 +106,7 @@ export default async function HomePage({
 
   return (
     <div className="atmosphere">
+      <HomeJsonLd />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
         <div className="max-w-xl space-y-5">
           <div className="flex items-center gap-3">
@@ -125,13 +137,23 @@ export default async function HomePage({
             <Link href="/signup?next=/board" className="btn btn-secondary">
               Earn
             </Link>
-            <Link
-              href="/blog/why-12-testers"
-              className="btn btn-secondary"
-            >
-              Why 12 testers
+            <Link href="/guides" className="btn btn-secondary">
+              Guides
             </Link>
           </div>
+          <p className="text-[13px] text-ink/60">
+            <Link href="/blog/google-play-closed-testing-mistakes" className="text-blue">
+              Google Play testing
+            </Link>
+            {" · "}
+            <Link href="/blog/app-store-testflight-mistakes" className="text-blue">
+              TestFlight
+            </Link>
+            {" · "}
+            <Link href="/blog/why-12-testers" className="text-blue">
+              Why 12 testers
+            </Link>
+          </p>
         </div>
 
         <HeroClosedTest />
