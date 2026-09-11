@@ -13,14 +13,21 @@ Vercel → Project **getdozen** → Settings → Environment Variables → **Pro
 | `LEGAL_OPERATOR_NAME` | Kasalo Digital |
 | `LEGAL_BUSINESS_FORM` | paušalni obrt |
 | `LEGAL_ADDRESS` | Tvrtkova 1, Knin, Croatia |
-| `LEGAL_OIB` | *your real OIB* |
+| `LEGAL_OIB` | `05372595966` (see `src/lib/legal.test.ts`) |
 | `LEGAL_EMAIL` | hello@getdozen.dev |
+
+Quick CLI (logged into Vercel):
+
+```bash
+chmod +x scripts/set-legal-vercel.sh && ./scripts/set-legal-vercel.sh
+```
 
 Redeploy, then: `npm run audit:prod` → should show **12/12**.
 
 ### 2. Verify prod
 
 ```bash
+npm run launch:execute       # tests + audit + assets + optional waitlist/cron/smoke
 npm run launch:prep          # tests + audit + assets
 npm run audit:prod           # 12/12 after legal env
 ```

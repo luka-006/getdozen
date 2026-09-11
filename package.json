@@ -12,7 +12,8 @@
     "audit:prod": "npx tsx scripts/audit-prod-public.ts",
     "launch:assets": "npx tsx scripts/capture-marketing-mockups.ts && npx tsx scripts/generate-launch-video.ts --mock && node -e \"const {spawnSync}=require('child_process');const p=require('ffmpeg-static');spawnSync(p,['-y','-i','marketing/dozen-launch-preview.mp4','-vf','scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080','-c:v','libx264','-preset','fast','-crf','18','-pix_fmt','yuv420p','-an','marketing/dozen-launch-horizontal.mp4'],{stdio:'inherit'})\" && node -e \"const fs=require('fs');const p='public/marketing';fs.mkdirSync(p,{recursive:true});fs.copyFileSync('marketing/dozen-launch-preview.mp4',p+'/dozen-launch-preview.mp4');fs.copyFileSync('marketing/dozen-launch-horizontal.mp4',p+'/dozen-launch-horizontal.mp4');\"",
     "launch:prep": "npx tsx scripts/launch-prep.ts",
-    "launch:verify-local": "npx tsx scripts/verify-local-launch.ts"
+    "launch:verify-local": "npx tsx scripts/verify-local-launch.ts",
+    "launch:execute": "bash scripts/launch-execute.sh"
   },
   "dependencies": {
     "@stripe/stripe-js": "^9.12.0",
@@ -25,22 +26,21 @@
     "posthog-js": "^1.422.5",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "resend": "^6.25.0",
-    "stripe": "^22.3.2",
-    "zod": "^4.4.3"
+    "resend": "^6.6.0",
+    "stripe": "^20.4.1",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20.19.43",
+    "@tailwindcss/postcss": "^4.2.1",
+    "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
-    "ffmpeg-static": "^5.3.0",
-    "playwright": "^1.63.0",
-    "supabase": "^2.109.1",
-    "tailwindcss": "^4",
+    "ffmpeg-static": "^5.2.0",
+    "playwright": "^1.55.0",
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }
