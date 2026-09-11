@@ -1,28 +1,22 @@
 # Launch now — Dozen (getdozen.dev)
 
-**Status:** 11/12 prod checks passing. App is live. Videos deployed.
+**Status:** 11/12 prod checks. App + videos live. Legal fix is in `master` (`9587a2c`) but **Vercel rate-limited** — redeploy when the limit clears (~24h from 07:02 UTC).
 
-## Before you post (5 min)
+## Before you post (optional — 5 min)
 
-### 1. Legal identity on Vercel → 12/12 audit
+### 1. Legal identity → 12/12 audit
 
-Vercel → Project **getdozen** → Settings → Environment Variables → **Production**:
+Operator defaults are **already in code** (`src/lib/legal.ts`). Prod still shows a placeholder until Vercel deploys `9587a2c`.
 
-| Variable | Value |
-|----------|-------|
-| `LEGAL_OPERATOR_NAME` | Kasalo Digital |
-| `LEGAL_BUSINESS_FORM` | paušalni obrt |
-| `LEGAL_ADDRESS` | Tvrtkova 1, Knin, Croatia |
-| `LEGAL_OIB` | `05372595966` (see `src/lib/legal.test.ts`) |
-| `LEGAL_EMAIL` | hello@getdozen.dev |
+**When rate limit clears:** Vercel → **getdozen** → Deployments → Redeploy latest `master`, or push from your machine.
 
-Quick CLI (logged into Vercel):
+Optional env overrides (not required after `9587a2c`):
 
 ```bash
 chmod +x scripts/set-legal-vercel.sh && ./scripts/set-legal-vercel.sh
 ```
 
-Redeploy, then: `npm run audit:prod` → should show **12/12**.
+Then: `npm run audit:prod` → **12/12**.
 
 ### 2. Verify prod
 
