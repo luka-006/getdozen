@@ -1,16 +1,26 @@
 import { siteEmail } from "@/lib/site-email";
 
+/** Published operator defaults — override via LEGAL_* env on Vercel. */
+const OPERATOR_DEFAULTS = {
+  operatorName: "Kasalo Digital",
+  businessForm: "paušalni obrt",
+  address: "Tvrtkova 1, Knin, Croatia",
+  oib: "05372595966",
+} as const;
+
 /** Operator identity for Croatian e-commerce Art. 6 + GDPR Art. 13. */
 export const LEGAL = {
   brand: "Dozen",
   siteUrl: "https://getdozen.dev",
   country: "Republic of Croatia",
   email: siteEmail(),
-  operatorName: process.env.LEGAL_OPERATOR_NAME?.trim() || "",
+  operatorName:
+    process.env.LEGAL_OPERATOR_NAME?.trim() || OPERATOR_DEFAULTS.operatorName,
   /** e.g. paušalni obrt — shown in the ownership line when set. */
-  businessForm: process.env.LEGAL_BUSINESS_FORM?.trim() || "",
-  address: process.env.LEGAL_ADDRESS?.trim() || "",
-  oib: process.env.LEGAL_OIB?.trim() || "",
+  businessForm:
+    process.env.LEGAL_BUSINESS_FORM?.trim() || OPERATOR_DEFAULTS.businessForm,
+  address: process.env.LEGAL_ADDRESS?.trim() || OPERATOR_DEFAULTS.address,
+  oib: process.env.LEGAL_OIB?.trim() || OPERATOR_DEFAULTS.oib,
   vatId: process.env.LEGAL_VAT_ID?.trim() || "",
   register: process.env.LEGAL_REGISTER?.trim() || "",
   updated: "29 August 2026",
