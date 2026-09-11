@@ -4,6 +4,8 @@ import {
   assertBlogPostsValid,
   getBlogPost,
   getBlogPosts,
+  getBlogPostsByTag,
+  getIndexableBlogTags,
   relatedBlogPosts,
   renderBlogBody,
 } from "./blog";
@@ -11,7 +13,7 @@ import {
 describe("blog", () => {
   it("has unique slugs, titles, and meta descriptions", () => {
     const posts = getBlogPosts();
-    assert.equal(posts.length, 7);
+    assert.equal(posts.length, 10);
     assert.doesNotThrow(() => assertBlogPostsValid(posts));
     for (const post of posts) {
       assert.match(post.body, /\[.+\]\(\/.+\)/);
@@ -37,5 +39,15 @@ describe("blog", () => {
       "## Hello\n\nRead the [board](/board) and **stay**.",
     );
     assert.equal(nodes.length, 2);
+  });
+
+  it("indexes tags with at least two posts", () => {
+    const tags = getIndexableBlogTags();
+    assert.ok(tags.includes("testers"));
+    assert.ok(tags.includes("feedback"));
+    assert.ok(!tags.includes("dots"));
+    for (const tag of tags) {
+      assert.ok(getBlogPostsByTag(tag).length >= 2);
+    }
   });
 });

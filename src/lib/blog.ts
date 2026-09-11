@@ -26,6 +26,39 @@ export function getBlogPost(slug: string): BlogPost | null {
   return posts.find((post) => post.slug === slug) ?? null;
 }
 
+const MIN_POSTS_PER_TAG = 2;
+
+export function getBlogTagCounts(): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+  return counts;
+}
+
+/** Tags with enough posts for an index page (avoids thin SEO pages). */
+export function getIndexableBlogTags(): string[] {
+  const counts = getBlogTagCounts();
+  return [...counts.entries()]
+    .filter(([, n]) => n >= MIN_POSTS_PER_TAG)
+    .map(([tag]) => tag)
+    .sort((a, b) => (counts.get(b) ?? 0) - (counts.get(a) ?? 0) || a.localeCompare(b));
+}
+
+export function getBlogPostsByTag(tag: string): BlogPost[] {
+  return getBlogPosts().filter((post) => post.tags.includes(tag));
+}
+
+export function blogTagPath(tag: string) {
+  return `/blog/tag/${tag}`;
+}
+
+export function isIndexableBlogTag(tag: string): boolean {
+  return getIndexableBlogTags().includes(tag);
+}
+
 export function relatedBlogPosts(slug: string, limit = 3): BlogPost[] {
   const current = getBlogPost(slug);
   if (!current) return getBlogPosts().slice(0, limit);
