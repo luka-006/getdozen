@@ -8,7 +8,7 @@
 
 Operator defaults are **already in code** (`src/lib/legal.ts`). Prod still shows a placeholder until Vercel deploys `9587a2c`.
 
-**When rate limit clears:** Vercel → **getdozen** → Deployments → Redeploy latest `master`, or push from your machine.
+**When rate limit clears:** run `npm run deploy:gate` (or `npm run deploy:gate -- --wait` to poll). Then Vercel → **getdozen** → Deployments → Redeploy latest `master`.
 
 Optional env overrides (not required after `9587a2c`):
 
