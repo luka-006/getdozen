@@ -12,31 +12,30 @@
 | Waitlist PNGs | On prod: `/marketing/waitlist/*.png` |
 | Launch videos on prod | Vertical 1.0MB + horizontal 1.5MB at `/marketing/dozen-launch-*.mp4` |
 | CI asset build | `.github/workflows/build-launch-assets.yml` |
-| Legal fix in code | Commit `9587a2c` — operator defaults in `src/lib/legal.ts` (no env required) |
+| Legal identity on prod | `/legal` shows Kasalo Digital + OIB — audit **12/12** |
 | Social copy | `marketing/launch/social-posts.md`, `LAUNCH-NOW.md` |
 | Waitlist email script | `scripts/send-waitlist-launch.ts` |
 
-## Blocked
+## Blocked (needs you)
 
-| Item | Blocker | Action |
-|------|---------|--------|
-| **Legal identity on prod** | **Vercel deployment rate limit** — commits `9587a2c`+ failed with "retry in 24 hours". Prod still on `eb86644`. | Vercel dashboard → **Deployments** → when limit clears, redeploy `9587a2c` (or push from local). Optional: set `LEGAL_*` env via `./scripts/set-legal-vercel.sh`. |
-| **Waitlist blast** | No `.env.local` in cloud agent | Run locally with Supabase + Resend keys |
-| **Prod smoke / cron** | Missing `CRON_SECRET`, `PREVIEW_LOGIN_EMAIL` | Run locally with `.env.local` |
-| **Social posts** | Requires your X/LinkedIn login | Copy from `LAUNCH-NOW.md` |
-| **Search Console** | Manual | Submit `https://getdozen.dev/sitemap.xml` |
+| Item | Action |
+|------|--------|
+| **Waitlist blast** | `.env.local` + `npx tsx scripts/send-waitlist-launch.ts --dry-run` |
+| **Prod smoke / cron** | `CRON_SECRET`, `PREVIEW_LOGIN_EMAIL` in `.env.local` |
+| **Social posts** | Post from `LAUNCH-NOW.md` (X/LinkedIn login required) |
+| **Search Console** | Submit `https://getdozen.dev/sitemap.xml` |
 
 ## Prod audit
 
 ```bash
-npm run audit:prod    # currently 11/12 — legal placeholder until deploy lands
+npm run audit:prod    # 12/12
 ```
 
-Last run: 11/12 — legal placeholder (deploy pending, not missing env).
+Last run: **12/12** — all public checks passing.
 
 ## Quick post (copy now)
 
-Videos are live on prod — you can post before the legal deploy lands.
+Prod is launch-ready — post now.
 
 **X** — attach https://getdozen.dev/marketing/dozen-launch-preview.mp4
 
