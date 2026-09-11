@@ -4,6 +4,7 @@ import { LEGAL, LEGAL_PATHS } from "@/lib/legal";
 
 const LINKS = [
   { href: "/contact", label: "Contact" },
+  { href: "/guides", label: "Guides" },
   { href: "/blog", label: "Blog" },
   { href: LEGAL_PATHS.privacy, label: "Privacy" },
   { href: LEGAL_PATHS.terms, label: "Terms" },

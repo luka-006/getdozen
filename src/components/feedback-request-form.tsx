@@ -8,6 +8,7 @@ import { PriorityPicker } from "@/components/priority-picker";
 import { ProductTypeField } from "@/components/product-type-field";
 import { StarIcon } from "@/components/icons";
 import { PlatformField } from "@/components/platform-field";
+import { PublishingTipsPanel } from "@/components/publishing-tips-panel";
 import {
   FOCUS_TAGS,
   defaultPlatformForProductType,
@@ -126,6 +127,7 @@ export function FeedbackRequestForm({ balance, action }: Props) {
           defaultValue={platform}
           onPlatformChange={setPlatform}
         />
+        <PublishingTipsPanel platform={platform} productType={productType} />
         <div className="field">
           <label htmlFor="focus_tag">Focus</label>
           <select
