@@ -86,7 +86,21 @@ If you're building mobile apps, web tools, or indie games — I'd love your feed
 
 ## Waitlist email blast
 
-Requires `.env.local` with Supabase + Resend keys (see `.env.example`).
+**Option A — Production API** (after deploy; uses Vercel env + `CRON_SECRET`):
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  "https://getdozen.dev/api/cron/waitlist-launch?dry_run=1"
+
+curl -H "Authorization: Bearer $CRON_SECRET" \
+  "https://getdozen.dev/api/cron/waitlist-launch?dry_run=0"
+```
+
+**Option B — GitHub Actions** ([workflow](https://github.com/luka-006/getdozen/actions/workflows/send-waitlist-launch.yml); sign into GitHub; needs repo secrets):
+
+Run with `dry_run: true`, then `dry_run: false`.
+
+**Option C — local** (`.env.local` with Supabase + Resend):
 
 ```bash
 npx tsx scripts/send-waitlist-launch.ts --dry-run

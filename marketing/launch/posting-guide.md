@@ -16,7 +16,7 @@
 
 1. **X thread** — Post 1 with video attached, then replies 2–3 from `social-posts.md`
 2. **LinkedIn** — Horizontal video; link `https://getdozen.dev`
-3. **Waitlist email** — `npx tsx scripts/send-waitlist-launch.ts --dry-run` then send
+3. **Waitlist email** — GitHub Action, prod `curl` (see `LAUNCH-NOW.md`), or `npx tsx scripts/send-waitlist-launch.ts`
 4. **Product Hunt / HN** — Use drafts in `social-posts.md` when you have bandwidth
 
 ## Re-generate assets
