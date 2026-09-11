@@ -5,6 +5,7 @@ import {
   BlogPostJsonLd,
   blogDateLabel,
 } from "@/components/blog-json-ld";
+import { BlogTagLinks } from "@/components/blog-tag-links";
 import {
   getBlogPost,
   getBlogPosts,
@@ -80,6 +81,7 @@ export default async function BlogPostPage({
         <p className="mt-4 text-[16px] leading-relaxed text-ink/70">
           {post.description}
         </p>
+        <BlogTagLinks tags={post.tags} />
         <div className="blog-prose mt-8 space-y-6 text-[15px] leading-relaxed text-ink/85">
           {renderBlogBody(post.body)}
         </div>

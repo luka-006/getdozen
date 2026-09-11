@@ -5,8 +5,9 @@ import { pageMetadata } from "@/lib/seo";
 import { SITE_EMAIL } from "@/lib/site-email";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Contact",
-  description: `Contact Dozen at ${SITE_EMAIL}.`,
+  title: "Contact Dozen — support & questions",
+  description:
+    `Reach the Dozen team at ${SITE_EMAIL}. Questions about closed testing, dots, billing, or your tester posts — we reply from this inbox.`,
   path: "/contact",
 });
 

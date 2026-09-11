@@ -3,7 +3,8 @@ import {
   BlogIndexJsonLd,
   blogDateLabel,
 } from "@/components/blog-json-ld";
-import { getBlogPosts } from "@/lib/blog";
+import { getBlogPosts, getIndexableBlogTags, blogTagPath } from "@/lib/blog";
+import { blogTagLabel } from "@/lib/blog-tags";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = {
@@ -27,12 +28,17 @@ export const metadata = {
 
 export default function BlogIndexPage() {
   const posts = getBlogPosts();
+  const tags = getIndexableBlogTags();
 
   return (
     <div className="atmosphere">
       <BlogIndexJsonLd posts={posts} />
       <div className="mx-auto w-full max-w-[720px] px-4 py-12">
-        <p className="font-mono text-[12px] text-ink/50">Blog</p>
+        <p className="font-mono text-[12px] text-ink/50">
+          <Link href="/guides" className="hover:text-blue">Guides</Link>
+          {" · "}
+          Blog
+        </p>
         <h1 className="mt-2 font-display text-[32px] font-semibold">
           Testers, feedback, closed tests
         </h1>
@@ -40,6 +46,18 @@ export default function BlogIndexPage() {
           Short essays from Dozen. How many testers to use, how to ask them
           anything useful, and what to do with the pile of notes after.
         </p>
+
+        <div className="mt-6 flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <Link
+              key={tag}
+              href={blogTagPath(tag)}
+              className="pill text-[12px] hover:border-blue/40 hover:text-blue"
+            >
+              {blogTagLabel(tag)}
+            </Link>
+          ))}
+        </div>
 
         <ul className="mt-10 space-y-6">
           {posts.map((post, index) => (
