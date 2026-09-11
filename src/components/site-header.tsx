@@ -42,6 +42,7 @@ export function SiteHeader({
       ]
     : [
         { href: "/pricing", label: "Pricing" },
+        { href: "/guides", label: "Guides" },
         { href: "/blog", label: "Blog" },
         { href: "/wall", label: "Wall" },
       ];

@@ -9,6 +9,7 @@ import { BetaAccessLinkField } from "@/components/beta-access-link-field";
 import { DotsTopUpLink } from "@/components/dots-topup-link";
 import { PlatformField } from "@/components/platform-field";
 import { PlatformDistributionHint } from "@/components/platform-distribution-hint";
+import { PublishingTipsPanel } from "@/components/publishing-tips-panel";
 import { ProductTypeField } from "@/components/product-type-field";
 import { PriorityPicker } from "@/components/priority-picker";
 import { StarIcon } from "@/components/icons";
@@ -125,6 +126,7 @@ export function TesterRequestForm({ balance, action }: Props) {
         onPlatformChange={setPlatform}
       />
       <PlatformDistributionHint platform={platform} productType={productType} />
+      <PublishingTipsPanel platform={platform} productType={productType} />
       {platform !== "web" && platform !== "itch" ? (
         <BetaAccessLinkField platform={platform} />
       ) : null}

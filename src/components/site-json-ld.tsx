@@ -30,14 +30,6 @@ export function SiteJsonLd() {
         alternateName: SITE_TAGLINE,
         publisher: { "@id": `${SITE_ORIGIN}/#organization` },
         inLanguage: "en",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: {
-            "@type": "EntryPoint",
-            urlTemplate: `${SITE_ORIGIN}/blog?q={search_term_string}`,
-          },
-          "query-input": "required name=search_term_string",
-        },
       },
     ],
   };
