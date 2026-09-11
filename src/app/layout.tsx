@@ -67,6 +67,12 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
+  alternates: {
+    types: {
+      "application/rss+xml": `${SITE_ORIGIN}/blog/rss.xml`,
+    },
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export default async function RootLayout({
