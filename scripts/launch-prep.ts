@@ -53,11 +53,10 @@ async function main() {
     console.log("\n✓ Branch matches origin/master");
   }
 
-  console.log("\n--- Manual steps ---");
-  console.log("1. Redeploy master on Vercel (legal defaults in src/lib/legal.ts → 12/12 audit)");
-  console.log("   If rate-limited: see marketing/launch/DEPLOYMENTS.md");
-  console.log("2. Post: marketing/launch/LAUNCH-NOW.md + video URLs on prod");
-  console.log("3. Waitlist: npx tsx scripts/send-waitlist-launch.ts --dry-run");
+  console.log("\n--- Manual steps (post-launch) ---");
+  console.log("1. Post: marketing/launch/LAUNCH-NOW.md + prod video URLs");
+  console.log("2. Waitlist: npx tsx scripts/send-waitlist-launch.ts --dry-run");
+  console.log("3. Search Console: submit https://getdozen.dev/sitemap.xml");
   console.log("4. Smoke: npm run qa:smoke (needs .env.local)");
 
   if (!assetsOk || !testsOk || !auditOk) process.exit(1);
