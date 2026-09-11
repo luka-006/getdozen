@@ -4,7 +4,7 @@ import { SITE_ORIGIN } from "@/lib/app-url";
 export const SITE_NAME = "Dozen";
 export const SITE_TAGLINE = "Test apps and games. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
-  "Earn by testing other makers' apps and indie games. Post yours and get structured feedback from real testers — not friends who nod along.";
+  "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing — Google Play, TestFlight, Steam, itch, and web.";
 
 export const SITE_KEYWORDS = [
   "Dozen",
@@ -12,16 +12,21 @@ export const SITE_KEYWORDS = [
   "user feedback",
   "beta testers",
   "closed testing",
-  "12 testers",
+  "Google Play closed testing",
   "Play Console closed test",
   "TestFlight beta",
-  "indie app feedback",
+  "App Store beta testing",
+  "SaaS user testing",
+  "12 testers",
   "structured feedback",
+  "indie app feedback",
+  "indie game feedback",
   "app review platform",
   "test apps earn dots",
-  "indie game feedback",
   "Steam playtest feedback",
   "itch.io game feedback",
+  "beta testing marketplace",
+  "closed test opt-in link",
 ] as const;
 
 export const NO_INDEX: Metadata = {
@@ -46,6 +51,7 @@ export const SITEMAP_PATHS: Array<{
   { path: "/", changeFrequency: "weekly", priority: 1 },
   { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
+  { path: "/guides", changeFrequency: "weekly", priority: 0.85 },
   { path: "/wall", changeFrequency: "weekly", priority: 0.7 },
   { path: "/contact", changeFrequency: "yearly", priority: 0.5 },
   { path: "/legal", changeFrequency: "yearly", priority: 0.3 },
@@ -85,6 +91,8 @@ export const PUBLIC_SEO_PATHS = [
   "/twitter-image",
   "/robots.txt",
   "/sitemap.xml",
+  "/llms.txt",
+  "/manifest.webmanifest",
 ];
 
 export function isPublicSeoPath(path: string): boolean {
