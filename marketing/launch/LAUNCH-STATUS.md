@@ -15,12 +15,13 @@
 | Legal identity on prod | `/legal` shows Kasalo Digital + OIB — audit **12/12** |
 | Social copy | `marketing/launch/social-posts.md`, `LAUNCH-NOW.md` |
 | Waitlist email script | `scripts/send-waitlist-launch.ts` |
+| Waitlist CI workflow | `.github/workflows/send-waitlist-launch.yml` (workflow_dispatch) |
 
 ## Blocked (needs you)
 
 | Item | Action |
 |------|--------|
-| **Waitlist blast** | `.env.local` + `npx tsx scripts/send-waitlist-launch.ts --dry-run` |
+| **Waitlist blast** | GitHub Actions **Send waitlist launch email** (dry run first), or local `.env.local` + `npx tsx scripts/send-waitlist-launch.ts` |
 | **Prod smoke / cron** | `CRON_SECRET`, `PREVIEW_LOGIN_EMAIL` in `.env.local` |
 | **Social posts** | Post from `LAUNCH-NOW.md` (X/LinkedIn login required) |
 | **Search Console** | Submit `https://getdozen.dev/sitemap.xml` |
@@ -31,7 +32,7 @@
 npm run audit:prod    # 12/12
 ```
 
-Last run: **12/12** — all public checks passing.
+Last run: **12/12** (2026-09-11 ~07:28 UTC) — all public checks passing.
 
 ## Quick post (copy now)
 
