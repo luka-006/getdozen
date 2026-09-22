@@ -5,8 +5,8 @@ import { signOut } from "@/actions/auth";
 import { deleteProfileReview } from "@/actions/profile-reviews";
 import { Avatar } from "@/components/avatar";
 import { CreditIcon } from "@/components/icons";
-import { ProfileAvatarPicker } from "@/components/profile-avatar-picker";
-import { ProfileNameEditor } from "@/components/profile-name-editor";
+import { ProfileIdentityEditor } from "@/components/profile-identity-editor";
+import { ProfileStats, type ProfileStat } from "@/components/profile-stats";
 import { ProfileReviewForm } from "@/components/profile-review-form";
 import { getProfile } from "@/lib/auth";
 import { getPublicProfile } from "@/lib/profile-data";
@@ -15,6 +15,7 @@ import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { formatDots } from "@/lib/currency";
+import { formatCredits } from "@/lib/utils";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -112,18 +113,28 @@ export default async function ProfilePage({ params, searchParams }: Props) {
     year: "numeric",
   });
 
-  const stats: [string, string][] = [
-    ["App reviews", String(profile.reviews_given)],
-    ["Peer notes", String(peerReviews.length)],
-    ["Peer rating", peerAvg ? `${peerAvg}★` : "—"],
-    ["Helped ship", String(helpedCount)],
-    ["Launched", String(ownedShips)],
-    ["Bugs found", String(profile.bugs_found ?? 0)],
+  const stats: ProfileStat[] = [
+    { label: "App reviews", value: String(profile.reviews_given) },
+    { label: "Peer notes", value: String(peerReviews.length) },
+    peerAvg
+      ? { label: "Peer rating", value: `${peerAvg}★` }
+      : { label: "Peer rating", value: "None", kind: "empty" },
+    { label: "Helped ship", value: String(helpedCount) },
+    { label: "Launched", value: String(ownedShips) },
+    { label: "Bugs found", value: String(profile.bugs_found ?? 0) },
   ];
 
   if (isOwn) {
-    stats.unshift(["Pending", formatDots(Number(profile.credits_pending))]);
-    stats.unshift(["Balance", formatDots(Number(profile.credits))]);
+    stats.unshift({
+      label: "Pending",
+      value: formatCredits(Number(profile.credits_pending)),
+      kind: "dots",
+    });
+    stats.unshift({
+      label: "Balance",
+      value: formatCredits(Number(profile.credits)),
+      kind: "dots",
+    });
   }
 
   return (
@@ -138,7 +149,11 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         />
         <div className="min-w-0 flex-1 space-y-1">
           {isOwn ? (
-            <ProfileNameEditor displayName={profile.display_name} />
+            <ProfileIdentityEditor
+              userId={profile.id}
+              displayName={profile.display_name}
+              avatarUrl={profile.avatar_url}
+            />
           ) : (
             <h1 className="font-display text-[32px] font-semibold">
               {profile.display_name}
@@ -158,16 +173,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         <p className="mt-4 text-[13px] text-ink/70">{query.message}</p>
       ) : null}
 
-      {isOwn ? <ProfileAvatarPicker userId={profile.id} avatarUrl={profile.avatar_url} /> : null}
-
-      <section className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {stats.map(([label, value]) => (
-          <div key={label} className="well px-3 py-3">
-            <p className="text-[12px] text-ink/55">{label}</p>
-            <p className="mt-1 font-mono text-[16px]">{value}</p>
-          </div>
-        ))}
-      </section>
+      <ProfileStats stats={stats} />
 
       {isOwn ? (
         <section className="mt-8 flex flex-wrap items-center gap-3">
@@ -272,7 +278,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         <h2 className="font-display text-[22px] font-semibold">Languages</h2>
         <div className="mt-3 border-t border-border">
           {languages.length === 0 ? (
-            <p className="py-5 text-[14px] text-ink/60">—</p>
+            <p className="py-5 text-[14px] text-ink/60">None yet</p>
           ) : (
             languages.map((lang) => (
               <div
@@ -301,7 +307,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
         </div>
         <div className="mt-3 border-t border-border">
           {shipped.length === 0 ? (
-            <p className="py-5 text-[14px] text-ink/60">—</p>
+            <p className="py-5 text-[14px] text-ink/60">None yet</p>
           ) : (
             shipped.map((app) => (
               <div

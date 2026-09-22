@@ -1,39 +1,22 @@
+/** Dozen currency mark: three solid dots in a rising cluster. */
 export function CreditIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
     <svg
       className={className}
       viewBox="0 0 24 24"
-      fill="none"
+      fill="currentColor"
       aria-hidden="true"
     >
-      {/* Dozen mark: 12 dots in a 4×3 grid */}
-      {Array.from({ length: 12 }, (_, i) => {
-        const col = i % 4;
-        const row = Math.floor(i / 4);
-        const cx = 5 + col * 4.5;
-        const cy = 6 + row * 4;
-        return (
-          <circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r="1.35"
-            fill="currentColor"
-            opacity={0.35 + (i % 3) * 0.15}
-          />
-        );
-      })}
-      <rect
-        x="3.5"
-        y="4.5"
-        width="17"
-        height="15"
-        rx="3"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      />
+      <circle cx="7.2" cy="15.2" r="4.1" />
+      <circle cx="12" cy="8.4" r="4.1" />
+      <circle cx="16.8" cy="15.2" r="4.1" />
     </svg>
   );
+}
+
+/** Alias for CreditIcon — public name for the Dots currency. */
+export function DotsIcon(props: { className?: string }) {
+  return <CreditIcon {...props} />;
 }
 
 export function StarIcon({ className = "h-3.5 w-3.5" }: { className?: string }) {

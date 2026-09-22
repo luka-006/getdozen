@@ -468,9 +468,6 @@ function BoardHeader({ post = true }: { post?: boolean }) {
         <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight">
           Open feedback & tests
         </h1>
-        <p className="mt-2 max-w-xl text-[15px] text-ink/65">
-          Pick an app or game, leave structured feedback, or join a tester run.
-        </p>
       </div>
       {post ? (
         <Link href="/requests/new" className="btn btn-primary">
