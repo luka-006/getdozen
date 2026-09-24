@@ -24,7 +24,8 @@ export default async function SignupPage({ searchParams }: Props) {
           Create account
         </h1>
         <p className="mt-2 text-[14px] text-ink/70">
-          Start posting feedback requests or earning as a tester.
+          Start posting feedback requests or earning as a tester. After you
+          create an account, confirm from the email we send — that signs you in.
         </p>
 
         {params.error ? (

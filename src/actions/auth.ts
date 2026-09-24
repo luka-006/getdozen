@@ -8,6 +8,7 @@ import { otpSendError, verifyEmailOtp } from "@/lib/auth-otp";
 import { avatarPresetById } from "@/lib/avatar-presets";
 import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
+import { isPasswordOnlyTestLogin } from "@/lib/test-login";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
@@ -44,6 +45,12 @@ export async function requestLoginCode(formData: FormData) {
       error: loginCredentialError(passwordError.message),
       waitSeconds: null as number | null,
     };
+  }
+
+  // Test accounts with no real inbox skip the email OTP step.
+  if (isPasswordOnlyTestLogin(email)) {
+    const next = safeInternalPath(formData.get("next"), "/board");
+    redirect(next);
   }
 
   await supabase.auth.signOut();
@@ -163,7 +170,8 @@ export async function signUpWithEmail(formData: FormData) {
   const admin = createAdminClient();
   const fullName = displayName || email.split("@")[0] || "Maker";
 
-  // Generate link without Supabase auto-mailing (prevents Dozen + Supabase doubles).
+  // Generate token without Supabase auto-mailing (prevents Dozen + Supabase doubles).
+  // Build our own callback URL with token_hash so verifyOtp can set the SSR session.
   const { data: linkData, error: linkError } =
     await admin.auth.admin.generateLink({
       type: "signup",
@@ -171,7 +179,6 @@ export async function signUpWithEmail(formData: FormData) {
       password,
       options: {
         data: { full_name: fullName },
-        redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     });
 
@@ -185,16 +192,21 @@ export async function signUpWithEmail(formData: FormData) {
     redirect(`/signup?error=${encodeURIComponent(raw)}`);
   }
 
-  const actionLink = linkData.properties?.action_link;
-  if (!actionLink) {
+  const hashedToken = linkData.properties?.hashed_token;
+  if (!hashedToken) {
     redirect(
       `/signup?error=${encodeURIComponent("Could not create confirmation link. Try again.")}`,
     );
   }
 
+  const confirmUrl = new URL(`${siteUrl}/auth/callback`);
+  confirmUrl.searchParams.set("token_hash", hashedToken);
+  confirmUrl.searchParams.set("type", "signup");
+  confirmUrl.searchParams.set("next", next);
+
   const mailed = await sendSignupConfirmEmail({
     to: email,
-    confirmUrl: actionLink,
+    confirmUrl: confirmUrl.toString(),
     displayName: fullName,
   });
   if (!mailed.ok) {
@@ -204,7 +216,7 @@ export async function signUpWithEmail(formData: FormData) {
   }
 
   redirect(
-    `/login?message=${encodeURIComponent("Check your email and confirm your account, then sign in.")}`,
+    `/signup?message=${encodeURIComponent("Check your email and tap Confirm email. That signs you in.")}`,
   );
 }
 

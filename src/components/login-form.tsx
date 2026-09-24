@@ -220,7 +220,7 @@ export function LoginForm({
         <p className="eyebrow">Welcome back</p>
         <h1 className="mt-2 font-display text-[28px] font-semibold">Sign in</h1>
         <p className="mt-2 text-[14px] text-ink/70">
-          Google, or email and password. We email a 6-digit code to confirm.
+          Google, or email and password. New accounts confirm from email; sign-in then uses a 6-digit code.
         </p>
       </div>
 
