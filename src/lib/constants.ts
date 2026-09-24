@@ -56,10 +56,14 @@ export const MAX_CONCURRENT_COMMITMENTS = 1;
 export const MAX_CONCURRENT_COMMITMENTS_PRO = 3;
 
 export const PRO_BENEFITS = [
+  "15 Dots credited every month",
   "Test up to 3 apps at once",
   "Your posts rank above free accounts on the board",
   "Pro badge on posts and your profile",
 ] as const;
+
+/** Monthly Dots grant for active Pro subscribers. */
+export const PRO_MONTHLY_DOTS = 15;
 export const MAX_MISSED_CHECKINS = 3;
 export const TESTER_DAYS = 14;
 export const TESTER_DURATION_OPTIONS = [7, 14, 20, 30] as const;

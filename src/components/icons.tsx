@@ -118,6 +118,44 @@ export function CheckIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+export function FlagIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M5 21V4" />
+      <path d="M5 4h9l-1.2 3.5L14 11H5" />
+    </svg>
+  );
+}
+
+export function ShareIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="18" cy="5" r="2.5" />
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="19" r="2.5" />
+      <path d="m8.2 10.7 7.6-4.4M8.2 13.3l7.6 4.4" />
+    </svg>
+  );
+}
+
 /** Official multicolor Google “G” mark. */
 export function GoogleIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (

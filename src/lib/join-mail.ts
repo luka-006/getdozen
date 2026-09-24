@@ -1,10 +1,11 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
-import type { Platform, ProductType } from "@/lib/constants";
+import type { ProductType } from "@/lib/constants";
 import {
   joinOptInButtonLabel,
   normalizePlatform,
 } from "@/lib/platform-access";
 import { joinMailProductLinkHint } from "@/lib/product-copy";
+import { escapeHtml, renderMailLayout } from "@/lib/mail-layout";
 import { sendResendEmail } from "@/lib/resend-mail";
 
 type JoinMailInput = {
@@ -38,14 +39,18 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     `Post: ${requestUrl}`,
   ].join("\n");
 
-  const html = [
-    `<p>You're signed up to test <strong>${escapeHtml(input.appName)}</strong> on Dozen.</p>`,
-    `<p>Duration: <strong>${input.durationDays} days</strong>. Check in on alternate days from <a href="${testersUrl}">My tests</a>.</p>`,
-    optIn
-      ? `<p><a href="${escapeHtml(optIn)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">${escapeHtml(optInLabel)}</a></p>`
-      : `<p><a href="${requestUrl}">${joinMailProductLinkHint(input.productType)}</a></p>`,
-    `<p style="font-size:13px;color:#666">Post: <a href="${requestUrl}">${requestUrl}</a></p>`,
-  ].join("");
+  const html = renderMailLayout({
+    title: "Tester signup confirmed",
+    bodyHtml: `
+      <p style="margin:0 0 12px">You're signed up to test <strong>${escapeHtml(input.appName)}</strong> on Dozen.</p>
+      <p style="margin:0">Duration: <strong>${input.durationDays} days</strong>. Check in on alternate days from My tests.</p>
+    `,
+    cta: {
+      label: optIn ? optInLabel : joinMailProductLinkHint(input.productType),
+      href: optIn || requestUrl,
+    },
+    footerNote: `Track progress at ${testersUrl}`,
+  });
 
   return sendResendEmail({
     to: input.to,
@@ -53,12 +58,4 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
     text,
     html,
   });
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }

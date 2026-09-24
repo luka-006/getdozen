@@ -1,6 +1,7 @@
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { BOOST_HOURS, BOOST_WAIT_DAYS } from "@/lib/constants";
 import { BOOST_PRICE_EUR } from "@/lib/pricing";
+import { escapeHtml, renderMailLayout } from "@/lib/mail-layout";
 import { sendResendEmail } from "@/lib/resend-mail";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
@@ -26,29 +27,22 @@ function offerText(row: BoostOfferRow) {
   ].join("\n");
 }
 
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-function offerHtml(row: BoostOfferRow) {
-  const url = escapeHtml(offerUrl(row));
-  return [
-    `<p>Your post "${escapeHtml(row.app_name)}" has been waiting ${BOOST_WAIT_DAYS}+ days.</p>`,
-    `<p>Pay €${BOOST_PRICE_EUR} and it sits on top of the board for ${BOOST_HOURS} hours.</p>`,
-    `<p><a href="${url}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">Boost this post</a></p>`,
-  ].join("");
-}
-
 async function sendResend(to: string, row: BoostOfferRow) {
+  const url = offerUrl(row);
+  const html = renderMailLayout({
+    title: "Boost your post",
+    bodyHtml: `
+      <p style="margin:0 0 12px">Your post <strong>${escapeHtml(row.app_name)}</strong> has been waiting ${BOOST_WAIT_DAYS}+ days.</p>
+      <p style="margin:0">Pay €${BOOST_PRICE_EUR} and it sits on top of the board for ${BOOST_HOURS} hours.</p>
+    `,
+    cta: { label: "Boost this post", href: url },
+  });
+
   const mailed = await sendResendEmail({
     to,
     subject: `Pin "${row.app_name}" to the top for €${BOOST_PRICE_EUR}`,
     text: offerText(row),
-    html: offerHtml(row),
+    html,
   });
   return mailed.ok;
 }

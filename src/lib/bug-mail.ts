@@ -1,6 +1,6 @@
-import { bugAwardClickUrl } from "@/lib/bug-award-token";
 import { BUG_REPORT_AWARD } from "@/lib/constants";
 import { formatDots } from "@/lib/currency";
+import { escapeHtml, renderMailLayout } from "@/lib/mail-layout";
 import { sendResendEmail, supportInbox } from "@/lib/resend-mail";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -20,10 +20,10 @@ export function parseBugReport(formData: FormData): BugReportInput | { error: st
   const page = String(formData.get("page") ?? "").trim().slice(0, 500);
 
   if (summary.length < 8 || summary.length > 160) {
-    return { error: "Describe the bug in 8–160 characters." };
+    return { error: "Describe the bug in 8 to 160 characters." };
   }
   if (details.length < 12 || details.length > 4000) {
-    return { error: "Add a bit more detail (12–4000 characters)." };
+    return { error: "Add a bit more detail (12 to 4000 characters)." };
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { error: "That email does not look valid." };
@@ -33,14 +33,6 @@ export function parseBugReport(formData: FormData): BugReportInput | { error: st
   }
 
   return { summary, details, email, page: page || "/" };
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }
 
 function mailBody(report: BugReportInput, awardUrl?: string | null) {
@@ -53,22 +45,28 @@ function mailBody(report: BugReportInput, awardUrl?: string | null) {
     report.details,
   ];
   if (awardUrl) {
-    lines.push("", `If this is a proper report, click Award ${formatDots(BUG_REPORT_AWARD)}:`, awardUrl);
+    lines.push(
+      "",
+      `If this is a proper report, Award ${formatDots(BUG_REPORT_AWARD)}:`,
+      awardUrl,
+    );
   }
   return lines.join("\n");
 }
 
 function mailHtml(report: BugReportInput, awardUrl?: string | null) {
-  const award = awardUrl
-    ? `<p><a href="${escapeHtml(awardUrl)}" style="display:inline-block;padding:10px 18px;background:#1E4FD8;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:600">Award ${formatDots(BUG_REPORT_AWARD)}</a></p>`
-    : "";
-  return [
-    `<p><strong>Page:</strong> ${escapeHtml(report.page)}</p>`,
-    `<p><strong>From:</strong> ${escapeHtml(report.email || "(not given)")}</p>`,
-    `<p>${escapeHtml(report.summary)}</p>`,
-    `<p>${escapeHtml(report.details).replaceAll("\n", "<br>")}</p>`,
-    award,
-  ].join("");
+  return renderMailLayout({
+    title: "Bug report",
+    bodyHtml: `
+      <p style="margin:0 0 8px"><strong>Page:</strong> ${escapeHtml(report.page)}</p>
+      <p style="margin:0 0 8px"><strong>From:</strong> ${escapeHtml(report.email || "(not given)")}</p>
+      <p style="margin:16px 0 8px;font-weight:600">${escapeHtml(report.summary)}</p>
+      <p style="margin:0">${escapeHtml(report.details).replaceAll("\n", "<br>")}</p>
+    `,
+    cta: awardUrl
+      ? { label: `Award ${formatDots(BUG_REPORT_AWARD)}`, href: awardUrl }
+      : null,
+  });
 }
 
 export async function saveSiteBugReport(

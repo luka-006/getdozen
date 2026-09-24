@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { appendLedger } from "@/lib/credits";
+import { PRO_MONTHLY_DOTS } from "@/lib/constants";
 import { getStripe } from "@/lib/stripe";
 import {
   fulfillmentFromCheckout,
@@ -33,14 +34,18 @@ async function releaseEvent(eventId: string) {
 async function claimSessionGrant(params: {
   sessionId: string;
   profileId: string;
-  kind: "credits" | "pro" | "boost" | "dots";
+  kind: "credits" | "pro" | "boost" | "dots" | "pro_monthly";
   credits: number | null;
 }) {
   const admin = createAdminClient();
+  const kind =
+    params.kind === "pro_monthly" || params.kind === "dots"
+      ? "credits"
+      : params.kind;
   const { error } = await admin.from("stripe_session_grants").insert({
     session_id: params.sessionId,
     profile_id: params.profileId,
-    kind: params.kind,
+    kind,
     credits: params.credits,
   });
   if (!error) return true;
@@ -48,11 +53,15 @@ async function claimSessionGrant(params: {
   throw new Error(error.message);
 }
 
-async function grantCredits(profileId: string, credits: number) {
+async function grantCredits(
+  profileId: string,
+  credits: number,
+  reason = "stripe_purchase",
+) {
   await appendLedger({
     userId: profileId,
     amount: credits,
-    reason: "stripe_purchase",
+    reason,
     refId: null,
     status: "available",
   });
@@ -156,6 +165,39 @@ async function fulfillCheckout(session: Stripe.Checkout.Session) {
   );
 }
 
+/** Credit Pro subscribers 15 Dots on each paid subscription invoice. */
+async function fulfillProMonthlyInvoice(invoice: Stripe.Invoice) {
+  if (invoice.status !== "paid") return;
+  if (invoice.billing_reason === "manual") return;
+
+  const subRef =
+    // Stripe API shape varies by SDK version
+    (invoice as { subscription?: string | { id?: string } | null }).subscription ??
+    invoice.parent?.subscription_details?.subscription;
+  const subscriptionId = idOf(subRef as string | { id?: string } | null);
+  if (!subscriptionId) return;
+
+  const stripe = getStripe();
+  if (!stripe) return;
+
+  const sub = await stripe.subscriptions.retrieve(subscriptionId);
+  const profileId =
+    sub.metadata?.profile_id || invoice.metadata?.profile_id || "";
+  if (!profileId) return;
+  if (!shouldActivateSubscription(sub.status)) return;
+
+  const claimed = await claimSessionGrant({
+    sessionId: `pro_monthly:${invoice.id}`,
+    profileId,
+    kind: "pro_monthly",
+    credits: PRO_MONTHLY_DOTS,
+  });
+  if (!claimed) return;
+
+  await grantCredits(profileId, PRO_MONTHLY_DOTS, "pro_monthly_grant");
+  await activatePro(profileId, subscriptionId, idOf(sub.customer));
+}
+
 export async function POST(request: Request) {
   const stripe = getStripe();
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -188,6 +230,10 @@ export async function POST(request: Request) {
       case "checkout.session.completed":
       case "checkout.session.async_payment_succeeded": {
         await fulfillCheckout(event.data.object as Stripe.Checkout.Session);
+        break;
+      }
+      case "invoice.paid": {
+        await fulfillProMonthlyInvoice(event.data.object as Stripe.Invoice);
         break;
       }
       case "customer.subscription.updated": {

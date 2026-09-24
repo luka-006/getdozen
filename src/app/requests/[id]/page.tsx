@@ -7,7 +7,9 @@ import { AnswerInsights } from "@/components/answer-insights";
 import { AppIcon } from "@/components/app-icon";
 import { TesterProgressRow } from "@/components/day-strip";
 import { PackProgress } from "@/components/pack-progress";
+import { RequestShareReport } from "@/components/request-share-report";
 import { requireProfile } from "@/lib/auth";
+import { SITE_ORIGIN } from "@/lib/app-url";
 import { aggregateQuestionChipInsights } from "@/lib/chip-analytics";
 import { pageMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
@@ -222,12 +224,17 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           iconUrl={row.app_icon_url}
           className="h-14 w-14 shrink-0"
         />
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="eyebrow">{requestTrackEyebrow(row.type)}</p>
           <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight sm:text-[38px]">
             {row.app_name}
           </h1>
         </div>
+        <RequestShareReport
+          requestId={row.id}
+          appName={row.app_name}
+          shareUrl={`${SITE_ORIGIN}/requests/${row.id}`}
+        />
       </div>
       <p className="mt-3 text-[16px] leading-relaxed text-ink/75">{row.app_description}</p>
 

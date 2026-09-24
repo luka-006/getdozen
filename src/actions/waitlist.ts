@@ -47,7 +47,7 @@ export async function requestWaitlistCode(formData: FormData) {
   });
 
   if (error) {
-    return { ok: false as const, error: otpSendError(error.message) };
+    return { ok: false as const, error: otpSendError(error.message).message };
   }
 
   return { ok: true as const, email };

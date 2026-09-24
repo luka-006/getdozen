@@ -3,16 +3,18 @@
 import { redirect } from "next/navigation";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { assertHuman, requestIp } from "@/lib/assert-human";
+import { sendSignupConfirmEmail } from "@/lib/auth-mail";
 import { otpSendError, verifyEmailOtp } from "@/lib/auth-otp";
+import { avatarPresetById } from "@/lib/avatar-presets";
 import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
-import { avatarPresetById } from "@/lib/avatar-presets";
 
 function loginCredentialError(message: string) {
   return /invalid login credentials/i.test(message)
-    ? "Wrong email or password. If you joined with Google, use Continue with Google — or Forgot to set a password."
+    ? "Wrong email or password. If you joined with Google, use Continue with Google, or Forgot to set a password."
     : message;
 }
 
@@ -21,10 +23,14 @@ export async function requestLoginCode(formData: FormData) {
   const password = String(formData.get("password") ?? "");
   const guard = await checkBotGuard(formData, await requestIp(), "login");
   if (!guard.ok) {
-    return { ok: false as const, error: guard.error };
+    return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
   }
   if (!email || password.length < 8) {
-    return { ok: false as const, error: "Enter your email and password." };
+    return {
+      ok: false as const,
+      error: "Enter your email and password.",
+      waitSeconds: null as number | null,
+    };
   }
 
   const supabase = await createClient();
@@ -33,7 +39,11 @@ export async function requestLoginCode(formData: FormData) {
     password,
   });
   if (passwordError) {
-    return { ok: false as const, error: loginCredentialError(passwordError.message) };
+    return {
+      ok: false as const,
+      error: loginCredentialError(passwordError.message),
+      waitSeconds: null as number | null,
+    };
   }
 
   await supabase.auth.signOut();
@@ -43,20 +53,29 @@ export async function requestLoginCode(formData: FormData) {
     options: { shouldCreateUser: false },
   });
   if (otpError) {
-    return { ok: false as const, error: otpSendError(otpError.message) };
+    const parsed = otpSendError(otpError.message);
+    return {
+      ok: false as const,
+      error: parsed.message,
+      waitSeconds: parsed.waitSeconds,
+    };
   }
 
-  return { ok: true as const, email };
+  return { ok: true as const, email, waitSeconds: null as number | null };
 }
 
 export async function resendLoginCode(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const guard = await checkBotGuard(formData, await requestIp(), "login");
   if (!guard.ok) {
-    return { ok: false as const, error: guard.error };
+    return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
   }
   if (!email) {
-    return { ok: false as const, error: "Enter a valid email." };
+    return {
+      ok: false as const,
+      error: "Enter a valid email.",
+      waitSeconds: null as number | null,
+    };
   }
 
   const supabase = await createClient();
@@ -65,10 +84,15 @@ export async function resendLoginCode(formData: FormData) {
     options: { shouldCreateUser: false },
   });
   if (error) {
-    return { ok: false as const, error: otpSendError(error.message) };
+    const parsed = otpSendError(error.message);
+    return {
+      ok: false as const,
+      error: parsed.message,
+      waitSeconds: parsed.waitSeconds,
+    };
   }
 
-  return { ok: true as const, email };
+  return { ok: true as const, email, waitSeconds: null as number | null };
 }
 
 export async function confirmLoginCode(formData: FormData) {
@@ -77,22 +101,31 @@ export async function confirmLoginCode(formData: FormData) {
   const next = safeInternalPath(formData.get("next"), "/board");
   const guard = await checkBotGuard(formData, await requestIp(), "login");
   if (!guard.ok) {
-    return { ok: false as const, error: guard.error };
+    return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
   }
   if (!email) {
-    return { ok: false as const, error: "Enter a valid email." };
+    return {
+      ok: false as const,
+      error: "Enter a valid email.",
+      waitSeconds: null as number | null,
+    };
   }
   if (!/^\d{6}$/.test(token)) {
     return {
       ok: false as const,
       error: "Enter the 6-digit code from your email.",
+      waitSeconds: null as number | null,
     };
   }
 
   const supabase = await createClient();
   const { error } = await verifyEmailOtp(supabase, email, token);
   if (error) {
-    return { ok: false as const, error: "That code did not match. Try again." };
+    return {
+      ok: false as const,
+      error: "That code did not match. Try again.",
+      waitSeconds: null as number | null,
+    };
   }
 
   redirect(next);
@@ -120,34 +153,59 @@ export async function signUpWithEmail(formData: FormData) {
     );
   }
 
-  const siteUrl = await resolveAppUrlFromHeaders();
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: displayName || email.split("@")[0],
-      },
-      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
-    },
-  });
-
-  const identityCount = data.user?.identities?.length ?? null;
-
-  if (error) {
-    redirect(`/signup?error=${encodeURIComponent(error.message)}`);
-  }
-
-  // Existing confirmed users (e.g. Google-only) return 200 with empty identities
-  // and no confirmation email.
-  if (data.user && identityCount === 0) {
+  if (!email || password.length < 8) {
     redirect(
-      `/login?error=${encodeURIComponent("This email already has an account. Sign in with Google, or use Forgot to set a password.")}`,
+      `/signup?error=${encodeURIComponent("Enter a valid email and a password of at least 8 characters")}`,
     );
   }
 
-  redirect("/login?message=Check your email to confirm your account");
+  const siteUrl = await resolveAppUrlFromHeaders();
+  const admin = createAdminClient();
+  const fullName = displayName || email.split("@")[0] || "Maker";
+
+  // Generate link without Supabase auto-mailing (prevents Dozen + Supabase doubles).
+  const { data: linkData, error: linkError } =
+    await admin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: {
+        data: { full_name: fullName },
+        redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(next)}`,
+      },
+    });
+
+  if (linkError) {
+    const raw = linkError.message;
+    if (/already|registered|exists/i.test(raw)) {
+      redirect(
+        `/login?error=${encodeURIComponent("This email already has an account. Sign in, or use Forgot to set a password.")}`,
+      );
+    }
+    redirect(`/signup?error=${encodeURIComponent(raw)}`);
+  }
+
+  const actionLink = linkData.properties?.action_link;
+  if (!actionLink) {
+    redirect(
+      `/signup?error=${encodeURIComponent("Could not create confirmation link. Try again.")}`,
+    );
+  }
+
+  const mailed = await sendSignupConfirmEmail({
+    to: email,
+    confirmUrl: actionLink,
+    displayName: fullName,
+  });
+  if (!mailed.ok) {
+    redirect(
+      `/signup?error=${encodeURIComponent(mailed.error || "Could not send confirmation email")}`,
+    );
+  }
+
+  redirect(
+    `/login?message=${encodeURIComponent("Check your email and confirm your account, then sign in.")}`,
+  );
 }
 
 export async function signInWithGoogle(formData: FormData) {
@@ -192,9 +250,7 @@ export async function requestPasswordReset(formData: FormData) {
     redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent("/login?message=Password+reset+sent.+Check+email.+Then+sign+in.")}`,
   });
   if (error) {
-    redirect(
-      `/login/forgot?error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`/login/forgot?error=${encodeURIComponent(error.message)}`);
   }
   redirect(
     `/login?message=${encodeURIComponent("Check your email for a reset link")}`,
@@ -211,7 +267,7 @@ export async function updateProfile(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "").trim();
   if (displayName.length < 2 || displayName.length > 40) {
     redirect(
-      `/profile/${user.id}?error=${encodeURIComponent("Name must be 2–40 characters")}`,
+      `/profile/${user.id}?error=${encodeURIComponent("Name must be 2 to 40 characters")}`,
     );
   }
 

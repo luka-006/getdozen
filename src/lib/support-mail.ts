@@ -1,3 +1,4 @@
+import { escapeHtml, renderMailLayout } from "@/lib/mail-layout";
 import { sendResendEmail, supportInbox } from "@/lib/resend-mail";
 
 export type SupportInput = {
@@ -38,11 +39,14 @@ export async function sendSupportEmail(input: SupportInput) {
     input.message,
   ].join("\n");
 
-  const html = [
-    `<p><strong>From:</strong> ${escapeHtml(input.email)}</p>`,
-    `<p><strong>Page:</strong> ${escapeHtml(input.page)}</p>`,
-    `<p>${escapeHtml(input.message).replaceAll("\n", "<br>")}</p>`,
-  ].join("");
+  const html = renderMailLayout({
+    title: input.subject,
+    bodyHtml: `
+      <p style="margin:0 0 8px"><strong>From:</strong> ${escapeHtml(input.email)}</p>
+      <p style="margin:0 0 16px"><strong>Page:</strong> ${escapeHtml(input.page)}</p>
+      <p style="margin:0">${escapeHtml(input.message).replaceAll("\n", "<br>")}</p>
+    `,
+  });
 
   return sendResendEmail({
     to: inbox,
@@ -51,12 +55,4 @@ export async function sendSupportEmail(input: SupportInput) {
     html,
     replyTo: input.email,
   });
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
 }

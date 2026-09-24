@@ -23,6 +23,7 @@ const REASON_LABELS: Record<string, string> = {
   admin_debit: "Adjustment",
   signup_bonus: "Signup bonus",
   board_boost: "Board boost",
+  pro_monthly_grant: "Pro monthly Dots",
 };
 
 export function ledgerReasonLabel(reason: string): string {

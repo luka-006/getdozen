@@ -20,9 +20,35 @@ export async function verifyEmailOtp(
   });
 }
 
-export function otpSendError(message: string) {
-  if (/rate limit|only request this after/i.test(message)) {
-    return "Wait a minute, then request a new code.";
+export type OtpSendError = {
+  message: string;
+  waitSeconds: number | null;
+};
+
+/** Parse Supabase rate-limit copy into a live countdown when possible. */
+export function otpSendError(message: string): OtpSendError {
+  const secondsMatch = message.match(
+    /(?:after|wait)\s+(\d+)\s*(?:second|sec)/i,
+  );
+  const minutesMatch = message.match(
+    /(?:after|wait)\s+(\d+)\s*(?:minute|min)/i,
+  );
+
+  let waitSeconds: number | null = null;
+  if (secondsMatch) waitSeconds = Number(secondsMatch[1]);
+  else if (minutesMatch) waitSeconds = Number(minutesMatch[1]) * 60;
+  else if (/wait\s+a\s+minute|for\s+a\s+minute/i.test(message)) {
+    waitSeconds = 60;
+  } else if (/rate limit|only request this after/i.test(message)) {
+    waitSeconds = 60;
   }
-  return message;
+
+  if (waitSeconds != null && waitSeconds > 0) {
+    return {
+      message: `Wait ${waitSeconds} seconds, then try again.`,
+      waitSeconds,
+    };
+  }
+
+  return { message, waitSeconds: null };
 }

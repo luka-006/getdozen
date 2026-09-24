@@ -1,19 +1,19 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { renderMailLayout } from "@/lib/mail-layout";
 import { sendResendEmail } from "@/lib/resend-mail";
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://getdozen.dev";
 
 export function waitlistLaunchEmailHtml() {
-  return `<!DOCTYPE html>
-<html><body style="font-family:system-ui,sans-serif;line-height:1.5;color:#0b1f3a;max-width:520px">
-  <p>Hi —</p>
-  <p><strong>Dozen is open.</strong> Test apps and indie games, earn Dots for quality feedback, and post your own work for structured reviews from real testers.</p>
-  <p style="margin:24px 0">
-    <a href="${SITE}/signup" style="display:inline-block;background:#1e4fd8;color:#fff;padding:12px 22px;border-radius:999px;text-decoration:none;font-weight:600">Create your account</a>
-  </p>
-  <p>Or browse the board first: <a href="${SITE}/board">${SITE}/board</a></p>
-  <p style="color:#64748b;font-size:14px;margin-top:32px">You joined the waitlist at getdozen.dev. If you no longer want updates, reply to this email.</p>
-</body></html>`;
+  return renderMailLayout({
+    title: "Dozen is open",
+    bodyHtml: `
+      <p style="margin:0 0 12px">Hi —</p>
+      <p style="margin:0">Test apps and indie games, earn Dots for quality feedback, and post your own work for structured reviews from real testers.</p>
+    `,
+    cta: { label: "Create your account", href: `${SITE}/signup` },
+    footerNote: `Or browse the board first: ${SITE}/board`,
+  });
 }
 
 export function waitlistLaunchEmailText() {

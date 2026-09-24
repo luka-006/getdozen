@@ -2,8 +2,6 @@ import Link from "next/link";
 import { TesterCommitmentCard } from "@/components/tester-commitment-card";
 import { requireProfile } from "@/lib/auth";
 import {
-  MAX_CONCURRENT_COMMITMENTS,
-  MAX_CONCURRENT_COMMITMENTS_PRO,
   TESTER_DAYS,
 } from "@/lib/constants";
 import { createClient } from "@/lib/supabase/server";
@@ -77,21 +75,12 @@ export default async function TestersPage({ searchParams }: Props) {
   );
   const checkinMap = new Map(checkinMeta.map((m) => [m.id, m]));
 
-  const maxSlots = profile.is_pro
-    ? MAX_CONCURRENT_COMMITMENTS_PRO
-    : MAX_CONCURRENT_COMMITMENTS;
-  const activeCount = activeRows.length;
-
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <p className="eyebrow">Your commitments</p>
       <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight">
         My tests
       </h1>
-      <p className="mt-2 font-mono text-[13px] text-ink/65">
-        {activeCount} / {maxSlots} active
-        {profile.is_pro ? " · Pro" : " · 1 at a time · Pro is 3"}
-      </p>
 
       {query.error ? (
         <p className="mt-4 text-[13px] text-flag">{query.error}</p>

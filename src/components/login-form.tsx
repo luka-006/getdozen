@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   confirmLoginCode,
   requestLoginCode,
@@ -26,21 +26,53 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(initialError);
   const [message, setMessage] = useState<string | null>(initialMessage);
+  const [waitSeconds, setWaitSeconds] = useState<number | null>(null);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [captchaNonce, setCaptchaNonce] = useState(0);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
+  useEffect(() => {
+    if (waitSeconds == null || waitSeconds <= 0) return;
+    const t = window.setTimeout(() => {
+      setWaitSeconds((s) => {
+        if (s == null || s <= 1) {
+          setError(null);
+          return null;
+        }
+        const next = s - 1;
+        setError(`Wait ${next} seconds, then try again.`);
+        return next;
+      });
+    }, 1000);
+    return () => window.clearTimeout(t);
+  }, [waitSeconds]);
+
+  function applyWait(seconds: number | null | undefined, err: string) {
+    if (seconds != null && seconds > 0) {
+      setWaitSeconds(seconds);
+      setError(`Wait ${seconds} seconds, then try again.`);
+      return;
+    }
+    setWaitSeconds(null);
+    setError(err);
+  }
+
   async function onCredentials(formData: FormData) {
     setError(null);
     setMessage(null);
+    if (waitSeconds != null && waitSeconds > 0) {
+      setError(`Wait ${waitSeconds} seconds, then try again.`);
+      return;
+    }
     setPhase("sending");
     const result = await requestLoginCode(formData);
     setCaptchaNonce((n) => n + 1);
     if (!result.ok) {
-      setError(result.error);
+      applyWait(result.waitSeconds, result.error);
       setPhase("credentials");
       return;
     }
+    setWaitSeconds(null);
     setEmail(result.email);
     setDigits(["", "", "", "", "", ""]);
     setPhase("code");
@@ -63,16 +95,21 @@ export function LoginForm({
 
   async function onResend(form: HTMLFormElement | null) {
     setError(null);
+    if (waitSeconds != null && waitSeconds > 0) {
+      setError(`Wait ${waitSeconds} seconds, then try again.`);
+      return;
+    }
     const formData = form ? new FormData(form) : new FormData();
     formData.set("email", email);
     setPhase("sending");
     const result = await resendLoginCode(formData);
     setCaptchaNonce((n) => n + 1);
     if (!result.ok) {
-      setError(result.error);
+      applyWait(result.waitSeconds, result.error);
       setPhase("code");
       return;
     }
+    setWaitSeconds(null);
     setDigits(["", "", "", "", "", ""]);
     setPhase("code");
     setMessage("New code sent.");
@@ -87,6 +124,8 @@ export function LoginForm({
     const token = nextDigits.join("");
     if (token.length === 6) void onCode(token);
   }
+
+  const waiting = waitSeconds != null && waitSeconds > 0;
 
   if (phase === "code" || phase === "confirming" || phase === "sending") {
     return (
@@ -149,13 +188,13 @@ export function LoginForm({
         <div className="flex flex-wrap items-center gap-4">
           <button
             type="button"
-            className="text-[13px] text-blue"
-            disabled={phase !== "code"}
+            className="text-[13px] text-blue disabled:opacity-40"
+            disabled={phase !== "code" || waiting}
             onClick={(event) => {
               void onResend(event.currentTarget.form);
             }}
           >
-            Send a new code
+            {waiting ? `Wait ${waitSeconds}s` : "Send a new code"}
           </button>
           <button
             type="button"
@@ -181,7 +220,7 @@ export function LoginForm({
         <p className="eyebrow">Welcome back</p>
         <h1 className="mt-2 font-display text-[28px] font-semibold">Sign in</h1>
         <p className="mt-2 text-[14px] text-ink/70">
-          Google, or email and password — we email a 6-digit code to confirm.
+          Google, or email and password. We email a 6-digit code to confirm.
         </p>
       </div>
 
@@ -245,8 +284,8 @@ export function LoginForm({
           />
         </div>
         <Captcha action="login" resetSignal={captchaNonce} />
-        <button type="submit" className="btn btn-primary w-full">
-          Continue
+        <button type="submit" className="btn btn-primary w-full" disabled={waiting}>
+          {waiting ? `Wait ${waitSeconds}s` : "Continue"}
         </button>
         <LegalAgreementNotice action="signing in" />
       </form>
