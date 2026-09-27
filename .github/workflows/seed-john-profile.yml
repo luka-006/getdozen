@@ -15,6 +15,10 @@ on:
         description: "Pass --force to reseed even if demo data exists"
         type: boolean
         default: true
+  push:
+    branches: [master]
+    paths:
+      - .github/seed-john-profile.trigger
 
 jobs:
   seed:
@@ -35,16 +39,18 @@ jobs:
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          INCLUDE_PREVIEW: ${{ github.event_name == 'workflow_dispatch' && inputs.include_preview_seed || 'true' }}
+          FORCE_SEED: ${{ github.event_name == 'workflow_dispatch' && inputs.force || 'true' }}
         run: |
           if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
             echo "::error::Missing GitHub secrets: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY"
             exit 1
           fi
-          if [ "${{ inputs.include_preview_seed }}" = "true" ]; then
+          if [ "$INCLUDE_PREVIEW" = "true" ]; then
             npx tsx scripts/seed-preview-data.ts --force
           fi
           ARGS=()
-          if [ "${{ inputs.force }}" = "true" ]; then
+          if [ "$FORCE_SEED" = "true" ]; then
             ARGS+=(--force)
           fi
           npx tsx scripts/seed-john-profile.ts "${ARGS[@]}"
