@@ -1,0 +1,50 @@
+name: Seed John promo profile
+
+concurrency:
+  group: seed-john-profile
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      include_preview_seed:
+        description: "Also run seed-preview-data --force first (peer reviews / thanks helpers)"
+        type: boolean
+        default: true
+      force:
+        description: "Pass --force to reseed even if demo data exists"
+        type: boolean
+        default: true
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Seed preview + John promo profile
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "::error::Missing GitHub secrets: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY"
+            exit 1
+          fi
+          if [ "${{ inputs.include_preview_seed }}" = "true" ]; then
+            npx tsx scripts/seed-preview-data.ts --force
+          fi
+          ARGS=()
+          if [ "${{ inputs.force }}" = "true" ]; then
+            ARGS+=(--force)
+          fi
+          npx tsx scripts/seed-john-profile.ts "${ARGS[@]}"
