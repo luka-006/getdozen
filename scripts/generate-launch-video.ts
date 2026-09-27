@@ -919,35 +919,21 @@ async function main() {
   }
 
   stitch(ffmpegBin);
-<<<<<<< HEAD
-  buildHorizontal(ffmpegBin);
-  publishPublicVideos();
-}
-
-function buildHorizontal(ffmpegBin: string) {
-  const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
-=======
   exportHorizontal(ffmpegBin);
   publishPublicVideos();
 }
 
 function exportHorizontal(ffmpegBin: string) {
   const videoHasAudio = existsSync(VOICEOVER_PATH);
->>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
   runFfmpeg(ffmpegBin, [
     "-y",
     "-i",
     VIDEO_PATH,
-<<<<<<< HEAD
-    "-vf",
-    "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
-=======
     "-filter_complex",
     `[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=${FPS}[vout]`,
     "-map",
     "[vout]",
     ...(videoHasAudio ? ["-map", "0:a", "-c:a", "aac", "-b:a", "192k"] : []),
->>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
     "-c:v",
     "libx264",
     "-preset",
@@ -956,20 +942,12 @@ function exportHorizontal(ffmpegBin: string) {
     "18",
     "-pix_fmt",
     "yuv420p",
-<<<<<<< HEAD
-    "-an",
-    horizontal,
-  ]);
-  console.log(`Wrote ${horizontal}`);
-  return horizontal;
-=======
     "-movflags",
     "+faststart",
     HORIZONTAL_PATH,
   ]);
   const dur = probeDuration(ffmpegBin, HORIZONTAL_PATH);
   console.log(`Wrote ${HORIZONTAL_PATH} (1920×1080, ${dur?.toFixed(2) ?? "?"}s)`);
->>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
 }
 
 function publishPublicVideos() {
@@ -981,25 +959,7 @@ function publishPublicVideos() {
     copyFileSync(HORIZONTAL_PATH, resolve(PUBLIC_DIR, "dozen-launch-horizontal.mp4"));
     copyFileSync(HORIZONTAL_PATH, resolve(STORE_VIDEO_DIR, "dozen-launch-horizontal.mp4"));
   }
-<<<<<<< HEAD
-  const storeMedia = resolve(
-    process.cwd(),
-    "../cursor/stores/bc-09c7c829-8890-4733-97e5-51250955c098/media/videos",
-  );
-  try {
-    mkdirSync(storeMedia, { recursive: true });
-    copyFileSync(VIDEO_PATH, resolve(storeMedia, "dozen-launch-preview.mp4"));
-    if (existsSync(horizontal)) {
-      copyFileSync(horizontal, resolve(storeMedia, "dozen-launch-horizontal.mp4"));
-    }
-    console.log(`Copied videos → ${storeMedia}`);
-  } catch {
-    // optional store path
-  }
-  console.log(`Published → ${PUBLIC_DIR}`);
-=======
   console.log(`Published → ${PUBLIC_DIR} + ${STORE_VIDEO_DIR}`);
->>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
 }
 
 main().catch((err) => {
