@@ -4,7 +4,7 @@ import { SITE_ORIGIN } from "@/lib/app-url";
 export const SITE_NAME = "Dozen";
 export const SITE_TAGLINE = "Test apps and games. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
-  "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing — Google Play, TestFlight, Steam, itch, and web.";
+  "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing on Google Play, TestFlight, Steam, itch, and web.";
 
 export const SITE_KEYWORDS = [
   "Dozen",
@@ -49,7 +49,6 @@ export const SITEMAP_PATHS: Array<{
   priority: number;
 }> = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
-  { path: "/pricing", changeFrequency: "monthly", priority: 0.8 },
   { path: "/blog", changeFrequency: "weekly", priority: 0.8 },
   { path: "/guides", changeFrequency: "weekly", priority: 0.85 },
   { path: "/wall", changeFrequency: "weekly", priority: 0.7 },
@@ -68,6 +67,7 @@ export const ROBOTS_DISALLOW = [
   "/admin",
   "/admin-console",
   "/wallet",
+  "/pricing",
   "/setup",
   "/banned",
   "/waitlist/",

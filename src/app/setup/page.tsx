@@ -112,7 +112,7 @@ export default async function SetupPage() {
             </li>
             {!ready ? (
               <li>
-                Schema is missing — paste SQL in the{" "}
+                Schema is missing. Paste SQL in the{" "}
                 <a
                   className="text-blue"
                   href="https://supabase.com/dashboard/project/blvoisjgveskbkzzjhcg/sql/new"
@@ -144,7 +144,7 @@ export default async function SetupPage() {
             >
               Stripe API keys
             </a>{" "}
-            (LIVE — products were created in live mode), then create a webhook for{" "}
+            (LIVE: products were created in live mode), then create a webhook for{" "}
             <span className="font-mono text-[13px]">
               {process.env.NEXT_PUBLIC_SITE_URL}/api/stripe/webhook
             </span>{" "}

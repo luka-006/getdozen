@@ -215,7 +215,7 @@ export async function submitCheckin(formData: FormData) {
 
   if (!isCheckinDueDay(dayIndex)) {
     redirect(
-      `/testers?error=${encodeURIComponent("Check-in opens every 3 days — not due today")}`,
+      `/testers?error=${encodeURIComponent("Check-in opens every 3 days. Not due today.")}`,
     );
   }
 

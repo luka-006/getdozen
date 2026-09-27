@@ -10,7 +10,7 @@ export type PublishingTip = {
 const ANDROID_TIPS: PublishingTip[] = [
   {
     id: "android-opt-in-link",
-    text: "Closed testing needs the Play Console opt-in link — not the public store listing URL.",
+    text: "Closed testing needs the Play Console opt-in link, not the public store listing URL.",
     blogSlug: "google-play-closed-testing-mistakes",
   },
   {
@@ -28,7 +28,7 @@ const ANDROID_TIPS: PublishingTip[] = [
 const IOS_TIPS: PublishingTip[] = [
   {
     id: "ios-build-expiry",
-    text: "TestFlight builds expire after 90 days — schedule a rebuild before your test ends.",
+    text: "TestFlight builds expire after 90 days. Schedule a rebuild before your test ends.",
     blogSlug: "app-store-testflight-mistakes",
   },
   {
@@ -51,7 +51,7 @@ const WEB_TIPS: PublishingTip[] = [
   },
   {
     id: "web-pricing",
-    text: "Hiding pricing until checkout trains people to bounce — test whether anyone believes your price.",
+    text: "Hiding pricing until checkout trains people to bounce. Test whether anyone believes your price.",
     blogSlug: "saas-launch-mistakes",
   },
   {
@@ -68,7 +68,7 @@ const STEAM_TIPS: PublishingTip[] = [
   },
   {
     id: "steam-build-branch",
-    text: "Say which branch or depot testers should use — default library installs are not obvious.",
+    text: "Say which branch or depot testers should use. Default library installs are not obvious.",
   },
 ];
 
@@ -86,7 +86,7 @@ const ITCH_TIPS: PublishingTip[] = [
 const UNIVERSAL_TIPS: PublishingTip[] = [
   {
     id: "universal-job",
-    text: "Give testers a job and a duration — not \"play around and tell me what you think.\"",
+    text: "Give testers a job and a duration, not \"play around and tell me what you think.\"",
     blogSlug: "how-to-run-a-closed-app-test",
   },
   {

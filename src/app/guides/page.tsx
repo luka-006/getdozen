@@ -3,7 +3,7 @@ import { getBlogPosts } from "@/lib/blog";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Guides — closed testing, Play Console, App Store, SaaS",
+  title: "Guides",
   description:
     "Free guides for indie makers: Google Play closed testing, TestFlight, SaaS launch mistakes, structured feedback, and how to run a 12-tester closed test.",
   path: "/guides",
@@ -36,7 +36,7 @@ const GUIDE_SECTIONS = [
     id: "google-play",
     title: "Google Play & Android",
     blurb:
-      "Opt-in links, email mismatches, and the 20/14 production rule — before you blame the APK.",
+      "Opt-in links, email mismatches, and the 20/14 production rule, before you blame the APK.",
     posts: [
       { slug: "google-play-closed-testing-mistakes", label: "Play Console closed testing mistakes" },
       { slug: "how-to-run-a-closed-app-test", label: "How to run a closed app test" },
@@ -47,7 +47,7 @@ const GUIDE_SECTIONS = [
     id: "app-store",
     title: "App Store & TestFlight",
     blurb:
-      "Build expiry, beta review, demo accounts, and privacy labels — the iOS traps that look like code bugs.",
+      "Build expiry, beta review, demo accounts, and privacy labels: the iOS traps that look like code bugs.",
     posts: [
       { slug: "app-store-testflight-mistakes", label: "TestFlight & App Store mistakes" },
       { slug: "how-to-run-a-closed-app-test", label: "How to run a closed app test" },
@@ -91,7 +91,7 @@ export default function GuidesPage() {
         </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-ink/70">
           {postCount} essays for indie makers shipping on Google Play, the App
-          Store, Steam, itch, or the web. Pick a topic — each links to free
+          Store, Steam, itch, or the web. Pick a topic. Each links to free
           articles you can read without an account.
         </p>
 
@@ -139,7 +139,7 @@ export default function GuidesPage() {
           <p className="font-display text-[18px] font-semibold">Ready to test?</p>
           <p className="mt-2 text-[14px] leading-relaxed text-ink/70">
             Post a tester or feedback request on Dozen. Structured reviews,
-            14-day runs, and dots that reward quality — not volume.
+            14-day runs, and dots that reward quality, not volume.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link href="/signup" className="btn btn-primary">

@@ -73,7 +73,7 @@ export function HeroClosedTest() {
   );
   const dayLabel =
     phase === "celebrate" || phase === "done"
-      ? "14 of 14 — done"
+      ? "14 of 14, done"
       : `${filled} of ${TOTAL_DAYS} days`;
   const celebrating = phase === "celebrate";
 

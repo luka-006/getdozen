@@ -76,7 +76,7 @@ export function ReviewForm({
       const existing = (prev[current.id] ?? "").trim();
       // Seed from chip; keep room for the reviewer to expand in writing.
       if (!existing || existing === picked[current.id]) {
-        return { ...prev, [current.id]: `${text} — ` };
+        return { ...prev, [current.id]: `${text}. ` };
       }
       return { ...prev, [current.id]: `${existing} ${text}` };
     });
@@ -141,7 +141,7 @@ export function ReviewForm({
           <p className="text-[13px] text-ink/55">
             Core question
             {index === 0
-              ? ` — mention a concrete UI element (${coreUiElementHint(productType)})`
+              ? `: mention a concrete UI element (${coreUiElementHint(productType)})`
               : ""}
           </p>
         ) : null}
@@ -162,7 +162,7 @@ export function ReviewForm({
       {!current.is_proof ? (
         <p className="text-[13px] leading-relaxed text-ink/60">
           This maker values direct, expanded answers in your own words. Chips
-          are starters — write it out.
+          are starters. Write it out.
         </p>
       ) : null}
 

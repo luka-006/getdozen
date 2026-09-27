@@ -57,7 +57,7 @@ export function TrackTabs({ active, variant = "board" }: Props) {
           className="track-tab track-tab-disabled"
           role="tab"
           aria-disabled="true"
-          aria-label="Language — coming soon"
+          aria-label="Language, coming soon"
           title="Coming soon"
         >
           Language

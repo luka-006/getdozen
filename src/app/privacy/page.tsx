@@ -73,20 +73,20 @@ export default function PrivacyPage() {
       <LegalH>Why, and on what legal basis</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Waitlist and launch email</strong> — your consent (Art.
+          <strong>Waitlist and launch email</strong>: your consent (Art.
           6(1)(a)). You can withdraw it by writing to {LEGAL.email}. Withdrawal
           does not affect processing already done.
         </li>
         <li>
           <strong>Account, board, reviews, tester slots, dots, checkout</strong>{" "}
-          — performance of a contract (Art. 6(1)(b)).
+          : performance of a contract (Art. 6(1)(b)).
         </li>
         <li>
-          <strong>Invoices, tax, and dispute records</strong> — legal
+          <strong>Invoices, tax, and dispute records</strong>: legal
           obligation (Art. 6(1)(c)), including Croatian bookkeeping rules.
         </li>
         <li>
-          <strong>Fraud, abuse, and keeping the service up</strong> —
+          <strong>Fraud, abuse, and keeping the service up</strong>:
           legitimate interests (Art. 6(1)(f)). You may object; we stop unless
           we have compelling grounds or need the data for a legal claim.
         </li>
@@ -95,32 +95,32 @@ export default function PrivacyPage() {
       <LegalH>Who we use (processors)</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Supabase</strong> — database, authentication, and
+          <strong>Supabase</strong>: database, authentication, and
           confirmation emails.
         </li>
         <li>
-          <strong>Stripe</strong> — checkout, cards, and subscriptions. Stripe
+          <strong>Stripe</strong>: checkout, cards, and subscriptions. Stripe
           is an independent controller for much of the payment data it
           collects. See Stripe&apos;s privacy notice.
         </li>
         <li>
-          <strong>Vercel</strong> — hosting and delivery of this website.
+          <strong>Vercel</strong>: hosting and delivery of this website.
         </li>
         <li>
-          <strong>Resend</strong> — transactional email (bug-report alerts,
+          <strong>Resend</strong>: transactional email (bug-report alerts,
           board-boost offers, and similar service mail when configured).
         </li>
         <li>
-          <strong>FormSubmit</strong> — alternative path for delivering
+          <strong>FormSubmit</strong>: alternative path for delivering
           bug-report emails to the operator when Resend is not configured.
         </li>
         <li>
-          <strong>Google</strong> — only if you choose “Continue with Google”,
+          <strong>Google</strong>: only if you choose “Continue with Google”,
           or when you sign in to a poster&apos;s Google Play test track as part
           of a tester program.
         </li>
         <li>
-          <strong>Cloudflare</strong> — DNS for getdozen.dev, and Turnstile
+          <strong>Cloudflare</strong>: DNS for getdozen.dev, and Turnstile
           bot checks on sign-in, signup, password reset, waitlist, and bug
           report forms. Turnstile is used only to tell humans from automated
           clients (legitimate interests, Art. 6(1)(f)).
@@ -149,7 +149,7 @@ export default function PrivacyPage() {
       <LegalH>Your rights</LegalH>
       <p>
         You may request access, rectification, erasure, restriction,
-        portability, and — where we rely on legitimate interests or consent —
+        portability, and, where we rely on legitimate interests or consent,
         objection or withdrawal. Ask at <LegalEmailLink />. We reply without
         undue delay and within one month (extendable as the GDPR allows).
       </p>

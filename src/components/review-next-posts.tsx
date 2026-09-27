@@ -45,7 +45,7 @@ export function ReviewNextPosts({ posts }: { posts: NextReviewPost[] }) {
           id="review-next-title"
           className="font-display text-[20px] font-semibold"
         >
-          Keep going — {posts.length} more
+          Keep going. {posts.length} more
         </p>
         <p className="mt-1 text-[13px] text-ink/65">
           Pick another post while you&apos;re in the flow.

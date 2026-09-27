@@ -48,11 +48,11 @@ export function betaAccessLinkHint(platform: Platform): string {
 }
 
 export function iosFeedbackOnlyHint(): string {
-  return "Already live and only need written feedback? Use the Feedback tab — no testers or beta links required.";
+  return "Already live and only need written feedback? Use the Feedback tab. No testers or beta links required.";
 }
 
 export function gameFeedbackOnlyHint(): string {
-  return "Already on the store and only need written feedback? Use the Feedback tab — no testers or playtest link required.";
+  return "Already on the store and only need written feedback? Use the Feedback tab. No testers or playtest link required.";
 }
 
 export function appUrlPlaceholder(platform: Platform): string {

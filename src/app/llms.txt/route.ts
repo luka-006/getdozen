@@ -18,7 +18,7 @@ export async function GET() {
     `- Sign up: ${SITE_ORIGIN}/signup`,
     `- Guides (topic index): ${SITE_ORIGIN}/guides`,
     `- Blog: ${SITE_ORIGIN}/blog`,
-    `- Wall (shipped apps): ${SITE_ORIGIN}/wall`,
+    `- Wall Of Fame (shipped apps): ${SITE_ORIGIN}/wall`,
     "",
     "## Guides by topic",
     ...tags.map((tag) => `- ${tag}: ${SITE_ORIGIN}${blogTagPath(tag)}`),

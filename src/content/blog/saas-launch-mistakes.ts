@@ -12,7 +12,7 @@ export const saasLaunchMistakes: BlogPost = {
     {
       question: "What should you test before launching a SaaS product?",
       answer:
-        "Watch one stranger complete signup, reach the core action, and understand what they would pay for — without you explaining it on a call. If that fails, more landing page copy will not save you.",
+        "Watch one stranger complete signup, reach the core action, and understand what they would pay for without you explaining it on a call. If that fails, more landing page copy will not save you.",
     },
     {
       question: "Is a public signup page the same as a beta?",
@@ -32,7 +32,7 @@ The test is simple: can someone who has never heard your pitch do the one thing 
 
 ## Pricing is a mystery until checkout
 
-"Hm, interesting" is not a business model. If you are ashamed of the price, fix the offer or fix the product. Hiding cost until the card form trains people to bounce at the last step — and gives you useless top-of-funnel numbers.
+"Hm, interesting" is not a business model. If you are ashamed of the price, fix the offer or fix the product. Hiding cost until the card form trains people to bounce at the last step and gives you useless top-of-funnel numbers.
 
 Tell [testers what you think you charge](/blog/app-feedback-questions) and ask if they believe it. Disbelief is cheaper before you wire up affiliates.
 
@@ -50,7 +50,7 @@ Give testers a script: connect X, do Y, tell us where it broke. [Structured answ
 
 Beta has an end date and a feedback loop. A perpetual beta is a morale trick. Ship a scope. Run [twelve testers for two weeks](/blog/how-to-run-a-closed-app-test). Close it. Change the homepage verb from "coming soon" to "start."
 
-## Web does not need TestFlight — it needs witnesses
+## Web does not need TestFlight. It needs witnesses
 
 Post a web feedback request. No opt-in link circus. Link the live URL. Ask where they got lost. Friends will still lie; strangers on a board with [minimum answer lengths](/blog/friends-make-bad-beta-testers) lie less.
 

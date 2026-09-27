@@ -38,7 +38,7 @@ If login is required, provide a working demo user in App Store Connect notes. "J
 
 ## Privacy nutrition labels do not match reality
 
-Analytics, crash reporting, email, payments — if the SDK collects it, the label must say so. Reviewers compare the form to the app. Mismatch is an automatic conversation you did not want.
+Analytics, crash reporting, email, payments: if the SDK collects it, the label must say so. Reviewers compare the form to the app. Mismatch is an automatic conversation you did not want.
 
 ## Screenshots sell a different product
 

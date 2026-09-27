@@ -38,13 +38,13 @@ export function SiteHeader({
         { href: "/testers", label: "My tests" },
         { href: "/blog", label: "Blog" },
         { href: "/wallet", label: "Wallet" },
+        { href: "/pricing", label: "Pricing" },
         { href: `/profile/${profile.id}`, label: "Profile" },
       ]
     : [
-        { href: "/pricing", label: "Pricing" },
         { href: "/guides", label: "Guides" },
         { href: "/blog", label: "Blog" },
-        { href: "/wall", label: "Wall" },
+        { href: "/wall", label: "Wall Of Fame" },
       ];
 
   return (

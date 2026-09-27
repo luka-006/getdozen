@@ -48,7 +48,7 @@ describe("aggregateQuestionChipInsights", () => {
   it("infers clicks from answer text when chip_clicks missing", () => {
     const insights = aggregateQuestionChipInsights(questions, [
       {
-        answers: { q1: "Pricing — the paywall copy was unclear." },
+        answers: { q1: "Pricing. The paywall copy was unclear." },
       },
     ]);
 

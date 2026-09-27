@@ -12,7 +12,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
 
 export const metadata = pageMetadata({
-  title: "Dozen — structured app & game feedback from real testers",
+  title: "Dozen",
   description: SITE_DESCRIPTION,
   path: "/",
   absoluteTitle: true,
@@ -58,7 +58,7 @@ export default async function HomePage({
                 Real feedback on apps and games.
               </h1>
               <p className="hero-lead mt-4">
-                Earn by testing other makers&apos; work — mobile apps, web tools,
+                Earn by testing other makers&apos; work: mobile apps, web tools,
                 and indie games. Post yours and get structured feedback when we
                 open.
               </p>
@@ -119,7 +119,7 @@ export default async function HomePage({
             Real feedback from real testers.
           </h1>
           <p className="hero-lead mt-4">
-            The feedback loop for indie makers — structured reviews, tester
+            The feedback loop for indie makers: structured reviews, tester
             commitments, and dots that keep quality high.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
@@ -167,7 +167,7 @@ export default async function HomePage({
                 Apps that used Dozen
               </h2>
               <Link href="/wall" className="text-[13px] text-blue">
-                Wall
+                Wall Of Fame
               </Link>
             </div>
             <div className="mt-6 border-t border-border">

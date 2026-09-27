@@ -148,7 +148,7 @@ export default async function ConfirmReviewPage({ params, searchParams }: Props)
           <div key={q.id} className="well px-4 py-3">
             <p className="text-[13px] font-medium">{q.text}</p>
             <p className="mt-2 whitespace-pre-wrap text-[15px]">
-              {answers[q.id] ?? "—"}
+              {answers[q.id] ?? "(empty)"}
             </p>
           </div>
         ))}

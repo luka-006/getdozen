@@ -108,7 +108,7 @@ export default async function ReviewPage({ params, searchParams }: Props) {
 
       {isDemo ? (
         <p className="mt-4 text-[13px] text-ink/60">
-          Demo request — proof answer is <span className="font-mono">test</span>
+          Demo request: proof answer is <span className="font-mono">test</span>
           . Credits confirm automatically.
         </p>
       ) : null}

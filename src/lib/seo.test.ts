@@ -21,7 +21,6 @@ describe("seo crawl files", () => {
     const paths = SITEMAP_PATHS.map((entry) => entry.path);
     assert.deepEqual(paths, [
       "/",
-      "/pricing",
       "/blog",
       "/guides",
       "/wall",
@@ -42,6 +41,7 @@ describe("seo crawl files", () => {
       "/admin",
       "/admin-console",
       "/wallet",
+      "/pricing",
       "/api/",
       "/waitlist/",
       "/board",

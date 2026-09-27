@@ -42,8 +42,8 @@ export function joinInstallHint(
 
 export function proofOpenHint(productType?: string | null): string {
   return isGameProduct(productType)
-    ? "Proof — open the game first"
-    : "Proof — open the app first";
+    ? "Proof: open the game first"
+    : "Proof: open the app first";
 }
 
 export function proofFailedMessage(productType?: string | null): string {

@@ -47,18 +47,18 @@ export default function PaymentTermsPage() {
       <LegalH>What you can buy</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Dots</strong> — a prepaid balance used on Dozen to post
+          <strong>Dots</strong>: a prepaid balance used on Dozen to post
           tester and feedback work. Packs and custom amounts are priced in
           euro. The list rate is €{EUR_PER_CREDIT} per dot; some packs are
           cheaper.
         </li>
         <li>
-          <strong>Pro</strong> — a monthly subscription currently €{PRO_PRICE_EUR}
+          <strong>Pro</strong>: a monthly subscription currently €{PRO_PRICE_EUR}
           / month, billed until you cancel. Benefits are shown on the pricing
           and wallet pages at the time you pay.
         </li>
         <li>
-          <strong>Board boost</strong> — a one-time €{BOOST_PRICE_EUR} pin that
+          <strong>Board boost</strong>: a one-time €{BOOST_PRICE_EUR} pin that
           puts an open post on top of the board for 48 hours. Offered after a
           post has waited 3 days.
         </li>
@@ -81,7 +81,7 @@ export default function PaymentTermsPage() {
         Checkout is Stripe-hosted on stripe.com. We do not see or store full
         card numbers, CVC, or expiry. Stripe is the payment service provider.
         The purchase contract is formed when Stripe confirms the payment to our
-        server — not when the browser returns from checkout. Dots, Pro, and
+        server, not when the browser returns from checkout. Dots, Pro, and
         board boosts are granted only after that confirmation. Stripe may set
         its own cookies on its checkout pages; see the{" "}
         <Link className="text-blue" href={LEGAL_PATHS.cookies}>

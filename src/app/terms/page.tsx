@@ -58,7 +58,7 @@ export default function TermsPage() {
         service except as a refund we owe you under these terms or the law.
         Pack prices and Pro are shown in euro before payment. Stripe handles
         the charge. Dots are added only after Stripe confirms payment to
-        our server — never because the browser returned from checkout. Full
+        our server, never because the browser returned from checkout. Full
         payment rules:{" "}
         <Link className="text-blue" href={LEGAL_PATHS.paymentTerms}>
           payment terms

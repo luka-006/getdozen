@@ -42,7 +42,7 @@ export function SupportForm({
     <form action={onSubmit} className="space-y-3">
       {!compact ? (
         <p className="text-[14px] text-ink/65">
-          Send a message — no mail app needed. We read every note at this inbox.
+          Send a message. No mail app needed. We read every note at this inbox.
         </p>
       ) : null}
       <label className="block space-y-1 text-[13px]">

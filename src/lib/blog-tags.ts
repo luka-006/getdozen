@@ -12,7 +12,7 @@ export const BLOG_TAG_META: Record<string, BlogTagMeta> = {
     label: "Testers",
     title: "Beta testers & closed-test staffing guides",
     description:
-      "How many testers to recruit, why twelve is the default, and how to keep people showing up through a 14-day run — not a ghost invite list.",
+      "How many testers to recruit, why twelve is the default, and how to keep people showing up through a 14-day run, not a ghost invite list.",
   },
   feedback: {
     slug: "feedback",
@@ -40,14 +40,14 @@ export const BLOG_TAG_META: Record<string, BlogTagMeta> = {
     label: "Launch",
     title: "App & SaaS launch guides before you ship",
     description:
-      "Publishing mistakes on Google Play, the App Store, and SaaS signup flows — plus what to do with tester feedback once the run ends.",
+      "Publishing mistakes on Google Play, the App Store, and SaaS signup flows, plus what to do with tester feedback once the run ends.",
   },
   questions: {
     slug: "questions",
     label: "Questions",
     title: "App feedback questions that get honest answers",
     description:
-      "Prompts and question design for closed tests and feedback requests — so testers cannot reply with a single emoji and call it a review.",
+      "Prompts and question design for closed tests and feedback requests, so testers cannot reply with a single emoji and call it a review.",
   },
 };
 
