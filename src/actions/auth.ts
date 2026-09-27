@@ -148,7 +148,10 @@ export async function signUpWithEmail(formData: FormData) {
   const displayName = String(formData.get("display_name") ?? "").trim();
   const invite = String(formData.get("invite_code") ?? "").trim();
   const next = safeInternalPath(formData.get("next"), "/board");
-  await assertHuman(formData, "/signup", { next }, "signup");
+  const guard = await checkBotGuard(formData, await requestIp(), "signup");
+  if (!guard.ok) {
+    return { ok: false as const, error: guard.error };
+  }
 
   const requiredCodes = (process.env.INVITE_CODES ?? "")
     .split(",")
@@ -170,8 +173,6 @@ export async function signUpWithEmail(formData: FormData) {
   const admin = createAdminClient();
   const fullName = displayName || email.split("@")[0] || "Maker";
 
-  // Generate token without Supabase auto-mailing (prevents Dozen + Supabase doubles).
-  // Build our own callback URL with token_hash so verifyOtp can set the SSR session.
   const { data: linkData, error: linkError } =
     await admin.auth.admin.generateLink({
       type: "signup",
