@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { confirmSignupCode } from "@/actions/auth";
 import { Captcha } from "@/components/captcha";
 import { OtpDigitInputs } from "@/components/otp-digit-inputs";
@@ -21,11 +21,12 @@ export function SignupConfirmForm({
   const [error, setError] = useState<string | null>(initialError);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
   const [captchaNonce, setCaptchaNonce] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function onCode(token: string) {
+  async function onCode(form: HTMLFormElement, token: string) {
     setError(null);
     setPhase("confirming");
-    const formData = new FormData();
+    const formData = new FormData(form);
     formData.set("email", email);
     formData.set("token", token);
     formData.set("next", next);
@@ -40,15 +41,18 @@ export function SignupConfirmForm({
   function onDigitsChange(nextDigits: string[]) {
     setDigits(nextDigits);
     const token = nextDigits.join("");
-    if (token.length === 6) void onCode(token);
+    if (token.length === 6 && formRef.current) {
+      void onCode(formRef.current, token);
+    }
   }
 
   return (
     <form
+      ref={formRef}
       className="auth-card surface space-y-5 p-6 sm:p-8"
       onSubmit={(event) => {
         event.preventDefault();
-        void onCode(digits.join(""));
+        void onCode(event.currentTarget, digits.join(""));
       }}
     >
       <div>
