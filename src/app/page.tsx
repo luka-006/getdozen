@@ -63,9 +63,15 @@ export default async function HomePage({
                 open.
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
-                <span className="pill pill-blue">Structured feedback</span>
-                <span className="pill">Apps &amp; games</span>
-                <span className="pill">Tester programs</span>
+                <span className="pill pill-blue motion-stagger" style={{ animationDelay: "0ms" }}>
+                  Structured feedback
+                </span>
+                <span className="pill motion-stagger" style={{ animationDelay: "80ms" }}>
+                  Apps &amp; games
+                </span>
+                <span className="pill motion-stagger" style={{ animationDelay: "160ms" }}>
+                  Tester programs
+                </span>
               </div>
               <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
               <p className="text-[13px] text-ink/60">
@@ -123,9 +129,15 @@ export default async function HomePage({
             commitments, and dots that keep quality high.
           </p>
           <div className="flex flex-wrap gap-2 pt-2">
-            <span className="pill pill-blue">Structured feedback</span>
-            <span className="pill">Tester programs</span>
-            <span className="pill">Dot economy</span>
+            <span className="pill pill-blue motion-stagger" style={{ animationDelay: "0ms" }}>
+              Structured feedback
+            </span>
+            <span className="pill motion-stagger" style={{ animationDelay: "80ms" }}>
+              Tester programs
+            </span>
+            <span className="pill motion-stagger" style={{ animationDelay: "160ms" }}>
+              Dot economy
+            </span>
           </div>
           <div className="flex flex-wrap gap-3 pt-1">
             <Link

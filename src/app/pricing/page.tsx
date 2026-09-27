@@ -35,9 +35,6 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Pricing</h1>
-      <p className="mt-1 text-[14px] text-ink/65">
-        Base rate €{EUR_PER_DOT} / Dot. Bigger packs cost less.
-      </p>
 
       <section className="mt-8 space-y-3">
         <h2 className="font-display text-[22px] font-semibold">How posting works</h2>
