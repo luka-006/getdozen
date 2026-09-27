@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dozen home</title>
+    <link rel="stylesheet" href="_shared.css" />
+    <style>
+      .hero-title {
+        font-family: Archivo, sans-serif;
+        font-size: 34px;
+        font-weight: 700;
+        line-height: 1.08;
+        margin-top: 18px;
+      }
+      .hero-lead {
+        margin-top: 12px;
+        font-size: 15px;
+        line-height: 1.45;
+        color: color-mix(in srgb, var(--ink) 72%, transparent);
+      }
+      .cta {
+        margin-top: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .btn-secondary {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        color: var(--ink);
+      }
+      .showcase {
+        margin-top: 20px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 12px;
+        background: color-mix(in srgb, var(--mist) 70%, white);
+      }
+      .mini-phone {
+        height: 220px;
+        border-radius: 14px;
+        background: linear-gradient(165deg, #dbeafe, #eff6ff);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: color-mix(in srgb, var(--ink) 55%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="atmosphere">
+      <header>
+        <div class="logo"><div class="logo-mark"></div>Dozen</div>
+        <span style="font-size:13px;font-weight:600;color:var(--blue)">Join</span>
+      </header>
+      <main>
+        <p class="eyebrow">Apps &amp; games</p>
+        <h1 class="hero-title">Real feedback on apps and games.</h1>
+        <p class="hero-lead">
+          Earn by testing other makers' work. Post yours and get structured feedback from real testers.
+        </p>
+        <div style="margin-top:12px">
+          <span class="pill pill-blue">Structured feedback</span>
+          <span class="pill">14-day runs</span>
+        </div>
+        <div class="cta">
+          <button class="btn btn-primary" type="button">Create account</button>
+          <button class="btn btn-secondary" type="button">Browse board</button>
+        </div>
+        <div class="showcase">
+          <div class="mini-phone">Board preview · Feedback &amp; tester runs</div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

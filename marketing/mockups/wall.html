@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Wall</title>
+    <link rel="stylesheet" href="_shared.css" />
+    <style>
+      .wall-item {
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .wall-item:last-child {
+        border-bottom: none;
+      }
+      .wall-title {
+        font-family: Archivo, sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--blue);
+      }
+      .helpers {
+        margin-top: 8px;
+        font-size: 12px;
+        color: color-mix(in srgb, var(--ink) 58%, transparent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="atmosphere">
+      <header>
+        <div class="logo"><div class="logo-mark"></div>Dozen</div>
+        <span style="font-size:13px;font-weight:600">Wall</span>
+      </header>
+      <main>
+        <h1>Wall</h1>
+        <p class="meta">Apps that shipped with Dozen testers.</p>
+        <div style="margin-top:16px">
+          <article class="wall-item">
+            <div class="wall-title">Palette Kit</div>
+            <p class="meta">Launched Sep 2026 · iOS design tokens</p>
+            <p class="helpers">Helpers: Mira K., Jonas P., Suki T. +9</p>
+          </article>
+          <article class="wall-item">
+            <div class="wall-title">Starlit Courier</div>
+            <p class="meta">Launched Aug 2026 · Steam · Cozy roguelite</p>
+            <p class="helpers">Helpers: Evan L., Priya N., Theo W. +6</p>
+          </article>
+          <article class="wall-item">
+            <div class="wall-title">Trailhead Maps</div>
+            <p class="meta">Launched Jul 2026 · Android hiking maps</p>
+            <p class="helpers">Helpers: Hana S., Marcus D., Yuki A. +5</p>
+          </article>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

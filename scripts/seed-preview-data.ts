@@ -496,7 +496,66 @@ async function ensurePerson(person: Person): Promise<string> {
   return userId;
 }
 
+type ShippedSeed = {
+  ownerIndex: number;
+  app_name: string;
+  app_url: string;
+  daysAgo: number;
+  helperIndices: number[];
+};
+
+const SHIPPED: ShippedSeed[] = [
+  {
+    ownerIndex: 0,
+    app_name: "Palette Kit",
+    app_url: "https://preview.example/apps/palette-kit",
+    daysAgo: 12,
+    helperIndices: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+  },
+  {
+    ownerIndex: 5,
+    app_name: "Starlit Courier",
+    app_url: "https://preview.example/games/starlit-courier",
+    daysAgo: 28,
+    helperIndices: [3, 4, 5, 6, 7, 8, 9],
+  },
+  {
+    ownerIndex: 2,
+    app_name: "Trailhead Maps",
+    app_url: "https://preview.example/apps/trailhead-maps",
+    daysAgo: 45,
+    helperIndices: [6, 7, 8, 9, 10, 11, 12, 13],
+  },
+  {
+    ownerIndex: 4,
+    app_name: "Orbit Notes",
+    app_url: "https://preview.example/apps/orbit-notes",
+    daysAgo: 60,
+    helperIndices: [1, 2, 3, 4, 5],
+  },
+];
+
+async function clearDemoWall(makerIds: string[]) {
+  if (!makerIds.length) return;
+  const { data: rows } = await admin
+    .from("shipped_apps")
+    .select("id")
+    .in("owner_id", makerIds);
+  const ids = (rows ?? []).map((r) => r.id);
+  if (!ids.length) return;
+  await admin.from("shipped_apps").delete().in("id", ids);
+  console.log(`Removed ${ids.length} demo wall entr${ids.length === 1 ? "y" : "ies"}.`);
+}
+
 async function clearDemo() {
+  const makerIds: string[] = [];
+  for (const maker of MAKERS) {
+    const { data: list } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+    const existing = list.users.find((u) => u.email?.toLowerCase() === maker.email);
+    if (existing?.id) makerIds.push(existing.id);
+  }
+  await clearDemoWall(makerIds);
+
   const { data: rows } = await admin.from("requests").select("id").eq("is_demo", true);
   const ids = (rows ?? []).map((r) => r.id);
   if (!ids.length) {
@@ -727,8 +786,24 @@ async function seed() {
     }
   }
 
+  let wallTotal = 0;
+  for (const entry of SHIPPED) {
+    const launched = new Date();
+    launched.setDate(launched.getDate() - entry.daysAgo);
+    const helperIds = entry.helperIndices.map((i) => testerIds[i]!);
+    const { error } = await admin.from("shipped_apps").insert({
+      owner_id: makerIds[entry.ownerIndex],
+      app_name: entry.app_name,
+      app_url: entry.app_url,
+      launched_at: launched.toISOString().slice(0, 10),
+      helper_ids: helperIds,
+    });
+    if (error) throw new Error(`wall ${entry.app_name}: ${error.message}`);
+    wallTotal++;
+  }
+
   console.log(
-    `Seeded ${POSTS.length} fictional posts, ${commitmentTotal} mock tester commitments, ${TESTERS.length} testers.`,
+    `Seeded ${POSTS.length} fictional posts, ${commitmentTotal} mock tester commitments, ${TESTERS.length} testers, ${wallTotal} wall entries.`,
   );
 }
 

@@ -444,15 +444,20 @@ async function ensurePhoneFramePng(
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
   *{box-sizing:border-box;margin:0;padding:0}
   html,body{width:${OUT_W}px;height:${OUT_H}px;background:transparent}
-  .frame{position:absolute;left:${x - pad}px;top:${y - pad - 6}px;
-    width:${w + pad * 2}px;height:${h + pad * 2 + 6}px;border-radius:44px;
-    border:12px solid #141416;background:transparent;
-    box-shadow:inset 0 1px 0 #ffffff25,0 40px 80px #0b1f3a30}
-  .notch{position:absolute;left:${x + w / 2 - 54}px;top:${y - 2}px;width:108px;height:26px;
-    background:#141416;border-radius:14px}
+  .device{position:absolute;left:${x - pad - 8}px;top:${y - pad - 28}px;
+    width:${w + pad * 2 + 16}px;height:${h + pad * 2 + 36}px;
+    transform:perspective(1200px) rotateY(-14deg) rotateX(6deg);
+    transform-origin:50% 60%}
+  .frame{position:absolute;inset:0;border-radius:44px;border:12px solid #141416;
+    background:linear-gradient(145deg,#2a2a2e,#0f0f12 55%,#1a1a1f);
+    box-shadow:inset 0 1px 0 #ffffff30,0 50px 100px #0b1f3a45,0 12px 32px #0b1f3a25}
+  .shine{position:absolute;inset:12px;border-radius:32px;
+    background:linear-gradient(125deg,#ffffff18 0%,transparent 42%,transparent 100%);
+    pointer-events:none}
+  .notch{position:absolute;left:50%;top:10px;transform:translateX(-50%);
+    width:108px;height:26px;background:#141416;border-radius:14px;z-index:2}
   </style></head><body>
-  <div class="frame"></div>
-  <div class="notch"></div>
+  <div class="device"><div class="frame"></div><div class="shine"></div><div class="notch"></div></div>
   </body></html>`;
 
   const ctx = await browser.newContext({
@@ -827,7 +832,31 @@ async function main() {
   }
 
   stitch(ffmpegBin);
+  buildHorizontal(ffmpegBin);
   publishPublicVideos();
+}
+
+function buildHorizontal(ffmpegBin: string) {
+  const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
+  runFfmpeg(ffmpegBin, [
+    "-y",
+    "-i",
+    VIDEO_PATH,
+    "-vf",
+    "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "fast",
+    "-crf",
+    "18",
+    "-pix_fmt",
+    "yuv420p",
+    "-an",
+    horizontal,
+  ]);
+  console.log(`Wrote ${horizontal}`);
+  return horizontal;
 }
 
 function publishPublicVideos() {
@@ -836,6 +865,20 @@ function publishPublicVideos() {
   const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
   if (existsSync(horizontal)) {
     copyFileSync(horizontal, resolve(PUBLIC_DIR, "dozen-launch-horizontal.mp4"));
+  }
+  const storeMedia = resolve(
+    process.cwd(),
+    "../cursor/stores/bc-09c7c829-8890-4733-97e5-51250955c098/media/videos",
+  );
+  try {
+    mkdirSync(storeMedia, { recursive: true });
+    copyFileSync(VIDEO_PATH, resolve(storeMedia, "dozen-launch-preview.mp4"));
+    if (existsSync(horizontal)) {
+      copyFileSync(horizontal, resolve(storeMedia, "dozen-launch-horizontal.mp4"));
+    }
+    console.log(`Copied videos → ${storeMedia}`);
+  } catch {
+    // optional store path
   }
   console.log(`Published → ${PUBLIC_DIR}`);
 }
