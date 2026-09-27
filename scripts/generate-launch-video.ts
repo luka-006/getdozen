@@ -22,12 +22,13 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { chromium, type BrowserContext, type Page } from "playwright";
 
-const TOTAL_SEC = 20;
+const TOTAL_SEC = 14;
 const FPS = 30;
 /** 9:16 — TikTok, Reels, Stories, waitlist vertical */
 const OUT_W = 1080;
 const OUT_H = 1920;
-const FADE_SEC = 0.55;
+const FADE_SEC = 0.25;
+const KINETIC_BEAT_SEC = 0.8;
 const MOBILE_W = 390;
 const MOBILE_H = 844;
 const FOCUS_FLOW_ID = "6383baa2-a5da-4249-b3be-0d88bdb8432c";
@@ -145,7 +146,12 @@ const BASE = process.env.PREVIEW_BASE_URL ?? "https://getdozen.dev";
 const OUT_DIR = resolve(process.cwd(), "marketing");
 const CLIPS_DIR = resolve(OUT_DIR, "clips");
 const VIDEO_PATH = resolve(OUT_DIR, "dozen-launch-preview.mp4");
+const HORIZONTAL_PATH = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
+const VOICEOVER_PATH = resolve(CLIPS_DIR, "voiceover.mp3");
 const PUBLIC_DIR = resolve(process.cwd(), "public/marketing");
+const STORE_VIDEO_DIR =
+  process.env.STORE_VIDEO_DIR ??
+  "/cursor/stores/bc-09c7c829-8890-4733-97e5-51250955c098/media/videos";
 const SKIP_CAPTURE = process.argv.includes("--skip-capture");
 const COMPOSE_ONLY = process.argv.includes("--compose-only");
 const MOCK_CAPTURE = process.argv.includes("--mock");
@@ -337,21 +343,27 @@ function introHtml(): string {
   html,body{width:${OUT_W}px;height:${OUT_H}px;overflow:hidden}
   body{display:flex;align-items:center;justify-content:center;
     background:radial-gradient(900px 700px at 50% 25%,#dbeafe 0%,#f4f6fb 42%,#e8ecf4 100%);
-    font-family:system-ui,-apple-system,sans-serif}
+    font-family:system-ui,-apple-system,sans-serif;animation:bgDrift ${CLIP_SEC}s ease-in-out infinite alternate}
   .glow{position:absolute;width:520px;height:520px;border-radius:50%;background:#2563eb28;
-    filter:blur(70px);animation:pulse 3.2s ease-in-out infinite alternate}
-  .wrap{text-align:center;position:relative;z-index:1;padding:0 48px}
+    filter:blur(70px);animation:glowDrift ${CLIP_SEC}s ease-in-out infinite alternate}
+  .wrap{text-align:center;position:relative;z-index:1;padding:0 48px;
+    animation:wrapFloat ${CLIP_SEC}s ease-in-out infinite alternate}
   .logo{font-size:108px;font-weight:900;letter-spacing:-0.05em;color:#0b1f3a;
-    animation:rise 0.95s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.55s cubic-bezier(0.22,1,0.36,1) both, logoPulse ${CLIP_SEC}s 0.55s ease-in-out infinite alternate}
   .tag{margin-top:22px;font-size:40px;font-weight:800;color:#0b1f3a;line-height:1.15;
-    animation:rise 0.85s 0.25s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.5s 0.15s cubic-bezier(0.22,1,0.36,1) both, slideTag ${CLIP_SEC}s 0.65s ease-in-out infinite alternate}
   .sub{margin-top:16px;font-size:24px;font-weight:500;color:#64748b;
-    animation:rise 0.8s 0.45s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.45s 0.28s cubic-bezier(0.22,1,0.36,1) both}
   .pill{display:inline-block;margin-top:32px;padding:14px 28px;border-radius:999px;
     background:#1e4fd8;color:#fff;font-size:18px;font-weight:600;
-    animation:rise 0.75s 0.6s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.4s 0.4s cubic-bezier(0.22,1,0.36,1) both, pillPulse ${CLIP_SEC}s 0.8s ease-in-out infinite alternate}
   @keyframes rise{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
-  @keyframes pulse{from{transform:scale(1);opacity:.7}to{transform:scale(1.1);opacity:1}}
+  @keyframes bgDrift{from{background-position:50% 25%}to{background-position:52% 28%}}
+  @keyframes glowDrift{from{transform:translate(-18px,-12px) scale(1)}to{transform:translate(22px,16px) scale(1.12)}}
+  @keyframes wrapFloat{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+  @keyframes logoPulse{from{transform:scale(1)}to{transform:scale(1.03)}}
+  @keyframes slideTag{from{transform:translateX(-8px)}to{transform:translateX(8px)}}
+  @keyframes pillPulse{from{transform:scale(1);box-shadow:0 0 0 #1e4fd800}to{transform:scale(1.04);box-shadow:0 0 32px #1e4fd855}}
   </style></head><body>
   <div class="glow"></div>
   <div class="wrap">
@@ -368,15 +380,21 @@ function outroHtml(): string {
   html,body{width:${OUT_W}px;height:${OUT_H}px;overflow:hidden}
   body{display:flex;align-items:center;justify-content:center;text-align:center;
     background:linear-gradient(165deg,#1e3a8a 0%,#1e4fd8 45%,#3b82f6 100%);
-    font-family:system-ui,-apple-system,sans-serif;color:#fff}
+    font-family:system-ui,-apple-system,sans-serif;color:#fff;
+    animation:gradShift ${CLIP_SEC}s ease-in-out infinite alternate}
+  .wrap{animation:wrapDrift ${CLIP_SEC}s ease-in-out infinite alternate}
   .url{font-size:72px;font-weight:900;letter-spacing:-0.03em;
-    animation:rise 0.85s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.55s cubic-bezier(0.22,1,0.36,1) both, urlPulse ${CLIP_SEC}s 0.55s ease-in-out infinite alternate}
   .cta{margin-top:22px;font-size:32px;font-weight:500;opacity:.95;
-    animation:rise 0.8s 0.35s cubic-bezier(0.22,1,0.36,1) both}
-  .sub{margin-top:14px;font-size:18px;opacity:.75;animation:rise 0.75s 0.55s cubic-bezier(0.22,1,0.36,1) both}
+    animation:rise 0.5s 0.2s cubic-bezier(0.22,1,0.36,1) both, ctaSlide ${CLIP_SEC}s 0.7s ease-in-out infinite alternate}
+  .sub{margin-top:14px;font-size:18px;opacity:.75;animation:rise 0.45s 0.35s cubic-bezier(0.22,1,0.36,1) both}
   @keyframes rise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+  @keyframes gradShift{from{background-position:0% 50%}to{background-position:100% 50%}}
+  @keyframes wrapDrift{from{transform:translateY(0) scale(1)}to{transform:translateY(-8px) scale(1.02)}}
+  @keyframes urlPulse{from{transform:scale(1)}to{transform:scale(1.04)}}
+  @keyframes ctaSlide{from{transform:translateX(-10px)}to{transform:translateX(10px)}}
   </style></head><body>
-  <div><div class="url">getdozen.dev</div><div class="cta">${MOTTO.outroCta}</div>
+  <div class="wrap"><div class="url">getdozen.dev</div><div class="cta">${MOTTO.outroCta}</div>
   <div class="sub">${MOTTO.outroSub}</div></div></body></html>`;
 }
 
@@ -407,11 +425,47 @@ function assEscape(text: string): string {
   return text.replace(/\\/g, "\\\\").replace(/\{/g, "\\{").replace(/\}/g, "\\}");
 }
 
+function kineticAssLine(
+  startSec: number,
+  endSec: number,
+  style: string,
+  text: string,
+  slideFrom: number,
+): string {
+  const start = assTime(startSec);
+  const end = assTime(endSec);
+  const durMs = Math.round((endSec - startSec) * 1000);
+  const fadeIn = Math.min(220, durMs);
+  const fadeOut = Math.min(180, durMs);
+  const xFrom = slideFrom;
+  const xTo = 0;
+  return `Dialogue: 0,${start},${end},${style},,0,0,0,,{\\fad(${fadeIn},${fadeOut})\\move(${520 + xFrom},820,520,820,0,${durMs})\\t(0,${durMs},\\fscx100\\fscy100)}${text}`;
+}
+
 function writeAssCaption(seg: PhoneScene, path: string) {
-  const end = assTime(CLIP_SEC);
   const eyebrow = assEscape((seg.eyebrow ?? "").toUpperCase());
   const title = assEscape(seg.title ?? "");
   const desc = assEscape(seg.description ?? "");
+  const beats = [
+    { t0: 0.05, t1: Math.min(CLIP_SEC, 0.05 + KINETIC_BEAT_SEC), style: "Eyebrow", text: eyebrow, slide: -36 },
+    {
+      t0: 0.05 + KINETIC_BEAT_SEC * 0.5,
+      t1: Math.min(CLIP_SEC, 0.05 + KINETIC_BEAT_SEC * 1.5),
+      style: "Title",
+      text: title,
+      slide: 42,
+    },
+    {
+      t0: 0.05 + KINETIC_BEAT_SEC,
+      t1: CLIP_SEC,
+      style: "Desc",
+      text: desc,
+      slide: -28,
+    },
+  ];
+  const events = beats
+    .map((b) => kineticAssLine(b.t0, b.t1, b.style, b.text, b.slide))
+    .join("\n");
   const content = `[Script Info]
 ScriptType: v4.00+
 PlayResX: ${OUT_W}
@@ -426,28 +480,21 @@ Style: Desc,Arial,26,&H00475669,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
-Dialogue: 0,0:00:00.10,${end},Eyebrow,,0,0,0,,{\\fad(280,0)}${eyebrow}
-Dialogue: 0,0:00:00.24,${end},Title,,0,0,0,,{\\fad(420,0)\\fscx108\\fscy108\\t(0,420,\\fscx100\\fscy100)}${title}
-Dialogue: 0,0:00:00.38,${end},Desc,,0,0,0,,{\\fad(480,0)}${desc}
+${events}
 `;
   writeFileSync(path, content, "utf8");
 }
 
-async function ensurePhoneFramePng(
-  browser: Awaited<ReturnType<typeof chromium.launch>>,
-): Promise<string> {
-  const pngPath = resolve(CLIPS_DIR, "phone-frame.png");
-  if (existsSync(pngPath)) return pngPath;
-
+function phoneFrameHtml(): string {
   const { x, y, w, h } = PHONE_SCREEN;
   const pad = 12;
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{width:${OUT_W}px;height:${OUT_H}px;background:transparent}
+  html,body{width:${OUT_W}px;height:${OUT_H}px;background:transparent;perspective:1400px}
+  .rig{position:absolute;left:0;top:0;width:${OUT_W}px;height:${OUT_H}px;
+    transform-style:preserve-3d;animation:phoneDrift ${CLIP_SEC}s ease-in-out infinite alternate}
   .device{position:absolute;left:${x - pad - 8}px;top:${y - pad - 28}px;
-    width:${w + pad * 2 + 16}px;height:${h + pad * 2 + 36}px;
-    transform:perspective(1200px) rotateY(-14deg) rotateX(6deg);
-    transform-origin:50% 60%}
+    width:${w + pad * 2 + 16}px;height:${h + pad * 2 + 36}px;transform-origin:50% 60%}
   .frame{position:absolute;inset:0;border-radius:44px;border:12px solid #141416;
     background:linear-gradient(145deg,#2a2a2e,#0f0f12 55%,#1a1a1f);
     box-shadow:inset 0 1px 0 #ffffff30,0 50px 100px #0b1f3a45,0 12px 32px #0b1f3a25}
@@ -456,18 +503,37 @@ async function ensurePhoneFramePng(
     pointer-events:none}
   .notch{position:absolute;left:50%;top:10px;transform:translateX(-50%);
     width:108px;height:26px;background:#141416;border-radius:14px;z-index:2}
+  @keyframes phoneDrift{
+    from{transform:rotateY(-10deg) rotateX(5deg) translateY(0)}
+    to{transform:rotateY(10deg) rotateX(-4deg) translateY(-10px)}
+  }
   </style></head><body>
-  <div class="device"><div class="frame"></div><div class="shine"></div><div class="notch"></div></div>
+  <div class="rig"><div class="device"><div class="frame"></div><div class="shine"></div><div class="notch"></div></div></div>
   </body></html>`;
+}
+
+async function ensurePhoneFrameClip(
+  browser: Awaited<ReturnType<typeof chromium.launch>>,
+): Promise<string> {
+  const clipPath = resolve(CLIPS_DIR, "phone-frame.webm");
+  if (existsSync(clipPath)) return clipPath;
+
+  const out = resolve(CLIPS_DIR, "phone-frame.webm");
+  if (existsSync(out)) unlinkSync(out);
 
   const ctx = await browser.newContext({
     viewport: { width: OUT_W, height: OUT_H },
+    recordVideo: { dir: CLIPS_DIR, size: { width: OUT_W, height: OUT_H } },
   });
   const page = await ctx.newPage();
-  await page.setContent(html, { waitUntil: "load" });
-  await page.screenshot({ path: pngPath, omitBackground: true });
+  await page.setContent(phoneFrameHtml(), { waitUntil: "load" });
+  await page.waitForTimeout(CLIP_SEC * 1000);
+  const video = page.video();
   await ctx.close();
-  return pngPath;
+  if (!video) throw new Error("No phone frame recording");
+  renameSync(await video.path(), out);
+  console.log("  phone frame (animated)");
+  return out;
 }
 
 async function recordMockMobileClip(
@@ -555,7 +621,7 @@ async function recordMobileClip(
   console.log(`  mobile ${slug}`);
 }
 
-function composePhoneScene(ffmpegBin: string, seg: PhoneScene, framePng: string) {
+function composePhoneScene(ffmpegBin: string, seg: PhoneScene, frameClip: string) {
   const mobileWebm = resolve(CLIPS_DIR, `${seg.mobileSlug}.webm`);
   const out = resolve(CLIPS_DIR, `${seg.slug}.mp4`);
   const assPath = resolve(CLIPS_DIR, `${seg.slug}.ass`);
@@ -566,16 +632,21 @@ function composePhoneScene(ffmpegBin: string, seg: PhoneScene, framePng: string)
   const dur = CLIP_SEC.toFixed(3);
   const trimStart = (MOCK_CAPTURE ? 0 : (seg.trimStart ?? MOBILE_TRIM_START)).toFixed(3);
   const trimDur = (CLIP_SEC + 0.4).toFixed(3);
-  const kenFrames = Math.ceil(CLIP_SEC * FPS);
-  const appChain = MOCK_CAPTURE
-    ? `trim=start=${trimStart}:duration=${trimDur},setpts=PTS-STARTPTS,fps=${FPS},scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h}`
-    : `trim=start=${trimStart}:duration=${trimDur},setpts=PTS-STARTPTS,fps=${FPS},scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},zoompan=z='min(1.08,1+0.08*on/${kenFrames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s=${w}x${h}:fps=${FPS}`;
+  const kenFrames = Math.max(1, Math.ceil(CLIP_SEC * FPS));
+  const appChain = [
+    `trim=start=${trimStart}:duration=${trimDur}`,
+    "setpts=PTS-STARTPTS",
+    `fps=${FPS}`,
+    `scale=${w}:${h}:force_original_aspect_ratio=increase`,
+    `crop=${w}:${h}`,
+    `zoompan=z='min(1.1,1+0.1*on/${kenFrames})':x='iw/2-(iw/zoom/2)+12*sin(on/8)':y='ih/2-(ih/zoom/2)+6*sin(on/11)':d=1:s=${w}x${h}:fps=${FPS}`,
+  ].join(",");
 
   const filter = [
     `color=c=0xf4f6fb:s=${OUT_W}x${OUT_H}:d=${dur}:r=${FPS}[bg]`,
     `[0:v]${appChain}[app]`,
     `[bg][app]overlay=${x}:${y}:format=auto[layer1]`,
-    `[1:v]scale=${OUT_W}:${OUT_H}[frame]`,
+    `[1:v]scale=${OUT_W}:${OUT_H},loop=loop=-1:size=1:start=0,trim=duration=${dur},setpts=PTS-STARTPTS[frame]`,
     `[layer1][frame]overlay=0:0:format=auto[layer2]`,
     `[layer2]subtitles='${assEsc}',fps=${FPS}[vout]`,
   ].join(";");
@@ -585,7 +656,7 @@ function composePhoneScene(ffmpegBin: string, seg: PhoneScene, framePng: string)
     "-i",
     mobileWebm,
     "-i",
-    framePng,
+    frameClip,
     "-filter_complex",
     filter,
     "-map",
@@ -658,9 +729,9 @@ async function recordAll(ffmpegBin: string) {
   }
 
   console.log("Compositing phone scenes + intro/outro…");
-  const framePng = await ensurePhoneFramePng(browser);
+  const frameClip = await ensurePhoneFrameClip(browser);
   for (const seg of SEGMENTS) {
-    if (seg.kind === "phone") composePhoneScene(ffmpegBin, seg, framePng);
+    if (seg.kind === "phone") composePhoneScene(ffmpegBin, seg, frameClip);
   }
   await recordStudioPage(browser, "01-intro", introHtml());
   await recordStudioPage(browser, "06-outro", outroHtml());
@@ -706,6 +777,14 @@ function segmentSource(slug: string): string {
   return resolve(CLIPS_DIR, `${slug}.webm`);
 }
 
+function voiceoverInputArgs(): string[] {
+  if (!existsSync(VOICEOVER_PATH)) {
+    console.warn(`No voiceover at ${VOICEOVER_PATH} — exporting silent video`);
+    return [];
+  }
+  return ["-i", VOICEOVER_PATH];
+}
+
 function stitchMock(ffmpegBin: string) {
   const slugs = SEGMENTS.map((s) => s.slug);
   for (const slug of slugs) {
@@ -718,13 +797,17 @@ function stitchMock(ffmpegBin: string) {
   }
 
   const concatIn = slugs.map((_, i) => `[${i}:v]`).join("");
+  const voArgs = voiceoverInputArgs();
+  const hasVo = voArgs.length > 0;
   runFfmpeg(ffmpegBin, [
     "-y",
     ...slugs.flatMap((s) => ["-i", resolve(CLIPS_DIR, `${s}.norm.mp4`)]),
+    ...voArgs,
     "-filter_complex",
     `${concatIn}concat=n=${slugs.length}:v=1:a=0,fps=${FPS},fade=t=in:st=0:d=0.25,fade=t=out:st=${(TOTAL_SEC - 0.25).toFixed(3)}:d=0.25[vout]`,
     "-map",
     "[vout]",
+    ...(hasVo ? ["-map", `${slugs.length}:a`, "-c:a", "aac", "-b:a", "192k", "-shortest"] : []),
     "-t",
     String(TOTAL_SEC),
     "-c:v",
@@ -780,16 +863,20 @@ function stitch(ffmpegBin: string) {
   }
 
   parts.push(
-    `[vmerged]tpad=stop_mode=clone:stop_duration=0.45,fade=t=in:st=0:d=0.2,fade=t=out:st=${(TOTAL_SEC - 0.2).toFixed(3)}:d=0.2[vout]`,
+    `[vmerged]tpad=stop_mode=clone:stop_duration=0.2,fade=t=in:st=0:d=0.25,fade=t=out:st=${(TOTAL_SEC - 0.25).toFixed(3)}:d=0.25[vout]`,
   );
 
+  const voArgs = voiceoverInputArgs();
+  const voIdx = slugs.length;
   runFfmpeg(ffmpegBin, [
     "-y",
     ...slugs.flatMap((s) => ["-i", resolve(CLIPS_DIR, `${s}.norm.mp4`)]),
+    ...voArgs,
     "-filter_complex",
     parts.join(";"),
     "-map",
     "[vout]",
+    ...(voArgs.length ? ["-map", `${voIdx}:a`, "-c:a", "aac", "-b:a", "192k", "-shortest"] : []),
     "-t",
     String(TOTAL_SEC),
     "-c:v",
@@ -818,9 +905,9 @@ async function main() {
   if (COMPOSE_ONLY || (SKIP_CAPTURE && !MOCK_CAPTURE)) {
     mkdirSync(CLIPS_DIR, { recursive: true });
     const browser = await chromium.launch({ headless: true });
-    const framePng = await ensurePhoneFramePng(browser);
+    const frameClip = await ensurePhoneFrameClip(browser);
     for (const seg of SEGMENTS) {
-      if (seg.kind === "phone") composePhoneScene(ffmpegBin, seg, framePng);
+      if (seg.kind === "phone") composePhoneScene(ffmpegBin, seg, frameClip);
     }
     await recordStudioPage(browser, "01-intro", introHtml());
     await recordStudioPage(browser, "06-outro", outroHtml());
@@ -832,18 +919,35 @@ async function main() {
   }
 
   stitch(ffmpegBin);
+<<<<<<< HEAD
   buildHorizontal(ffmpegBin);
   publishPublicVideos();
 }
 
 function buildHorizontal(ffmpegBin: string) {
   const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
+=======
+  exportHorizontal(ffmpegBin);
+  publishPublicVideos();
+}
+
+function exportHorizontal(ffmpegBin: string) {
+  const videoHasAudio = existsSync(VOICEOVER_PATH);
+>>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
   runFfmpeg(ffmpegBin, [
     "-y",
     "-i",
     VIDEO_PATH,
+<<<<<<< HEAD
     "-vf",
     "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080",
+=======
+    "-filter_complex",
+    `[0:v]scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,fps=${FPS}[vout]`,
+    "-map",
+    "[vout]",
+    ...(videoHasAudio ? ["-map", "0:a", "-c:a", "aac", "-b:a", "192k"] : []),
+>>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
     "-c:v",
     "libx264",
     "-preset",
@@ -852,20 +956,32 @@ function buildHorizontal(ffmpegBin: string) {
     "18",
     "-pix_fmt",
     "yuv420p",
+<<<<<<< HEAD
     "-an",
     horizontal,
   ]);
   console.log(`Wrote ${horizontal}`);
   return horizontal;
+=======
+    "-movflags",
+    "+faststart",
+    HORIZONTAL_PATH,
+  ]);
+  const dur = probeDuration(ffmpegBin, HORIZONTAL_PATH);
+  console.log(`Wrote ${HORIZONTAL_PATH} (1920×1080, ${dur?.toFixed(2) ?? "?"}s)`);
+>>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
 }
 
 function publishPublicVideos() {
   mkdirSync(PUBLIC_DIR, { recursive: true });
+  mkdirSync(STORE_VIDEO_DIR, { recursive: true });
   copyFileSync(VIDEO_PATH, resolve(PUBLIC_DIR, "dozen-launch-preview.mp4"));
-  const horizontal = resolve(OUT_DIR, "dozen-launch-horizontal.mp4");
-  if (existsSync(horizontal)) {
-    copyFileSync(horizontal, resolve(PUBLIC_DIR, "dozen-launch-horizontal.mp4"));
+  copyFileSync(VIDEO_PATH, resolve(STORE_VIDEO_DIR, "dozen-launch-preview.mp4"));
+  if (existsSync(HORIZONTAL_PATH)) {
+    copyFileSync(HORIZONTAL_PATH, resolve(PUBLIC_DIR, "dozen-launch-horizontal.mp4"));
+    copyFileSync(HORIZONTAL_PATH, resolve(STORE_VIDEO_DIR, "dozen-launch-horizontal.mp4"));
   }
+<<<<<<< HEAD
   const storeMedia = resolve(
     process.cwd(),
     "../cursor/stores/bc-09c7c829-8890-4733-97e5-51250955c098/media/videos",
@@ -881,6 +997,9 @@ function publishPublicVideos() {
     // optional store path
   }
   console.log(`Published → ${PUBLIC_DIR}`);
+=======
+  console.log(`Published → ${PUBLIC_DIR} + ${STORE_VIDEO_DIR}`);
+>>>>>>> f4a23a2 (Rebuild launch promo video with motion and voiceover)
 }
 
 main().catch((err) => {
