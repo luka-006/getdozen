@@ -91,6 +91,9 @@ npx tsx scripts/verify-cron.ts https://getdozen.dev
 | `npx tsx scripts/test-support-email.ts` | Send test support email via Resend |
 | `npx tsx scripts/seed-preview-data.ts` | Demo board posts for preview video |
 | `npx tsx scripts/seed-preview-data.ts --clear` | Remove demo posts |
+| `npx tsx scripts/seed-john-profile.ts` | Promo mock data for `john@getdozen.dev` only |
+| `npx tsx scripts/seed-john-profile.ts --clear` | Remove John's promo data |
+| `npx tsx scripts/seed-john-profile.ts --dry-run` | Preview changes without writing |
 | `npx tsx scripts/capture-marketing-mockups.ts` | Waitlist PNGs from static mockups (no auth) |
 | `npx tsx scripts/capture-waitlist-phones.ts` | Waitlist PNGs from live prod (needs auth) |
 | `npx tsx scripts/generate-launch-video.ts --mock` | 9:16 launch video without Supabase |
