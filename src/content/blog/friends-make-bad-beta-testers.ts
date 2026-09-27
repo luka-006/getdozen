@@ -30,7 +30,7 @@ You need that sentence. It is the one that saves you from launching a tour of yo
 
 Friends are a smoke test. Does the link open. Does signup work on a second phone. Did you forget the Android build. That is a 20-minute job. Thank them. Do not put their quotes in your launch thread as if they were customers.
 
-If a friend is also your exact user — a designer who already pays for the category, a parent who already uses three tracker apps — treat them as one tester, not as the whole panel. Still get eleven more who are not in your photos.
+If a friend is also your exact user, a designer who already pays for the category or a parent who already uses three tracker apps, treat them as one tester, not as the whole panel. Still get eleven more who are not in your photos.
 
 ## The closed-test trap
 

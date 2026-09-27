@@ -13,9 +13,9 @@ import { DOT_PACKS, EUR_PER_DOT, PRO_PRICE_EUR } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
-  title: "Pricing — dots for tester & feedback requests",
+  title: "Pricing",
   description:
-    `Dot packs, custom amounts, and Pro on Dozen. Pay per tester for Google Play, TestFlight, Steam, or web closed tests — or post structured feedback requests.`,
+    `Dot packs, custom amounts, and Pro on Dozen. Pay per tester for Google Play, TestFlight, Steam, or web closed tests, or post structured feedback requests.`,
   path: "/pricing",
   keywords: [
     "app testing pricing",
@@ -35,9 +35,6 @@ export default async function PricingPage() {
   return (
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <h1 className="font-display text-[32px] font-semibold">Pricing</h1>
-      <p className="mt-1 text-[14px] text-ink/65">
-        Base rate €{EUR_PER_DOT} / Dot. Bigger packs cost less.
-      </p>
 
       <section className="mt-8 space-y-3">
         <h2 className="font-display text-[22px] font-semibold">How posting works</h2>
@@ -46,7 +43,7 @@ export default async function PricingPage() {
           <li>
             Testers: {TESTER_COST} Dots per tester, minimum {MIN_TESTERS}.
           </li>
-          <li>Combo packs keep the prices below — cheaper than buying both.</li>
+          <li>Combo packs keep the prices below, cheaper than buying both.</li>
         </ul>
       </section>
 

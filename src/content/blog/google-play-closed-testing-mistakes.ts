@@ -52,7 +52,7 @@ Closed testing is for bugs and confusion. Store campaigns are for social proof. 
 
 ## Your testers installed once and left
 
-Android makes install easy and return hard. No daily reason, no notes, no filled cubes — just a number on a dashboard. Give them a task, a duration, and [questions that force specificity](/blog/app-feedback-questions). Silence on day three is data.
+Android makes install easy and return hard. No daily reason, no notes, no filled cubes, just a number on a dashboard. Give them a task, a duration, and [questions that force specificity](/blog/app-feedback-questions). Silence on day three is data.
 
 Fix the access layer first. Then run a small loud test instead of a large quiet list.`,
 };

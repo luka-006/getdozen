@@ -8,7 +8,7 @@ export function waitlistLaunchEmailHtml() {
   return renderMailLayout({
     title: "Dozen is open",
     bodyHtml: `
-      <p style="margin:0 0 12px">Hi —</p>
+      <p style="margin:0 0 12px">Hi,</p>
       <p style="margin:0">Test apps and indie games, earn Dots for quality feedback, and post your own work for structured reviews from real testers.</p>
     `,
     cta: { label: "Create your account", href: `${SITE}/signup` },
@@ -63,7 +63,7 @@ export async function sendWaitlistLaunchEmails(opts: {
     return { dryRun: true, recipients, sent: 0, failed: 0, errors: [] };
   }
 
-  const subject = "Dozen is open — test apps, earn Dots, get feedback";
+  const subject = "Dozen is open: test apps, earn Dots, get feedback";
   let sent = 0;
   let failed = 0;
   const errors: string[] = [];

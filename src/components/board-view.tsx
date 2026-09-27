@@ -204,7 +204,7 @@ export function BoardView({
         <div className="mt-10 max-w-[40rem] space-y-3 text-[15px] text-ink/75">
           <p>
             Language reviews are not open yet. This track is for store listing
-            copy — title, description, and screenshots — checked by native
+            copy: title, description, and screenshots, checked by native
             speakers.
           </p>
           <p>
@@ -305,7 +305,7 @@ function TrackTabs({
         className="track-tab track-tab-disabled"
         role="tab"
         aria-disabled="true"
-        aria-label="Language — coming soon"
+        aria-label="Language, coming soon"
         title="Coming soon"
       >
         Language

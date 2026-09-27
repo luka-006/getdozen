@@ -9,9 +9,9 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata = {
   ...pageMetadata({
-    title: "Blog — testers, closed tests, app feedback",
+    title: "Blog",
     description:
-      "Human notes on 12 testers, closed tests, and structured app feedback — written for indie makers who actually ship.",
+      "Human notes on 12 testers, closed tests, and structured app feedback, written for indie makers who actually ship.",
     path: "/blog",
     rss: true,
     keywords: [

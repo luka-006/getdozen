@@ -328,7 +328,7 @@ export function QuestionBuilder({
       </div>
       ) : (
         <p className="text-[13px] text-ink/60">
-          {total} / {needExact ?? "—"} questions
+          {total} / {needExact ?? "?"} questions
           {needExact && !exactOk ? (
             <span className="text-flag"> · need exactly {needExact}</span>
           ) : null}

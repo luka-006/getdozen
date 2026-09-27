@@ -16,7 +16,7 @@ import {
 
 export async function requestWaitlistCode(formData: FormData) {
   if (isLaunchOpen()) {
-    return { ok: false as const, error: "Dozen is open — use Join instead." };
+    return { ok: false as const, error: "Dozen is open. Use Join instead." };
   }
 
   const email = normalizeWaitlistEmail(formData.get("email"));
@@ -55,7 +55,7 @@ export async function requestWaitlistCode(formData: FormData) {
 
 export async function confirmWaitlistCode(formData: FormData) {
   if (isLaunchOpen()) {
-    return { ok: false as const, error: "Dozen is open — use Join instead." };
+    return { ok: false as const, error: "Dozen is open. Use Join instead." };
   }
 
   const email = normalizeWaitlistEmail(formData.get("email"));
@@ -81,7 +81,7 @@ export async function confirmWaitlistCode(formData: FormData) {
 
 export async function cancelWaitlistEnrollment(formData: FormData) {
   if (isLaunchOpen()) {
-    return { ok: false as const, error: "Dozen is open — no waitlist to leave." };
+    return { ok: false as const, error: "Dozen is open. No waitlist to leave." };
   }
 
   const email = normalizeWaitlistEmail(formData.get("email"));

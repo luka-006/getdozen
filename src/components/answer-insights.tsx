@@ -15,7 +15,7 @@ export function AnswerInsights({
           Most picked answers
         </h2>
         <p className="mt-1 text-[13px] text-ink/60">
-          Top chip picks from reviewers on your questions — updated as feedback
+          Top chip picks from reviewers on your questions, updated as feedback
           comes in.
         </p>
       </div>

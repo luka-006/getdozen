@@ -22,7 +22,7 @@ export const getPaidTestingApps: BlogPost = {
   ],
   body: `Most "get paid to test apps" pages are survey mills with a Play Store skin. You install, you smash a Google Form, you never open the thing again. The maker learns nothing. You learned that a side hustle can feel like a chore.
 
-Dozen is smaller and more annoying, on purpose. You join a maker's tester post. You use the app for the days they posted — a week up to a month. You check in. You write answers that would make a stranger understand the product. You get dots for that, not for a screenshot of a rating.
+Dozen is smaller and more annoying, on purpose. You join a maker's tester post. You use the app for the days they posted, a week up to a month. You check in. You write answers that would make a stranger understand the product. You get dots for that, not for a screenshot of a rating.
 
 ## What you actually do
 

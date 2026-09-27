@@ -151,7 +151,7 @@ export const QUESTION_LIBRARY = [
   {
     category: "Gameplay",
     questions: [
-      "What was fun in the first 10 minutes — and what felt boring?",
+      "What was fun in the first 10 minutes, and what felt boring?",
       "Were the controls or inputs intuitive on your device?",
       "What would you change about difficulty, pacing, or tutorials?",
       "Would you come back tomorrow? Why or why not?",

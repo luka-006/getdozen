@@ -3,7 +3,7 @@ import { DOZEN_BRAND_BLUE, DOZEN_MARK_INK } from "@/lib/dozen-mark-data";
 import { DozenMarkBoxes } from "@/lib/dozen-mark-image";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo";
 
-export const alt = "Dozen — Test apps. Earn. Get feedback.";
+export const alt = "Dozen";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

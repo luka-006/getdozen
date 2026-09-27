@@ -5,9 +5,9 @@ import { pageMetadata } from "@/lib/seo";
 import { SITE_EMAIL } from "@/lib/site-email";
 
 export const metadata: Metadata = pageMetadata({
-  title: "Contact Dozen — support & questions",
+  title: "Contact Dozen",
   description:
-    `Reach the Dozen team at ${SITE_EMAIL}. Questions about closed testing, dots, billing, or your tester posts — we reply from this inbox.`,
+    `Reach the Dozen team at ${SITE_EMAIL}. Questions about closed testing, dots, billing, or your tester posts. We reply from this inbox.`,
   path: "/contact",
 });
 
@@ -20,7 +20,7 @@ export default async function ContactPage() {
       <p className="mt-2 text-[15px] text-ink/70">
         Reach us at{" "}
         <span className="font-medium text-ink">{SITE_EMAIL}</span>. Use the form
-        below — it delivers straight to our inbox (no mail app required).
+        below. It delivers straight to our inbox (no mail app required).
       </p>
       <div className="surface mt-8 p-5">
         <SupportForm email={profile?.email ?? ""} />

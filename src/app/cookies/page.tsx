@@ -34,12 +34,12 @@ export default function CookiesPage() {
       <LegalH>What we set on getdozen.dev</LegalH>
       <ul className="list-disc space-y-2 pl-5">
         <li>
-          <strong>Supabase session cookies</strong> — keep a signed-in session
+          <strong>Supabase session cookies</strong>: keep a signed-in session
           after email, Google, or a waitlist confirmation. Without them login
           and the confirmation flow cannot work.
         </li>
         <li>
-          <strong>dozen_auth_next</strong> — short-lived, stores the path to
+          <strong>dozen_auth_next</strong>: short-lived, stores the path to
           return to after sign-in.
         </li>
         <li>
@@ -47,7 +47,7 @@ export default function CookiesPage() {
           solely to deliver the site (for example bot or TLS cookies).
         </li>
         <li>
-          <strong>Cloudflare Turnstile</strong> — a short-lived challenge
+          <strong>Cloudflare Turnstile</strong>: a short-lived challenge
           cookie used only on account, waitlist, and bug-report forms to stop
           bots. It is not used for advertising.
         </li>

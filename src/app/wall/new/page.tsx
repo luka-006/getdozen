@@ -23,7 +23,7 @@ export default async function NewShippedAppPage({ searchParams }: Props) {
     <div className="mx-auto w-full max-w-[720px] px-4 py-8">
       <p className="text-[13px] text-ink/55">
         <Link href="/wall" className="text-blue">
-          Wall
+          Wall Of Fame
         </Link>{" "}
         / add
       </p>

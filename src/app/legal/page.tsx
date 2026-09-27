@@ -30,7 +30,7 @@ export default function LegalPage() {
         Identification of the information-society service provider under
         Article 6 of the Croatian Electronic Commerce Act and pre-contract
         information under Croatian consumer law. For complaints write to{" "}
-        <LegalEmailLink /> — we respond within {COMPLAINT_RESPONSE_DAYS} days.
+        <LegalEmailLink />. We respond within {COMPLAINT_RESPONSE_DAYS} days.
       </p>
 
       <LegalH>Prices</LegalH>

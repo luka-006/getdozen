@@ -73,7 +73,6 @@ export async function middleware(request: NextRequest) {
     path.startsWith("/api/resend") ||
     path.startsWith("/api/stripe") ||
     path === "/wall" ||
-    path === "/pricing" ||
     path === "/guides" ||
     path === "/blog" ||
     path.startsWith("/blog/") ||

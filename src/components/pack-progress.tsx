@@ -69,7 +69,7 @@ export function PackProgress({
               ? "Waiting for a reviewer"
               : reviewConfirmed
                 ? "Confirmed"
-                : "Submitted — confirm or wait for auto-confirm"
+                : "Submitted. Confirm or wait for auto-confirm"
           }
         />
         <Step
