@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Wallet</title>
+    <link rel="stylesheet" href="_shared.css" />
+    <style>
+      .balance {
+        margin-top: 16px;
+        padding: 18px;
+        border-radius: 16px;
+        background: linear-gradient(145deg, #1e4fd8, #3b82f6);
+        color: #fff;
+      }
+      .balance strong {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 36px;
+        display: block;
+        margin-top: 6px;
+      }
+      .balance span {
+        font-size: 13px;
+        opacity: 0.85;
+      }
+      .pack {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .pack:last-child {
+        border-bottom: none;
+      }
+      .ledger-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .ledger-row:last-child {
+        border-bottom: none;
+      }
+      .credit {
+        font-family: "IBM Plex Mono", monospace;
+        font-weight: 600;
+        color: var(--blue);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="atmosphere">
+      <header>
+        <div class="logo"><div class="logo-mark"></div>Dozen</div>
+        <span style="font-size:13px;font-weight:600;color:var(--blue)">Wallet</span>
+      </header>
+      <main>
+        <h1>Wallet</h1>
+        <div class="balance">
+          <span>Available Dots</span>
+          <strong>14.6</strong>
+          <span>+2.4 pending</span>
+        </div>
+        <div class="surface" style="margin-top:16px">
+          <div class="eyebrow">Buy Dots</div>
+          <div class="pack">
+            <div><strong>5 Dots</strong><div class="meta">Starter pack</div></div>
+            <span class="pill pill-blue">€4.99</span>
+          </div>
+          <div class="pack">
+            <div><strong>15 Dots</strong><div class="meta">Most popular</div></div>
+            <span class="pill pill-credit">€12.99</span>
+          </div>
+        </div>
+        <div class="surface">
+          <div class="eyebrow">Recent</div>
+          <div class="ledger-row">
+            <span>Feedback · Orbit Notes</span>
+            <span class="credit">+1.4</span>
+          </div>
+          <div class="ledger-row">
+            <span>Check-in · Focus Flow</span>
+            <span class="credit">+0.8</span>
+          </div>
+          <div class="ledger-row">
+            <span>Posted · Receipt Snap</span>
+            <span class="credit" style="color:#dc2626">−1.6</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Dozen home desktop</title>
+    <link rel="stylesheet" href="_shared.css" />
+    <style>
+      html,
+      body {
+        width: 1280px;
+        height: 800px;
+      }
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 420px 280px;
+        gap: 32px;
+        align-items: center;
+        min-height: calc(100% - 56px);
+        padding: 24px 48px 48px;
+      }
+      .hero-title {
+        font-family: Archivo, sans-serif;
+        font-size: 52px;
+        font-weight: 700;
+        line-height: 1.05;
+        margin-top: 12px;
+      }
+      .hero-lead {
+        margin-top: 16px;
+        font-size: 18px;
+        line-height: 1.5;
+        max-width: 34rem;
+        color: color-mix(in srgb, var(--ink) 72%, transparent);
+      }
+      .phone-stack {
+        position: relative;
+        height: 520px;
+      }
+      .phone {
+        position: absolute;
+        width: 220px;
+        height: 460px;
+        border-radius: 28px;
+        border: 10px solid #141416;
+        background: #fff;
+        box-shadow: 0 30px 80px color-mix(in srgb, var(--ink) 18%, transparent);
+        overflow: hidden;
+      }
+      .phone:nth-child(1) {
+        left: 0;
+        top: 40px;
+        transform: rotate(-8deg);
+      }
+      .phone:nth-child(2) {
+        left: 120px;
+        top: 0;
+        transform: rotate(4deg);
+        z-index: 2;
+      }
+      .phone:nth-child(3) {
+        left: 240px;
+        top: 56px;
+        transform: rotate(10deg);
+      }
+      .screen {
+        height: 100%;
+        background: linear-gradient(180deg, #eff6ff, #fff);
+        padding: 16px;
+        font-size: 11px;
+      }
+      .cta-card {
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 20px;
+        background: color-mix(in srgb, var(--paper) 92%, white);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="atmosphere">
+      <header>
+        <div class="logo"><div class="logo-mark"></div>Dozen</div>
+        <span style="font-size:13px;font-weight:600;color:var(--blue)">Join the board</span>
+      </header>
+      <div class="layout">
+        <section>
+          <p class="eyebrow">Structured feedback marketplace</p>
+          <h1 class="hero-title">Test apps. Earn Dots. Ship better.</h1>
+          <p class="hero-lead">
+            Real testers for mobile apps, web tools, and indie games — feedback runs, check-ins, and quality reviews in one place.
+          </p>
+          <div style="margin-top:18px">
+            <span class="pill pill-blue">12 testers</span>
+            <span class="pill">14-day runs</span>
+            <span class="pill pill-credit">Earn Dots</span>
+          </div>
+        </section>
+        <div class="phone-stack">
+          <div class="phone"><div class="screen"><strong>Feedback board</strong><br />Receipt Snap · 6 Q</div></div>
+          <div class="phone"><div class="screen"><strong>Tester run</strong><br />Focus Flow · 8/12</div></div>
+          <div class="phone"><div class="screen"><strong>Review form</strong><br />Campfire Chat</div></div>
+        </div>
+        <div class="cta-card">
+          <div class="eyebrow">Get started</div>
+          <button class="btn btn-primary" type="button">Create account</button>
+          <p class="meta" style="margin-top:12px">Free to join · Post feedback or opt into tester runs</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

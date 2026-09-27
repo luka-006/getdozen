@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Profile</title>
+    <link rel="stylesheet" href="_shared.css" />
+    <style>
+      .avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 999px;
+        background: linear-gradient(145deg, #c4b5fd, #7c3aed);
+        border: 3px solid var(--paper);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent);
+      }
+      .profile-head {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 8px;
+      }
+      .name {
+        font-family: Archivo, sans-serif;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .badge {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        background: color-mix(in srgb, var(--blue) 12%, var(--paper));
+        color: var(--blue);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="atmosphere">
+      <header>
+        <div class="logo"><div class="logo-mark"></div>Dozen</div>
+        <span style="font-size:13px;font-weight:600">Profile</span>
+      </header>
+      <main>
+        <div class="profile-head">
+          <div class="avatar"></div>
+          <div>
+            <div class="name">Mira K.</div>
+            <span class="badge">Ramped tester</span>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat"><strong>24</strong><span>Reviews given</span></div>
+          <div class="stat"><strong>4.8</strong><span>Avg rating</span></div>
+          <div class="stat"><strong>12</strong><span>Tester runs</span></div>
+          <div class="stat"><strong>18.4</strong><span>Dots earned</span></div>
+        </div>
+        <div class="surface" style="margin-top:14px">
+          <div class="eyebrow">Recent activity</div>
+          <div class="card-title" style="margin-top:8px">Focus Flow · Day 9 check-in</div>
+          <p class="meta">Onboarding is clear but settings feels buried.</p>
+        </div>
+        <div class="surface">
+          <div class="card-title">Campfire Chat · Feedback review</div>
+          <p class="meta">Earned 1.2 Dots · Quality score 92%</p>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
