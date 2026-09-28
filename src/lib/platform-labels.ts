@@ -6,6 +6,7 @@ export const PLATFORM_LABELS: Record<Platform, string> = {
   android: "Android",
   steam: "Steam",
   itch: "itch.io",
+  other: "Other",
 };
 
 export const PRODUCT_TYPE_LABELS: Record<ProductType, string> = {

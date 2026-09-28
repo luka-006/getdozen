@@ -27,7 +27,14 @@ describe("platform-access", () => {
   it("normalizes game platforms", () => {
     assert.equal(normalizePlatform("steam"), "steam");
     assert.equal(normalizePlatform("itch"), "itch");
+    assert.equal(normalizePlatform("other"), "other");
     assert.equal(normalizePlatform("unknown"), "web");
+  });
+
+  it("treats other as a generic platform without beta fields", () => {
+    assert.equal(playConsoleOptInRequired("other"), false);
+    assert.equal(showsBetaAccessField("other"), false);
+    assert.equal(betaAccessLinkRequired("other"), false);
   });
 
   it("validates opt-in URLs", () => {

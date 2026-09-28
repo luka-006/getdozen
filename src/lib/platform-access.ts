@@ -129,7 +129,8 @@ export function normalizePlatform(value: string | null | undefined): Platform {
     value === "android" ||
     value === "web" ||
     value === "steam" ||
-    value === "itch"
+    value === "itch" ||
+    value === "other"
   ) {
     return value;
   }

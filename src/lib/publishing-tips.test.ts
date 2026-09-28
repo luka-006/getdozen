@@ -23,4 +23,13 @@ describe("publishingTipsFor", () => {
     const tips = publishingTipsFor("steam", "game");
     assert.ok(tips.some((t) => t.id === "steam-playtest-vs-store"));
   });
+
+  it("returns universal tips only for other platforms", () => {
+    const tips = publishingTipsFor("other", "app");
+    assert.equal(tips.length, 1);
+    assert.ok(tips.some((t) => t.id === "universal-job"));
+    assert.ok(!tips.some((t) => t.id.startsWith("android-")));
+    assert.ok(!tips.some((t) => t.id.startsWith("ios-")));
+    assert.ok(!tips.some((t) => t.id.startsWith("web-")));
+  });
 });
