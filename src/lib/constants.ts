@@ -79,14 +79,15 @@ export const LAUNCH_BONUS_DAYS = 14;
 export const PRODUCT_TYPES = ["app", "game"] as const;
 export type ProductType = (typeof PRODUCT_TYPES)[number];
 
-export const APP_PLATFORMS = ["web", "ios", "android"] as const;
-export const GAME_PLATFORMS = ["steam", "itch", "web"] as const;
+export const APP_PLATFORMS = ["web", "ios", "android", "other"] as const;
+export const GAME_PLATFORMS = ["steam", "itch", "web", "other"] as const;
 export const PLATFORMS = [
   "web",
   "ios",
   "android",
   "steam",
   "itch",
+  "other",
 ] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
@@ -104,6 +105,7 @@ export const FOCUS_TAGS = [
   "Market",
   "Technical",
   "Gameplay",
+  "Other",
 ] as const;
 export const FIRST_REVIEW_GIFT = 1;
 
