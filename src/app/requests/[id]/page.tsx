@@ -445,7 +445,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
           ) : (
             <p className="text-[13px] text-ink/65">
               {joinInstallHint(platform, productType)}
-              {row.opt_in_link ? " or TestFlight below" : ""}. Check-ins run from
+              {row.opt_in_link ? " or use the beta access link below" : ""}. Check-ins run from
               My tests.
             </p>
           )}

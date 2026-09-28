@@ -5,12 +5,12 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Guides",
   description:
-    "Free guides for indie makers: Google Play closed testing, TestFlight, SaaS launch mistakes, structured feedback, and how to run a 12-tester closed test.",
+    "Free guides for indie makers: Google Play closed testing, iOS beta, SaaS launch mistakes, structured feedback, and how to run a 12-tester closed test.",
   path: "/guides",
   keywords: [
     "app testing guide",
     "Google Play closed testing",
-    "TestFlight beta guide",
+    "iOS beta guide",
     "SaaS launch checklist",
     "structured app feedback",
     "closed test how-to",
@@ -45,11 +45,11 @@ const GUIDE_SECTIONS = [
   },
   {
     id: "app-store",
-    title: "App Store & TestFlight",
+    title: "App Store & iOS beta",
     blurb:
       "Build expiry, beta review, demo accounts, and privacy labels: the iOS traps that look like code bugs.",
     posts: [
-      { slug: "app-store-testflight-mistakes", label: "TestFlight & App Store mistakes" },
+      { slug: "app-store-beta-mistakes", label: "App Store & iOS beta mistakes" },
       { slug: "how-to-run-a-closed-app-test", label: "How to run a closed app test" },
     ],
     tag: "app-store",

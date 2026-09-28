@@ -4,7 +4,6 @@ type TrackId = "tester" | "feedback" | "combo" | "language";
 
 type Props = {
   active: TrackId;
-  /** Board shows Language (soon); Post does not. */
   variant?: "board" | "post";
 };
 
@@ -51,19 +50,6 @@ export function TrackTabs({ active, variant = "board" }: Props) {
           );
         })}
       </div>
-
-      {variant === "board" ? (
-        <span
-          className="track-tab track-tab-disabled"
-          role="tab"
-          aria-disabled="true"
-          aria-label="Language, coming soon"
-          title="Coming soon"
-        >
-          Language
-          <span className="track-tab-soon">soon</span>
-        </span>
-      ) : null}
     </div>
   );
 }

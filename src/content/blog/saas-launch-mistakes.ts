@@ -50,7 +50,7 @@ Give testers a script: connect X, do Y, tell us where it broke. [Structured answ
 
 Beta has an end date and a feedback loop. A perpetual beta is a morale trick. Ship a scope. Run [twelve testers for two weeks](/blog/how-to-run-a-closed-app-test). Close it. Change the homepage verb from "coming soon" to "start."
 
-## Web does not need TestFlight. It needs witnesses
+## Web does not need a mobile beta. It needs witnesses
 
 Post a web feedback request. No opt-in link circus. Link the live URL. Ask where they got lost. Friends will still lie; strangers on a board with [minimum answer lengths](/blog/friends-make-bad-beta-testers) lie less.
 

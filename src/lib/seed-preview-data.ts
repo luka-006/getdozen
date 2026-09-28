@@ -155,7 +155,7 @@ const POSTS: DemoPost[] = [
     testers_filled: 6,
     duration_days: 14,
     hoursAgo: 6,
-    opt_in_link: "https://preview.example/testflight/focus-flow",
+    opt_in_link: "https://preview.example/ios-beta/focus-flow",
     icon_seed: "focus-flow",
   },
   {
@@ -297,7 +297,7 @@ const POSTS: DemoPost[] = [
     testers_filled: 10,
     duration_days: 14,
     hoursAgo: 72,
-    opt_in_link: "https://preview.example/testflight/palette-kit",
+    opt_in_link: "https://preview.example/ios-beta/palette-kit",
     icon_seed: "palette-kit",
   },
   {

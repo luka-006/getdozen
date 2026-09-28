@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
+import { SiteLogo } from "@/components/site-logo";
 import { HeroClosedTest } from "@/components/hero-closed-test";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { WaitlistPhoneShowcase } from "@/components/waitlist-phone-showcase";
@@ -19,7 +20,7 @@ export const metadata = pageMetadata({
   keywords: [
     "app testing marketplace",
     "Google Play closed testing",
-    "TestFlight beta testers",
+    "iOS beta testers",
     "structured app feedback",
     "indie game testing",
     "SaaS user testing",
@@ -48,12 +49,11 @@ export default async function HomePage({
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,22rem)] lg:items-center lg:gap-8 xl:gap-12">
             <div className="max-w-xl space-y-5 lg:max-w-none">
-              <div className="flex items-center gap-3">
-                <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />
-                <p className="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]">
-                  Dozen
-                </p>
-              </div>
+              <SiteLogo
+                markClassName="h-14 w-14 sm:h-16 sm:w-16"
+                wordmarkClassName="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]"
+                tick
+              />
               <h1 className="hero-title mt-3">
                 Real feedback on apps and games.
               </h1>
@@ -115,12 +115,11 @@ export default async function HomePage({
       <HomeJsonLd />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
         <div className="max-w-xl space-y-5">
-          <div className="flex items-center gap-3">
-            <DozenMark className="h-14 w-14 sm:h-16 sm:w-16" title="Dozen" tick />
-            <p className="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]">
-              Dozen
-            </p>
-          </div>
+          <SiteLogo
+            markClassName="h-14 w-14 sm:h-16 sm:w-16"
+            wordmarkClassName="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]"
+            tick
+          />
           <h1 className="hero-title mt-3">
             Real feedback from real testers.
           </h1>
@@ -158,8 +157,8 @@ export default async function HomePage({
               Google Play testing
             </Link>
             {" · "}
-            <Link href="/blog/app-store-testflight-mistakes" className="text-blue">
-              TestFlight
+            <Link href="/blog/app-store-beta-mistakes" className="text-blue">
+              iOS beta
             </Link>
             {" · "}
             <Link href="/blog/why-12-testers" className="text-blue">

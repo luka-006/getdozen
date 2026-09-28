@@ -55,7 +55,7 @@ Built because friends nod along and Twitter is a mailing list.
 **Post 3** (reply)
 
 ```
-Shipping on Play Console closed test, TestFlight, Steam, or itch?
+Shipping on Play Console closed test, iOS beta, Steam, or itch?
 
 https://getdozen.dev/signup
 

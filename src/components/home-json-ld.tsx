@@ -25,7 +25,7 @@ export function HomeJsonLd() {
           "14-day closed tester runs",
           "Structured written feedback",
           "Google Play closed testing support",
-          "TestFlight and App Store feedback",
+          "App Store and iOS beta feedback",
           "Steam and itch.io game testing",
           "Dot-based credit economy",
         ],

@@ -1,7 +1,7 @@
 import type { FOCUS_TAGS, ProductType } from "./constants";
 
 export type FocusTag = (typeof FOCUS_TAGS)[number];
-export type RequestType = "feedback" | "tester" | "combo" | "language" | "play" | "testflight";
+export type RequestType = "feedback" | "tester" | "combo" | "language" | "play";
 export type RequestStatus =
   | "open"
   | "in_progress"

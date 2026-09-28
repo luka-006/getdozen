@@ -28,18 +28,18 @@ const ANDROID_TIPS: PublishingTip[] = [
 const IOS_TIPS: PublishingTip[] = [
   {
     id: "ios-build-expiry",
-    text: "TestFlight builds expire after 90 days. Schedule a rebuild before your test ends.",
-    blogSlug: "app-store-testflight-mistakes",
+    text: "iOS beta builds expire after 90 days. Schedule a rebuild before your test ends.",
+    blogSlug: "app-store-beta-mistakes",
   },
   {
     id: "ios-demo-account",
     text: "App Store review needs a working demo login if signup is not instant.",
-    blogSlug: "app-store-testflight-mistakes",
+    blogSlug: "app-store-beta-mistakes",
   },
   {
     id: "ios-privacy-labels",
     text: "Privacy nutrition labels must match what your SDKs actually collect.",
-    blogSlug: "app-store-testflight-mistakes",
+    blogSlug: "app-store-beta-mistakes",
   },
 ];
 

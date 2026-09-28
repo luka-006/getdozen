@@ -4,7 +4,7 @@ export const howToRunAClosedAppTest: BlogPost = {
   slug: "how-to-run-a-closed-app-test",
   title: "How to run a closed app test without losing the testers",
   description:
-    "A closed test dies when people install once and vanish. Daily check-ins, a real duration, and a small group beat a giant TestFlight list that never opens.",
+    "A closed test dies when people install once and vanish. Daily check-ins, a real duration, and a small group beat a giant beta invite list that never opens.",
   publishedAt: "2026-08-22",
   updatedAt: "2026-08-22",
   tags: ["closed-test", "testers", "beta"],

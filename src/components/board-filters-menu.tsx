@@ -69,7 +69,7 @@ export function BoardFiltersMenu({ filters, onChange }: Props) {
         onClose={() => setOpen(false)}
         ignoreCloseRefs={[triggerRef]}
         align="start"
-        className="board-filters-dropdown mt-2 w-[min(100vw-2rem,20rem)]"
+        className="board-filters-dropdown mt-2 w-[min(calc(100vw-2rem),52rem)]"
       >
         <div className="surface p-4">
           <div className="flex items-center justify-between gap-2">
@@ -87,84 +87,86 @@ export function BoardFiltersMenu({ filters, onChange }: Props) {
             ) : null}
           </div>
 
-          <label className="mt-4 block text-[12px] font-medium text-ink/55">
-            Focus
-            <select
-              className="input mt-1 w-full text-[13px]"
-              value={filters.focus ?? ""}
-              onChange={(e) =>
-                patch({ focus: e.target.value || undefined })
-              }
-            >
-              <option value="">All</option>
-              {FOCUS_TAGS.map((tag) => (
-                <option key={tag} value={tag}>
-                  {tag}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="mt-4 flex flex-wrap items-end gap-x-3 gap-y-3">
+            <label className="min-w-[7.25rem] flex-1 text-[12px] font-medium text-ink/55">
+              Focus
+              <select
+                className="input mt-1 w-full text-[13px]"
+                value={filters.focus ?? ""}
+                onChange={(e) =>
+                  patch({ focus: e.target.value || undefined })
+                }
+              >
+                <option value="">All</option>
+                {FOCUS_TAGS.map((tag) => (
+                  <option key={tag} value={tag}>
+                    {tag}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="mt-3 block text-[12px] font-medium text-ink/55">
-            Platform
-            <select
-              className="input mt-1 w-full text-[13px]"
-              value={filters.platform ?? ""}
-              onChange={(e) =>
-                patch({ platform: e.target.value || undefined })
-              }
-            >
-              <option value="">All</option>
-              {PLATFORMS.map((p) => (
-                <option key={p} value={p}>
-                  {PLATFORM_LABELS[p]}
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="min-w-[7.25rem] flex-1 text-[12px] font-medium text-ink/55">
+              Platform
+              <select
+                className="input mt-1 w-full text-[13px]"
+                value={filters.platform ?? ""}
+                onChange={(e) =>
+                  patch({ platform: e.target.value || undefined })
+                }
+              >
+                <option value="">All</option>
+                {PLATFORMS.map((p) => (
+                  <option key={p} value={p}>
+                    {PLATFORM_LABELS[p]}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="mt-3 block text-[12px] font-medium text-ink/55">
-            Product
-            <select
-              className="input mt-1 w-full text-[13px]"
-              value={filters.product ?? ""}
-              onChange={(e) =>
-                patch({ product: e.target.value || undefined })
-              }
-            >
-              <option value="">Apps & games</option>
-              {PRODUCT_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {PRODUCT_TYPE_LABELS[t]} only
-                </option>
-              ))}
-            </select>
-          </label>
+            <label className="min-w-[7.25rem] flex-1 text-[12px] font-medium text-ink/55">
+              Product
+              <select
+                className="input mt-1 w-full text-[13px]"
+                value={filters.product ?? ""}
+                onChange={(e) =>
+                  patch({ product: e.target.value || undefined })
+                }
+              >
+                <option value="">Apps & games</option>
+                {PRODUCT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {PRODUCT_TYPE_LABELS[t]} only
+                  </option>
+                ))}
+              </select>
+            </label>
 
-          <label className="mt-3 block text-[12px] font-medium text-ink/55">
-            Sort
-            <select
-              className="input mt-1 w-full text-[13px]"
-              value={filters.sort}
-              onChange={(e) =>
-                patch({ sort: e.target.value as BoardSortId })
-              }
-            >
-              <option value="default">Boost · Pro · waiting</option>
-              <option value="newest">Newest first</option>
-              <option value="oldest">Longest waiting</option>
-              <option value="bounty">Highest bounty</option>
-            </select>
-          </label>
+            <label className="min-w-[9.5rem] flex-1 text-[12px] font-medium text-ink/55">
+              Sort
+              <select
+                className="input mt-1 w-full text-[13px]"
+                value={filters.sort}
+                onChange={(e) =>
+                  patch({ sort: e.target.value as BoardSortId })
+                }
+              >
+                <option value="default">Boost · Pro · waiting</option>
+                <option value="newest">Newest first</option>
+                <option value="oldest">Longest waiting</option>
+                <option value="bounty">Highest bounty</option>
+              </select>
+            </label>
 
-          <label className="mt-3 flex cursor-pointer items-center gap-2 text-[13px] text-ink/75">
-            <input
-              type="checkbox"
-              checked={filters.boostedOnly}
-              onChange={(e) => patch({ boostedOnly: e.target.checked })}
-            />
-            Boosted posts only
-          </label>
+            <label className="flex shrink-0 cursor-pointer items-center gap-2 self-center pb-1 text-[13px] text-ink/75">
+              <input
+                type="checkbox"
+                checked={filters.boostedOnly}
+                onChange={(e) => patch({ boostedOnly: e.target.checked })}
+              />
+              Boosted posts only
+            </label>
+          </div>
         </div>
       </DropdownPanel>
     </div>
