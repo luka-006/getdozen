@@ -76,6 +76,7 @@ export default async function ReviewSubmittedPage({
     id: r.id,
     app_name: r.app_name,
     app_icon_url: r.app_icon_url,
+    product_image_url: r.product_image_url,
     app_description: r.app_description,
     platform: r.platform,
     question_count: r.question_count,

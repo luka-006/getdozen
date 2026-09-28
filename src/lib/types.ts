@@ -77,6 +77,8 @@ export type RequestRow = {
   boosted_until?: string | null;
   boost_offer_sent_at?: string | null;
   app_icon_url?: string | null;
+  product_image_url?: string | null;
+  product_image_path?: string | null;
 };
 
 export type Question = {

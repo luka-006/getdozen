@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { compressProductImageForUpload } from "@/lib/product-image-compress";
 import {
   PRODUCT_IMAGE_ACCEPT,
   PRODUCT_IMAGE_MAX_BYTES,
@@ -33,15 +34,22 @@ export function ProductImageField({ productType }: Props) {
     }
     setPreview(null);
 
-    const file = event.target.files?.[0];
-    if (!file) return;
+    const picked = event.target.files?.[0];
+    if (!picked) return;
 
+    const file = await compressProductImageForUpload(picked);
     const buffer = new Uint8Array(await file.arrayBuffer());
     const error = validateProductImage(file, buffer);
     if (error) {
       setClientError(error);
       event.target.value = "";
       return;
+    }
+
+    if (inputRef.current) {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      inputRef.current.files = dt.files;
     }
 
     const objectUrl = URL.createObjectURL(file);
@@ -100,6 +108,7 @@ export function ProductImageField({ productType }: Props) {
       </div>
       <p className="text-[12px] text-ink/55">
         JPEG, PNG, WebP, or GIF. Max {PRODUCT_IMAGE_MAX_BYTES / (1024 * 1024)} MB.
+        Large images are resized before upload.
       </p>
       {clientError ? (
         <p className="text-[13px] text-flag">{clientError}</p>
