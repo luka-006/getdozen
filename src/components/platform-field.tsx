@@ -3,7 +3,6 @@
 import { platformsForProductType, type Platform, type ProductType } from "@/lib/constants";
 import { PLATFORM_LABELS } from "@/lib/platform-labels";
 import { StarIcon } from "@/components/icons";
-import { PlatformIcon } from "@/components/platform-icon";
 
 function RequiredMark() {
   return (
@@ -50,11 +49,6 @@ export function PlatformField({
           </option>
         ))}
       </select>
-      <div className="mt-2 flex flex-wrap gap-3">
-        {options.map((p) => (
-          <PlatformIcon key={p} platform={p} showLabel />
-        ))}
-      </div>
     </div>
   );
 }
