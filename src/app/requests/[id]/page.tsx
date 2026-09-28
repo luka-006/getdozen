@@ -22,7 +22,6 @@ import { BOOST_PRICE_EUR } from "@/lib/pricing";
 import { formatDots } from "@/lib/currency";
 import { formatWait } from "@/lib/utils";
 import {
-  joinOptInButtonLabel,
   joinOptInEmailLabel,
   joinOptInEmailPlaceholder,
   normalizePlatform,
@@ -445,30 +444,9 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
             </div>
           ) : (
             <p className="text-[13px] text-ink/65">
-              {joinInstallHint(platform, productType)}
-              {row.opt_in_link ? " or use the beta access link below" : ""}. Check-ins run from
-              My tests.
+              {joinInstallHint(platform, productType)}. Check-ins run from My tests.
             </p>
           )}
-          {row.opt_in_link ? (
-            <a
-              href={row.opt_in_link}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-secondary"
-            >
-              {joinOptInButtonLabel(platform, productType)}
-            </a>
-          ) : row.app_url ? (
-            <a
-              href={row.app_url}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-secondary"
-            >
-              {openProductLabel(productType)}
-            </a>
-          ) : null}
           <button type="submit" className="btn btn-primary">
             Start commitment
           </button>
