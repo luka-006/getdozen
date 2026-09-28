@@ -30,6 +30,8 @@ export function SignupForm({
     setCaptchaNonce((n) => n + 1);
     if (result && !result.ok) {
       setError(result.error);
+    } else if (result?.ok) {
+      setMessage(result.message);
     }
   }
 
@@ -40,8 +42,8 @@ export function SignupForm({
         Create account
       </h1>
       <p className="mt-2 text-[14px] text-ink/70">
-        Start posting feedback requests or earning as a tester. After you
-        create an account, enter the 6-digit code from your email to sign in.
+        Start posting feedback requests or earning as a tester. After you create
+        an account, check your email and tap the confirmation link to sign in.
       </p>
 
       {error ? (
