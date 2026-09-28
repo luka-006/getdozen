@@ -16,6 +16,8 @@ import { absoluteUrl, pageMetadata } from "@/lib/seo";
 
 type Params = { slug: string };
 
+export const revalidate = 86400;
+
 export function generateStaticParams() {
   return getBlogPosts().map((post) => ({ slug: post.slug }));
 }

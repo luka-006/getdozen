@@ -11,6 +11,8 @@ import {
 import { LEGAL, LEGAL_PATHS, MIN_AGE } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = pageMetadata({
   title: "Privacy",
   description: "How Dozen processes personal data under the GDPR.",

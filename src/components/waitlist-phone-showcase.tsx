@@ -70,7 +70,6 @@ function PhoneDevice({
             className="waitlist-phone-shot"
             style={{ objectPosition }}
             priority={priority}
-            unoptimized
           />
         </div>
         <div className="waitlist-phone-shine" aria-hidden />

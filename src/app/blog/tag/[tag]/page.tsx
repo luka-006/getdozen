@@ -12,6 +12,8 @@ import { absoluteUrl, pageMetadata } from "@/lib/seo";
 
 type Params = { tag: string };
 
+export const revalidate = 86400;
+
 export function generateStaticParams() {
   return getIndexableBlogTags().map((tag) => ({ tag }));
 }

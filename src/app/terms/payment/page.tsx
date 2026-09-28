@@ -18,6 +18,8 @@ import {
 import { EUR_PER_CREDIT, PRO_PRICE_EUR, BOOST_PRICE_EUR } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = pageMetadata({
   title: "Payment terms",
   description: "Payment, dots, Pro, refunds, and checkout terms for Dozen.",

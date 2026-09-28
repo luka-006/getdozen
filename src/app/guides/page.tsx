@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getBlogPosts } from "@/lib/blog";
 import { pageMetadata } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export const metadata = pageMetadata({
   title: "Guides",
   description:

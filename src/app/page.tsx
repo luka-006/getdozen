@@ -1,16 +1,45 @@
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { SiteLogo } from "@/components/site-logo";
-import { HeroClosedTest } from "@/components/hero-closed-test";
-import { WaitlistForm } from "@/components/waitlist-form";
-import { WaitlistPhoneShowcase } from "@/components/waitlist-phone-showcase";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
 import { HomeJsonLd } from "@/components/home-json-ld";
 import { pageMetadata, SITE_DESCRIPTION } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
+
+const HeroClosedTest = dynamic(
+  () =>
+    import("@/components/hero-closed-test").then((m) => m.HeroClosedTest),
+  {
+    loading: () => (
+      <div className="surface w-full max-w-md min-h-[220px] p-5 sm:p-6" aria-hidden />
+    ),
+  },
+);
+
+const WaitlistForm = dynamic(
+  () => import("@/components/waitlist-form").then((m) => m.WaitlistForm),
+  {
+    loading: () => (
+      <div className="surface w-full min-h-[280px] p-5 sm:p-6" aria-hidden />
+    ),
+  },
+);
+
+const WaitlistPhoneShowcase = dynamic(
+  () =>
+    import("@/components/waitlist-phone-showcase").then(
+      (m) => m.WaitlistPhoneShowcase,
+    ),
+  {
+    loading: () => (
+      <div className="waitlist-phone-showcase min-h-[320px]" aria-hidden />
+    ),
+  },
+);
 
 export const metadata = pageMetadata({
   title: "Dozen",
@@ -33,11 +62,10 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ waitlist?: string }>;
 }) {
-  const user = await getSessionUser();
+  const [user, query] = await Promise.all([getSessionUser(), searchParams]);
   if (isLaunchOpen() && user) redirect("/board");
 
   if (!isLaunchOpen()) {
-    const query = await searchParams;
     const notice =
       query.waitlist === "expired"
         ? "That email link was already used. Request a new code."

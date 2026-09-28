@@ -7,6 +7,8 @@ import { getBlogPosts, getIndexableBlogTags, blogTagPath } from "@/lib/blog";
 import { blogTagLabel } from "@/lib/blog-tags";
 import { pageMetadata } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export const metadata = {
   ...pageMetadata({
     title: "Blog",
