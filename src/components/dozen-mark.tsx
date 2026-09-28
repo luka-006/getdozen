@@ -18,7 +18,7 @@ type Props = {
 };
 
 /**
- * Dozen mark — blocky D (blue cells + one credit-yellow tick).
+ * Dozen mark — twelve dots form a capital D; one credit-yellow dot in the bowl.
  */
 export function DozenMark({ className = "h-8 w-8", title, tick }: Props) {
   const cell = DOZEN_MARK_CELL;

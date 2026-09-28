@@ -6,7 +6,7 @@ import { SiteLogo } from "@/components/site-logo";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
 import { HomeJsonLd } from "@/components/home-json-ld";
-import { pageMetadata, SITE_DESCRIPTION } from "@/lib/seo";
+import { pageMetadata, SITE_DESCRIPTION, SITE_HOME_TITLE } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
 
@@ -42,7 +42,7 @@ const WaitlistPhoneShowcase = dynamic(
 );
 
 export const metadata = pageMetadata({
-  title: "Dozen",
+  title: SITE_HOME_TITLE,
   description: SITE_DESCRIPTION,
   path: "/",
   absoluteTitle: true,
@@ -79,7 +79,7 @@ export default async function HomePage({
             <div className="max-w-xl space-y-5 lg:max-w-none">
               <SiteLogo
                 markClassName="h-14 w-14 sm:h-16 sm:w-16"
-                wordmarkClassName="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]"
+                wordmarkClassName="font-display text-[48px] font-bold leading-none tracking-[-0.03em] text-ink sm:text-[56px]"
                 tick
               />
               <h1 className="hero-title mt-3">
@@ -145,7 +145,7 @@ export default async function HomePage({
         <div className="max-w-xl space-y-5">
           <SiteLogo
             markClassName="h-14 w-14 sm:h-16 sm:w-16"
-            wordmarkClassName="font-display text-[48px] font-bold tracking-[0.04em] text-ink sm:text-[56px]"
+            wordmarkClassName="font-display text-[48px] font-bold leading-none tracking-[-0.03em] text-ink sm:text-[56px]"
             tick
           />
           <h1 className="hero-title mt-3">
