@@ -23,6 +23,7 @@ import {
 } from "@/lib/tester-checkin";
 import { clampTesterDuration } from "@/lib/tester-progress";
 import { sendJoinConfirmationEmail } from "@/lib/join-mail";
+import { sendTesterCompletionEmail } from "@/lib/tester-completion-mail";
 import { concurrentTesterLimitMessage } from "@/lib/product-copy";
 import {
   joinStartedMessage,
@@ -295,13 +296,20 @@ export async function completeTesterCommitment(formData: FormData) {
     redirect(`/testers?error=${encodeURIComponent("Too many missed check-ins. Commitment voided.")}`);
   }
 
-  const request = commitment.requests as { bounty_multiplier?: number } | null;
+  const request = commitment.requests as {
+    bounty_multiplier?: number;
+    app_name?: string;
+    user_id?: string;
+  } | null;
   const multiplier = Number(request?.bounty_multiplier ?? 1) || 1;
   const earn = testerCompletionEarnAmount(multiplier);
 
   await admin
     .from("tester_commitments")
-    .update({ status: "completed" })
+    .update({
+      status: "completed",
+      final_notes: finalNotes,
+    })
     .eq("id", commitmentId);
 
   await appendLedger({
@@ -312,9 +320,85 @@ export async function completeTesterCommitment(formData: FormData) {
     status: "available",
   });
 
+  const makerId = request?.user_id;
+  const { data: maker } = makerId
+    ? await admin
+        .from("profiles")
+        .select("display_name")
+        .eq("id", makerId)
+        .maybeSingle()
+    : { data: null };
+
+  const emailTo = commitment.google_email?.trim() || profile.email;
+  await sendTesterCompletionEmail({
+    to: emailTo,
+    appName: request?.app_name ?? "your test",
+    dotsEarned: earn,
+    commitmentId,
+    makerName: maker?.display_name?.trim() || "the maker",
+  }).catch((err) => {
+    console.error("tester completion email failed", err);
+  });
+
   revalidatePath("/testers");
   revalidatePath("/wallet");
-  redirect(`/testers?message=Commitment complete. ${formatDotsDelta(earn)}.`);
+  revalidatePath(`/testers/complete/${commitmentId}`);
+  redirect(`/testers/complete/${commitmentId}`);
+}
+
+export async function submitTestExperience(formData: FormData) {
+  const profile = await requireProfile();
+  const commitmentId = String(formData.get("commitment_id") ?? "");
+  const ratingRaw = String(formData.get("experience_rating") ?? "");
+  const rating = Number(ratingRaw);
+
+  if (
+    !commitmentId ||
+    !Number.isInteger(rating) ||
+    rating < 1 ||
+    rating > 5
+  ) {
+    redirect(
+      `/testers/complete/${commitmentId}?error=${encodeURIComponent("Pick a rating from 1–5")}`,
+    );
+  }
+
+  const admin = createAdminClient();
+  const { data: commitment } = await admin
+    .from("tester_commitments")
+    .select("id, tester_id, status, experience_rating")
+    .eq("id", commitmentId)
+    .single();
+
+  if (
+    !commitment ||
+    commitment.tester_id !== profile.id ||
+    commitment.status !== "completed"
+  ) {
+    redirect(`/testers?error=${encodeURIComponent("Test not found")}`);
+  }
+
+  if (commitment.experience_rating) {
+    redirect(
+      `/testers/complete/${commitmentId}?message=${encodeURIComponent("Rating already saved")}`,
+    );
+  }
+
+  const { error } = await admin
+    .from("tester_commitments")
+    .update({ experience_rating: rating })
+    .eq("id", commitmentId);
+
+  if (error) {
+    redirect(
+      `/testers/complete/${commitmentId}?error=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  revalidatePath(`/testers/complete/${commitmentId}`);
+  redirect(
+    `/testers/complete/${commitmentId}?message=${encodeURIComponent("Thanks for the rating")}`,
+  );
 }
 
 export async function voidStaleCommitments() {

@@ -4,7 +4,15 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { haveInteracted } from "@/lib/profile-reviews";
+import { safeInternalPath } from "@/lib/safe-path";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+function profileReviewRedirectPath(toUserId: string, returnPath: string | null) {
+  if (returnPath) {
+    return `${returnPath}?message=${encodeURIComponent("Peer note posted")}`;
+  }
+  return `/profile/${toUserId}?message=${encodeURIComponent("Review posted")}`;
+}
 
 export async function submitProfileReview(formData: FormData) {
   const me = await requireProfile();
@@ -12,13 +20,20 @@ export async function submitProfileReview(formData: FormData) {
   const body = String(formData.get("body") ?? "").trim();
   const ratingRaw = String(formData.get("rating") ?? "");
   const rating = ratingRaw ? Number(ratingRaw) : null;
+  const returnPathRaw = String(formData.get("return_path") ?? "").trim();
+  const returnPath = returnPathRaw
+    ? safeInternalPath(returnPathRaw, "")
+    : null;
+  const safeReturnPath = returnPath || null;
+
+  const errorBase = safeReturnPath ?? `/profile/${toUserId}`;
 
   if (!toUserId || toUserId === me.id) {
-    redirect(`/profile/${me.id}?error=${encodeURIComponent("Invalid profile")}`);
+    redirect(`${errorBase}?error=${encodeURIComponent("Invalid profile")}`);
   }
   if (body.length < 8 || body.length > 280) {
     redirect(
-      `/profile/${toUserId}?error=${encodeURIComponent("Review must be 8–280 characters")}`,
+      `${errorBase}?error=${encodeURIComponent("Review must be 8–280 characters")}`,
     );
   }
   if (
@@ -26,14 +41,14 @@ export async function submitProfileReview(formData: FormData) {
     (rating < 1 || rating > 5 || !Number.isInteger(rating))
   ) {
     redirect(
-      `/profile/${toUserId}?error=${encodeURIComponent("Pick a rating from 1–5")}`,
+      `${errorBase}?error=${encodeURIComponent("Pick a rating from 1–5")}`,
     );
   }
 
   const ok = await haveInteracted(me.id, toUserId);
   if (!ok) {
     redirect(
-      `/profile/${toUserId}?error=${encodeURIComponent(
+      `${errorBase}?error=${encodeURIComponent(
         "You can only review people you’ve worked with on Dozen",
       )}`,
     );
@@ -51,13 +66,12 @@ export async function submitProfileReview(formData: FormData) {
   );
 
   if (error) {
-    redirect(
-      `/profile/${toUserId}?error=${encodeURIComponent(error.message)}`,
-    );
+    redirect(`${errorBase}?error=${encodeURIComponent(error.message)}`);
   }
 
   revalidatePath(`/profile/${toUserId}`);
-  redirect(`/profile/${toUserId}?message=${encodeURIComponent("Review posted")}`);
+  if (safeReturnPath) revalidatePath(safeReturnPath);
+  redirect(profileReviewRedirectPath(toUserId, safeReturnPath));
 }
 
 export async function deleteProfileReview(formData: FormData) {
