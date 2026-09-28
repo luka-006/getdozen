@@ -4,31 +4,30 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const INK = [0x0b, 0x1f, 0x3a, 0xff];
-const BLUE = [0x2b, 0x7f, 0xff, 0xff];
+const BLUE = [0x1e, 0x4f, 0xd8, 0xff];
 const YELLOW = [0xff, 0xc5, 0x3d, 0xff];
 
-const CELLS = [
-  [0, 0],
-  [1, 0],
-  [2, 0],
-  [3, 0],
-  [4, 0],
-  [0, 1],
-  [0, 2],
-  [0, 3, 1],
-  [0, 4],
-  [0, 5],
-  [5, 1],
-  [6, 2],
-  [6, 3],
-  [5, 4],
-  [6, 4],
-  [1, 5],
-  [2, 5],
-  [3, 5],
-  [4, 5],
-  [5, 5],
-];
+const VIEW = 32;
+const SPINE = { x: 3.5, y: 6, w: 4.5, h: 20, rx: 2.25 };
+const ARC = { cx: 14, cy: 16, r: 9, startDeg: -74, endDeg: 74, count: 12, goldenIndex: 9 };
+const DOT_R = 1.85;
+
+function arcDots() {
+  const dots = [];
+  for (let i = 0; i < ARC.count; i++) {
+    const t = i / (ARC.count - 1);
+    const deg = ARC.startDeg + (ARC.endDeg - ARC.startDeg) * t;
+    const rad = (deg * Math.PI) / 180;
+    dots.push({
+      x: ARC.cx + ARC.r * Math.cos(rad),
+      y: ARC.cy + ARC.r * Math.sin(rad),
+      yellow: i === ARC.goldenIndex,
+    });
+  }
+  return dots;
+}
+
+const DOTS = arcDots();
 
 function crc32(buf) {
   let crc = 0xffffffff;
@@ -75,9 +74,31 @@ function fillRect(pixels, size, x0, y0, x1, y1, color, radius) {
   for (let y = y0; y < y1; y++) {
     for (let x = x0; x < x1; x++) {
       if (x < 0 || y < 0 || x >= size || y >= size) continue;
-      const dx = x < x0 + radius ? x0 + radius - x : x >= x1 - radius ? x - (x1 - radius - 1) : 0;
-      const dy = y < y0 + radius ? y0 + radius - y : y >= y1 - radius ? y - (y1 - radius - 1) : 0;
+      const dx =
+        x < x0 + radius ? x0 + radius - x : x >= x1 - radius ? x - (x1 - radius - 1) : 0;
+      const dy =
+        y < y0 + radius ? y0 + radius - y : y >= y1 - radius ? y - (y1 - radius - 1) : 0;
       if (dx * dx + dy * dy > radius * radius + radius) continue;
+      pixels[y].writeUInt8(color[0], x * 4);
+      pixels[y].writeUInt8(color[1], x * 4 + 1);
+      pixels[y].writeUInt8(color[2], x * 4 + 2);
+      pixels[y].writeUInt8(color[3], x * 4 + 3);
+    }
+  }
+}
+
+function fillCircle(pixels, size, cx, cy, r, color) {
+  const x0 = Math.floor(cx - r);
+  const x1 = Math.ceil(cx + r);
+  const y0 = Math.floor(cy - r);
+  const y1 = Math.ceil(cy + r);
+  const r2 = r * r;
+  for (let y = y0; y <= y1; y++) {
+    for (let x = x0; x <= x1; x++) {
+      if (x < 0 || y < 0 || x >= size || y >= size) continue;
+      const dx = x + 0.5 - cx;
+      const dy = y + 0.5 - cy;
+      if (dx * dx + dy * dy > r2) continue;
       pixels[y].writeUInt8(color[0], x * 4);
       pixels[y].writeUInt8(color[1], x * 4 + 1);
       pixels[y].writeUInt8(color[2], x * 4 + 2);
@@ -88,23 +109,31 @@ function fillRect(pixels, size, x0, y0, x1, y1, color, radius) {
 
 function render(size) {
   const pixels = Array.from({ length: size }, () => Buffer.alloc(size * 4));
+  const scale = size / VIEW;
   fillRect(pixels, size, 0, 0, size, size, INK, Math.round(size * 0.18));
-  const cell = (3.05 / 32) * size;
-  const gap = (0.7 / 32) * size;
-  const cols = 7;
-  const rows = 6;
-  const gridW = cols * cell + (cols - 1) * gap;
-  const gridH = rows * cell + (rows - 1) * gap;
-  const ox = (size - gridW) / 2;
-  const oy = (size - gridH) / 2;
-  const radius = Math.max(1, (0.72 / 32) * size);
-  for (const [c, r, yellow] of CELLS) {
-    const x0 = Math.round(ox + c * (cell + gap));
-    const y0 = Math.round(oy + r * (cell + gap));
-    const x1 = Math.round(x0 + cell);
-    const y1 = Math.round(y0 + cell);
-    fillRect(pixels, size, x0, y0, x1, y1, yellow ? YELLOW : BLUE, radius);
+
+  fillRect(
+    pixels,
+    size,
+    Math.round(SPINE.x * scale),
+    Math.round(SPINE.y * scale),
+    Math.round((SPINE.x + SPINE.w) * scale),
+    Math.round((SPINE.y + SPINE.h) * scale),
+    BLUE,
+    Math.max(1, Math.round(SPINE.rx * scale)),
+  );
+
+  for (const dot of DOTS) {
+    fillCircle(
+      pixels,
+      size,
+      dot.x * scale,
+      dot.y * scale,
+      DOT_R * scale,
+      dot.yellow ? YELLOW : BLUE,
+    );
   }
+
   return encodePng(size, pixels);
 }
 
