@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DozenMark } from "@/components/dozen-mark";
+import { cn } from "@/lib/utils";
 
 type Props = {
   href?: string;
@@ -9,6 +10,9 @@ type Props = {
   tick?: boolean;
 };
 
+const defaultWordmarkClass =
+  "font-display text-[18px] font-bold leading-none tracking-[-0.02em] text-ink";
+
 function LogoContent({
   markClassName,
   wordmarkClassName,
@@ -17,15 +21,15 @@ function LogoContent({
   return (
     <>
       <DozenMark
-        className={markClassName ?? "h-8 w-8 shrink-0"}
+        className={cn("block shrink-0", markClassName ?? "h-8 w-8")}
         title="Dozen"
         tick={tick}
       />
       <span
-        className={
-          wordmarkClassName ??
-          "font-display text-[17px] font-bold leading-none tracking-[-0.02em] text-ink"
-        }
+        className={cn(
+          "inline-block translate-y-[-0.06em]",
+          wordmarkClassName ?? defaultWordmarkClass,
+        )}
       >
         ozen
       </span>
@@ -41,7 +45,7 @@ export function SiteLogo({
   wordmarkClassName,
   tick,
 }: Props) {
-  const layout = `flex items-baseline gap-1 text-ink ${className}`.trim();
+  const layout = cn("inline-flex items-center gap-1.5 text-ink", className);
 
   if (href) {
     return (
