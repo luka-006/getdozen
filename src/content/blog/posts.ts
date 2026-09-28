@@ -1,6 +1,6 @@
 import type { BlogPost } from "@/lib/blog";
 import { appFeedbackQuestions } from "./app-feedback-questions";
-import { appStoreTestflightMistakes } from "./app-store-testflight-mistakes";
+import { appStoreBetaMistakes } from "./app-store-beta-mistakes";
 import { friendsMakeBadBetaTesters } from "./friends-make-bad-beta-testers";
 import { getPaidTestingApps } from "./get-paid-testing-apps";
 import { googlePlayClosedTestingMistakes } from "./google-play-closed-testing-mistakes";
@@ -12,7 +12,7 @@ import { whyTwelveTesters } from "./why-twelve-testers";
 
 export const posts: BlogPost[] = [
   googlePlayClosedTestingMistakes,
-  appStoreTestflightMistakes,
+  appStoreBetaMistakes,
   saasLaunchMistakes,
   whyTwelveTesters,
   friendsMakeBadBetaTesters,

@@ -42,7 +42,7 @@ Built because friends nod along and Twitter is a mailing list.
 **Post 3 (CTA)**
 
 ```
-If you're shipping on Play Console closed test, TestFlight, Steam, or itch — this is for you.
+If you're shipping on Play Console closed test, iOS beta, Steam, or itch — this is for you.
 
 Free to browse. Dots for serious testers.
 
@@ -95,7 +95,7 @@ Dozen: test apps & games, earn Dots, give structured feedback.
 
 **Description:**
 
-Dozen connects indie makers with testers who opt into 14-day runs and structured reviews. Testers earn Dots; makers get signal before they ship. Supports mobile apps, web tools, Steam, and itch.io — built around Play Console and TestFlight workflows, not another Discord server.
+Dozen connects indie makers with testers who opt into 14-day runs and structured reviews. Testers earn Dots; makers get signal before they ship. Supports mobile apps, web tools, Steam, and itch.io — built around Play Console and iOS beta workflows, not another Discord server.
 
 **First comment:**
 
@@ -115,4 +115,4 @@ I built Dozen to fix the indie feedback loop: friends protect your feelings, Twi
 
 Dozen lets makers post tester runs and feedback requests. Testers opt in once, check in over 14 days, and submit structured reviews. Testers earn Dots (credits); makers confirm quality before payout.
 
-Stack: Next.js, Supabase, Stripe, Resend. Would love feedback especially from anyone running Play closed tests or TestFlight betas.
+Stack: Next.js, Supabase, Stripe, Resend. Would love feedback especially from anyone running Play closed tests or iOS beta programs.

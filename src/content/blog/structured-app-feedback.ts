@@ -22,7 +22,7 @@ export const structuredAppFeedback: BlogPost = {
   ],
   body: `A star is a mood. It is not a task. You cannot ticket "4 stars." You can ticket "I thought this was a habit tracker and it is a calendar, so I left."
 
-Makers collect the mood because it is easy. TestFlight crash-free, a few hearts on Discord, a friend who says they would pay. Then the public launch is quiet and nobody can say why.
+Makers collect the mood because it is easy. A crash-free beta build, a few hearts on Discord, a friend who says they would pay. Then the public launch is quiet and nobody can say why.
 
 Structured feedback is boring on purpose. Same questions for every tester. A floor on how much they have to write. You compare answers instead of vibes.
 

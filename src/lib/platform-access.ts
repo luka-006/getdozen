@@ -4,7 +4,7 @@ import { productArticle } from "@/lib/product-copy";
 /**
  * Distribution access rules:
  * - Android Play closed testing: email opt-in via Play Console link (required).
- * - iOS TestFlight / Steam Playtest: optional beta access links.
+ * - iOS beta / Steam Playtest: optional beta access links.
  * - Live store listings (App Store, Play Store, Steam, itch): listing URL is enough.
  * - Web / itch: no separate opt-in track.
  */
@@ -23,14 +23,14 @@ export function betaAccessLinkRequired(platform: Platform): boolean {
 export function betaAccessLinkLabel(platform: Platform): string {
   if (platform === "android") return "Play Console opt-in link";
   if (platform === "steam") return "Steam Playtest link (optional)";
-  if (platform === "ios") return "TestFlight link (optional)";
+  if (platform === "ios") return "iOS beta link (optional)";
   return "Beta access link (optional)";
 }
 
 export function betaAccessLinkPlaceholder(platform: Platform): string {
   if (platform === "android") return "https://play.google.com/apps/testing/…";
   if (platform === "steam") return "https://preview.example/playtest/…";
-  if (platform === "ios") return "https://testflight.apple.com/join/…";
+  if (platform === "ios") return "https://apps.apple.com/…/beta";
   return "https://…";
 }
 
@@ -42,7 +42,7 @@ export function betaAccessLinkHint(platform: Platform): string {
     return "Live on the store page above? Playtest link is optional. Feedback-only? Use the Feedback tab.";
   }
   if (platform === "ios") {
-    return "Live on the App Store? Your listing URL is enough. TestFlight link only if you are still in beta.";
+    return "Live on the App Store? Your listing URL is enough. Beta link only if you are still in closed testing.";
   }
   return "";
 }
@@ -85,7 +85,7 @@ export function joinOptInButtonLabel(
 ): string {
   if (platform === "android") return "Open Play Console opt-in";
   if (platform === "steam") return "Open Playtest";
-  if (platform === "ios") return "Open TestFlight";
+  if (platform === "ios") return "Open iOS beta";
   return productType === "game" ? "Open game" : "Open app";
 }
 
@@ -111,7 +111,7 @@ export function joinStartedMessage(
     return "Commitment started. Install via Playtest, then check in from My tests.";
   }
   if (platform === "ios" && hasOptInLink) {
-    return "Commitment started. Install via TestFlight, then check in from My tests.";
+    return "Commitment started. Install via the iOS beta link, then check in from My tests.";
   }
   return `Commitment started. Open ${productArticle(productType)} from the post link, then check in from My tests.`;
 }
@@ -119,7 +119,7 @@ export function joinStartedMessage(
 export function commitmentOptInLinkLabel(platform: Platform): string {
   if (platform === "android") return "Play Console opt-in";
   if (platform === "steam") return "Playtest";
-  if (platform === "ios") return "TestFlight";
+  if (platform === "ios") return "iOS beta";
   return "Access link";
 }
 

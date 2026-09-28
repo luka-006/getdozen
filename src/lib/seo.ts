@@ -4,7 +4,7 @@ import { SITE_ORIGIN } from "@/lib/app-url";
 export const SITE_NAME = "Dozen";
 export const SITE_TAGLINE = "Test apps and games. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
-  "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing on Google Play, TestFlight, Steam, itch, and web.";
+  "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing on Google Play, the App Store, Steam, itch, and web.";
 
 export const SITE_KEYWORDS = [
   "Dozen",
@@ -14,7 +14,7 @@ export const SITE_KEYWORDS = [
   "closed testing",
   "Google Play closed testing",
   "Play Console closed test",
-  "TestFlight beta",
+  "iOS beta testing",
   "App Store beta testing",
   "SaaS user testing",
   "12 testers",

@@ -301,16 +301,6 @@ function TrackTabs({
           );
         })}
       </div>
-      <span
-        className="track-tab track-tab-disabled"
-        role="tab"
-        aria-disabled="true"
-        aria-label="Language, coming soon"
-        title="Coming soon"
-      >
-        Language
-        <span className="track-tab-soon">soon</span>
-      </span>
     </div>
   );
 }

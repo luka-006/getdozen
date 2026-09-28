@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Avatar } from "@/components/avatar";
 import { CreditBadge } from "@/components/credit-badge";
-import { DozenMark } from "@/components/dozen-mark";
+import { SiteLogo } from "@/components/site-logo";
 import { MobileNav } from "@/components/mobile-nav";
 import { NavLink } from "@/components/nav-link";
 import type { Profile } from "@/lib/types";
@@ -17,12 +17,7 @@ export function SiteHeader({
     return (
       <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
-          <Link href="/" className="flex items-center gap-2.5 text-ink">
-            <DozenMark className="h-8 w-8 shrink-0" />
-            <span className="font-display text-[18px] font-semibold tracking-[0.03em]">
-              Dozen
-            </span>
-          </Link>
+          <SiteLogo href="/" />
           <Link href="/blog" className="text-[13px] text-ink/80 hover:text-blue">
             Blog
           </Link>
@@ -51,15 +46,7 @@ export function SiteHeader({
     <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur-xl">
       <div className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <div className="flex items-center gap-6">
-          <Link
-            href={profile ? "/board" : "/"}
-            className="flex items-center gap-2.5 text-ink"
-          >
-            <DozenMark className="h-8 w-8 shrink-0" />
-            <span className="font-display text-[18px] font-semibold tracking-[0.03em]">
-              Dozen
-            </span>
-          </Link>
+          <SiteLogo href={profile ? "/board" : "/"} />
           <nav className="hidden items-center gap-4 sm:flex">
             {links.map((link) => (
               <NavLink key={link.href} href={link.href} label={link.label} />

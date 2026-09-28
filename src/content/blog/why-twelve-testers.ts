@@ -44,7 +44,7 @@ A tester who has to answer **where they got stuck**, **what they think the app d
 
 On Dozen, a tester slot is two dots. Twelve slots is twenty-four dots if you buy them as testing only. The default combo is [12 testers and 10 questions](/pricing) for 30 dots, because the written answers are the point. You are not paying for installs. You are paying for people who check in across a week or a month.
 
-Pick 7, 14, 20, or 30 days. One calendar day filled is one cube on the board. If nobody joined, you will see empty cubes. That is honest. A TestFlight list of 80 "interested" emails with three opens is the version that feels busy and tells you nothing.
+Pick 7, 14, 20, or 30 days. One calendar day filled is one cube on the board. If nobody joined, you will see empty cubes. That is honest. A beta invite list of 80 "interested" emails with three opens is the version that feels busy and tells you nothing.
 
 ## How to brief twelve people without writing a novel
 

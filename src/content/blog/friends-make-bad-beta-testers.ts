@@ -34,9 +34,9 @@ If a friend is also your exact user, a designer who already pays for the categor
 
 ## The closed-test trap
 
-Play Console closed testing and TestFlight feel serious because Google and Apple gave you a URL. The URL is not the sample. A list of 200 emails from Twitter is a mailing list. Most of them will never open the app twice.
+Play Console closed testing and iOS beta invites feel serious because Google and Apple gave you a URL. The URL is not the sample. A list of 200 emails from Twitter is a mailing list. Most of them will never open the app twice.
 
-The useful unit is a person who agreed to a duration, used the thing on more than one day, and wrote answers you did not dictate. On Dozen that looks like a tester commitment: they join a post, they check in, missed days have a limit, and the cubes fill only when they actually showed up. Empty cubes are information. A silent TestFlight seat is not.
+The useful unit is a person who agreed to a duration, used the thing on more than one day, and wrote answers you did not dictate. On Dozen that looks like a tester commitment: they join a post, they check in, missed days have a limit, and the cubes fill only when they actually showed up. Empty cubes are information. A silent beta seat is not.
 
 ## Strangers are kinder, in the way that matters
 

@@ -26,7 +26,7 @@ export function PlatformDistributionHint({
         <a href="/requests/new?type=feedback" className="font-medium text-blue">
           Feedback
         </a>{" "}
-        tab. No testers, TestFlight, or Play Console required.
+        tab. No testers, beta links, or Play Console required.
       </p>
     );
   }

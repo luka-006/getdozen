@@ -15,7 +15,7 @@ import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata({
   title: "Pricing",
   description:
-    `Dot packs, custom amounts, and Pro on Dozen. Pay per tester for Google Play, TestFlight, Steam, or web closed tests, or post structured feedback requests.`,
+    `Dot packs, custom amounts, and Pro on Dozen. Pay per tester for Google Play, iOS beta, Steam, or web closed tests, or post structured feedback requests.`,
   path: "/pricing",
   keywords: [
     "app testing pricing",
