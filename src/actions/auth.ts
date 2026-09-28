@@ -4,11 +4,10 @@ import { redirect } from "next/navigation";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { assertHuman, requestIp } from "@/lib/assert-human";
 import { sendSignupConfirmEmail } from "@/lib/auth-mail";
-import { otpSendError, verifyEmailOtp } from "@/lib/auth-otp";
+import { verifyEmailOtp } from "@/lib/auth-otp";
 import { avatarPresetById } from "@/lib/avatar-presets";
 import { checkBotGuard } from "@/lib/bot-guard";
 import { isLaunchOpen } from "@/lib/launch";
-import { isPasswordOnlyTestLogin } from "@/lib/test-login";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
@@ -19,9 +18,10 @@ function loginCredentialError(message: string) {
     : message;
 }
 
-export async function requestLoginCode(formData: FormData) {
+export async function signInWithEmailPassword(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const next = safeInternalPath(formData.get("next"), "/board");
   const guard = await checkBotGuard(formData, await requestIp(), "login");
   if (!guard.ok) {
     return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
@@ -43,94 +43,6 @@ export async function requestLoginCode(formData: FormData) {
     return {
       ok: false as const,
       error: loginCredentialError(passwordError.message),
-      waitSeconds: null as number | null,
-    };
-  }
-
-  // Test accounts with no real inbox skip the email OTP step.
-  if (isPasswordOnlyTestLogin(email)) {
-    const next = safeInternalPath(formData.get("next"), "/board");
-    redirect(next);
-  }
-
-  await supabase.auth.signOut();
-
-  const { error: otpError } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false },
-  });
-  if (otpError) {
-    const parsed = otpSendError(otpError.message);
-    return {
-      ok: false as const,
-      error: parsed.message,
-      waitSeconds: parsed.waitSeconds,
-    };
-  }
-
-  return { ok: true as const, email, waitSeconds: null as number | null };
-}
-
-export async function resendLoginCode(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim();
-  const guard = await checkBotGuard(formData, await requestIp(), "login");
-  if (!guard.ok) {
-    return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
-  }
-  if (!email) {
-    return {
-      ok: false as const,
-      error: "Enter a valid email.",
-      waitSeconds: null as number | null,
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    options: { shouldCreateUser: false },
-  });
-  if (error) {
-    const parsed = otpSendError(error.message);
-    return {
-      ok: false as const,
-      error: parsed.message,
-      waitSeconds: parsed.waitSeconds,
-    };
-  }
-
-  return { ok: true as const, email, waitSeconds: null as number | null };
-}
-
-export async function confirmLoginCode(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim();
-  const token = String(formData.get("token") ?? "").replace(/\s/g, "");
-  const next = safeInternalPath(formData.get("next"), "/board");
-  const guard = await checkBotGuard(formData, await requestIp(), "login");
-  if (!guard.ok) {
-    return { ok: false as const, error: guard.error, waitSeconds: null as number | null };
-  }
-  if (!email) {
-    return {
-      ok: false as const,
-      error: "Enter a valid email.",
-      waitSeconds: null as number | null,
-    };
-  }
-  if (!/^\d{6}$/.test(token)) {
-    return {
-      ok: false as const,
-      error: "Enter the 6-digit code from your email.",
-      waitSeconds: null as number | null,
-    };
-  }
-
-  const supabase = await createClient();
-  const { error } = await verifyEmailOtp(supabase, email, token);
-  if (error) {
-    return {
-      ok: false as const,
-      error: "That code did not match. Try again.",
       waitSeconds: null as number | null,
     };
   }
