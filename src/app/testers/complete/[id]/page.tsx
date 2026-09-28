@@ -76,14 +76,14 @@ export default async function TesterCompletePage({ params, searchParams }: Props
   const dotsEarned = testerCompletionEarnAmount(multiplier);
   const makerId = requestRow?.user_id;
 
-  const [maker, canReview, existingPeerReview] = await Promise.all([
+  const [makerRes, canReview, existingPeerReviewRes] = await Promise.all([
     makerId
       ? admin
           .from("profiles")
           .select("id, display_name")
           .eq("id", makerId)
           .maybeSingle()
-      : Promise.resolve(null),
+      : Promise.resolve({ data: null }),
     makerId ? haveInteracted(profile.id, makerId) : Promise.resolve(false),
     makerId
       ? admin
@@ -92,9 +92,11 @@ export default async function TesterCompletePage({ params, searchParams }: Props
           .eq("from_user_id", profile.id)
           .eq("to_user_id", makerId)
           .maybeSingle()
-      : Promise.resolve(null),
+      : Promise.resolve({ data: null }),
   ]);
 
+  const maker = makerRes.data;
+  const existingPeerReview = existingPeerReviewRes.data;
   const makerName = maker?.display_name?.trim() || "the maker";
   const experienceRating = commitment.experience_rating ?? null;
 
