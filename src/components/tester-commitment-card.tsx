@@ -13,10 +13,6 @@ import {
   testerCompletionEarnAmount,
 } from "@/lib/tester-checkin";
 import { testerCubes, testerJoinedLabel } from "@/lib/tester-progress";
-import {
-  commitmentOptInLinkLabel,
-  normalizePlatform,
-} from "@/lib/platform-access";
 import { checkinFallbackPromptAlt } from "@/lib/product-copy";
 import type { RequestRow, TesterCommitment } from "@/lib/types";
 
@@ -166,19 +162,7 @@ export function TesterCommitmentCard({
             finish +{finishPayout}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusChip status={commitment.status} />
-          {request?.opt_in_link ? (
-            <a
-              href={request.opt_in_link}
-              target="_blank"
-              rel="noreferrer"
-              className="text-[13px] text-blue"
-            >
-              {commitmentOptInLinkLabel(normalizePlatform(request.platform))}
-            </a>
-          ) : null}
-        </div>
+        <StatusChip status={commitment.status} />
       </div>
 
       <div className="mt-4">
