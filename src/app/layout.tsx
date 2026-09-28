@@ -2,11 +2,10 @@ import type { Metadata, Viewport } from "next";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { BugReportLazy } from "@/components/bug-report-lazy";
 import { CookieBanner } from "@/components/cookie-banner";
-import { PostHogProvider } from "@/components/posthog-provider";
+import { PostHogProviderLazy } from "@/components/posthog-provider-lazy";
 import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { SiteHeaderLoader } from "@/components/site-header-loader";
 import { SiteJsonLd } from "@/components/site-json-ld";
-import { getProfile } from "@/lib/auth";
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { isLaunchOpen } from "@/lib/launch";
 import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from "@/lib/seo";
@@ -17,18 +16,21 @@ const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
   weight: ["600", "700"],
+  display: "swap",
 });
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
 });
 
 const plexMono = IBM_Plex_Mono({
   variable: "--font-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -75,12 +77,12 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const profile = await getProfile();
+  const waitlistLock = !isLaunchOpen();
 
   return (
     <html
@@ -88,14 +90,14 @@ export default async function RootLayout({
       className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-paper text-ink antialiased">
-        <PostHogProvider>
+        <PostHogProviderLazy>
           <SiteJsonLd />
-          <SiteHeader profile={profile} waitlistLock={!isLaunchOpen()} />
+          <SiteHeaderLoader waitlistLock={waitlistLock} />
           <main className="flex-1">{children}</main>
           <SiteFooter />
           <CookieBanner />
-          <BugReportLazy email={profile?.email ?? ""} />
-        </PostHogProvider>
+          <BugReportLazy />
+        </PostHogProviderLazy>
       </body>
     </html>
   );

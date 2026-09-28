@@ -15,6 +15,8 @@ import {
 } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = pageMetadata({
   title: "Legal",
   description: "Service-provider information for Dozen.",
