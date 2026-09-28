@@ -12,7 +12,7 @@ export function waitlistLaunchEmailHtml() {
       <p style="margin:0">Test apps and indie games, earn Dots for quality feedback, and post your own work for structured reviews from real testers.</p>
     `,
     cta: { label: "Create your account", href: `${SITE}/signup` },
-    footerNote: `Or browse the board first: ${SITE}/board`,
+    footerNote: "you joined the Dozen waitlist.",
   });
 }
 

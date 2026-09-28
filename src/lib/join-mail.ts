@@ -49,7 +49,7 @@ export async function sendJoinConfirmationEmail(input: JoinMailInput) {
       label: optIn ? optInLabel : joinMailProductLinkHint(input.productType),
       href: optIn || requestUrl,
     },
-    footerNote: `Track progress at ${testersUrl}`,
+    footerNote: "you signed up to test an app on Dozen.",
   });
 
   return sendResendEmail({
