@@ -10,6 +10,7 @@ import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
 import { PlatformIcon } from "@/components/platform-icon";
 import { isBoostActive } from "@/lib/boost";
 import { testerCubes } from "@/lib/tester-progress";
+import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
 import { formatCredits, formatWaitLabel, waitHours } from "@/lib/utils";
 import type { BoardSortId, BoardTrackId } from "@/lib/board-filters";
 import type { Profile, RequestRow, TesterCommitment } from "@/lib/types";
@@ -359,7 +360,7 @@ function RequestCard({
           <div className="flex min-w-0 gap-3">
             <AppIcon
               name={request.app_name}
-              iconUrl={request.app_icon_url}
+              iconUrl={resolveRequestProductImageUrl(request)}
               className="mt-0.5 h-11 w-11 shrink-0 grayscale"
             />
             <div className="min-w-0 space-y-1">
@@ -383,7 +384,7 @@ function RequestCard({
         <div className="flex min-w-0 gap-3">
           <AppIcon
             name={request.app_name}
-            iconUrl={request.app_icon_url}
+            iconUrl={resolveRequestProductImageUrl(request)}
             className="mt-0.5 h-11 w-11 shrink-0"
           />
           <div className="min-w-0 space-y-1">
