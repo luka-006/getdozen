@@ -13,13 +13,22 @@ export const PROFILE_REVIEW_PROMPTS = [
   "Would work with again",
 ] as const;
 
-export function ProfileReviewForm({ toUserId }: { toUserId: string }) {
+export function ProfileReviewForm({
+  toUserId,
+  returnPath,
+}: {
+  toUserId: string;
+  returnPath?: string;
+}) {
   const [body, setBody] = useState("");
   const [rating, setRating] = useState<number | "">("");
 
   return (
     <form action={submitProfileReview} className="surface space-y-4 p-4">
       <input type="hidden" name="to_user_id" value={toUserId} />
+      {returnPath ? (
+        <input type="hidden" name="return_path" value={returnPath} />
+      ) : null}
       <h3 className="font-display text-[18px] font-semibold">Leave a review</h3>
       <p className="text-[13px] text-ink/60">
         Based on feedback or testing you did together.

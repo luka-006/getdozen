@@ -116,6 +116,8 @@ export type TesterCommitment = {
   completes_at: string;
   duration_days?: number;
   final_review_id: string | null;
+  final_notes?: string | null;
+  experience_rating?: number | null;
   created_at: string;
 };
 

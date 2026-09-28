@@ -70,14 +70,16 @@ export function TesterCommitmentCard({
 
   if (isHistory) {
     return (
-      <Link href={requestHref} className="tester-history-card surface block p-5">
+      <article className="tester-history-card surface p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-ink/40">
               Past test
             </p>
             <h2 className="mt-1 font-display text-[18px] font-semibold text-ink/70">
-              {appName}
+              <Link href={requestHref} className="text-blue/80">
+                {appName}
+              </Link>
             </h2>
             <p className="mt-1 text-[13px] text-ink/50">
               {testerJoinedLabel(commitment.opted_in_at)}
@@ -117,8 +119,20 @@ export function TesterCommitmentCard({
           </div>
         </dl>
 
-        <p className="mt-4 text-[13px] text-blue/80">View test details →</p>
-      </Link>
+        <p className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+          <Link href={requestHref} className="text-blue/80">
+            View test details →
+          </Link>
+          {commitment.status === "completed" ? (
+            <Link
+              href={`/testers/complete/${commitment.id}`}
+              className="text-blue"
+            >
+              Share feedback →
+            </Link>
+          ) : null}
+        </p>
+      </article>
     );
   }
 
