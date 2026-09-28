@@ -33,6 +33,7 @@ import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { uploadProductImageFromForm } from "@/lib/upload-product-image";
 
 const customQuestionSchema = z.object({
   text: z.string().min(8).max(300),
@@ -137,7 +138,16 @@ const FIELD_LABELS: Record<string, string> = {
   test_focus: "What to focus on",
   test_start_date: "Start date",
   combo_pack: "Pack",
+  product_image: "Product image",
 };
+
+async function productImageUrlFromForm(
+  formData: FormData,
+  userId: string,
+): Promise<{ url: string | null } | { error: string }> {
+  const supabase = await createClient();
+  return uploadProductImageFromForm(formData, supabase, userId);
+}
 
 function formatZodError(error: z.ZodError): string {
   const issue = error.issues[0];
@@ -282,6 +292,11 @@ export async function createFeedbackRequest(
     return { error: `Not enough ${currencyName()}. Use Buy ${currencyName()} below.` };
   }
 
+  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  if ("error" in imageResult) {
+    return { error: imageResult.error };
+  }
+
   const supabase = await createClient();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + REQUEST_EXPIRY_DAYS);
@@ -305,6 +320,7 @@ export async function createFeedbackRequest(
       credit_cost: creditCost,
       bounty_multiplier: bountyMultiplier,
       test_credentials_encrypted: encrypted,
+      app_icon_url: imageResult.url,
       expires_at: expiresAt.toISOString(),
     })
     .select("id")
@@ -405,6 +421,11 @@ export async function createTesterRequest(
     };
   }
 
+  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  if ("error" in imageResult) {
+    return { error: imageResult.error };
+  }
+
   const supabase = await createClient();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + REQUEST_EXPIRY_DAYS);
@@ -426,6 +447,7 @@ export async function createTesterRequest(
       opt_in_link: storeOptInLink(data.platform, data.opt_in_link),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
+      app_icon_url: imageResult.url,
       expires_at: expiresAt.toISOString(),
     })
     .select("id")
@@ -527,6 +549,11 @@ export async function createComboRequest(
     };
   }
 
+  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  if ("error" in imageResult) {
+    return { error: imageResult.error };
+  }
+
   const supabase = await createClient();
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + REQUEST_EXPIRY_DAYS);
@@ -553,6 +580,7 @@ export async function createComboRequest(
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       test_credentials_encrypted: encrypted,
+      app_icon_url: imageResult.url,
       expires_at: expiresAt.toISOString(),
     })
     .select("id")

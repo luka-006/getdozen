@@ -11,6 +11,7 @@ import { PlatformField } from "@/components/platform-field";
 import { PlatformDistributionHint } from "@/components/platform-distribution-hint";
 import { PublishingTipsPanel } from "@/components/publishing-tips-panel";
 import { ProductTypeField } from "@/components/product-type-field";
+import { ProductImageField } from "@/components/product-image-field";
 import { PriorityPicker } from "@/components/priority-picker";
 import { QuestionBuilder } from "@/components/question-builder";
 import { StarIcon } from "@/components/icons";
@@ -66,7 +67,7 @@ export function ComboRequestForm({ balance, action }: Props) {
   }, [productType]);
 
   return (
-    <form action={formAction} className="mt-8 space-y-6">
+    <form action={formAction} encType="multipart/form-data" className="mt-8 space-y-6">
       {state.error ? (
         <div className="space-y-2 rounded-[6px] border border-flag/30 bg-flag/5 px-3 py-2 text-[13px] text-flag">
           <p>{state.error}</p>
@@ -110,6 +111,7 @@ export function ComboRequestForm({ balance, action }: Props) {
           placeholder={productType === "game" ? "Pinefolk Tavern" : "MyApp"}
         />
       </div>
+      <ProductImageField productType={productType} />
       <div className="field">
         <label htmlFor="app_url">
           {productType === "game" ? "Store or page URL" : "App URL"}
