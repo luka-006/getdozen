@@ -4,9 +4,11 @@ import { SITE_ORIGIN } from "./app-url";
 import {
   ROBOTS_DISALLOW,
   SITEMAP_PATHS,
+  SITE_HOME_TITLE,
   SITE_NAME,
   absoluteUrl,
   isPublicSeoPath,
+  pageMetadata,
 } from "./seo";
 
 describe("seo crawl files", () => {
@@ -15,6 +17,26 @@ describe("seo crawl files", () => {
     assert.equal(absoluteUrl("/"), SITE_ORIGIN);
     assert.equal(absoluteUrl("/pricing"), "https://getdozen.dev/pricing");
     assert.equal(SITE_NAME, "Dozen");
+    assert.equal(SITE_HOME_TITLE, "Dozen");
+  });
+
+  it("keeps home title as Dozen without a subtitle suffix", () => {
+    const home = pageMetadata({
+      title: SITE_HOME_TITLE,
+      description: "desc",
+      path: "/",
+      absoluteTitle: true,
+    });
+    assert.deepEqual(home.title, { absolute: "Dozen" });
+    assert.equal(home.openGraph?.title, "Dozen");
+    assert.equal(home.twitter?.title, "Dozen");
+
+    const board = pageMetadata({
+      title: "Board",
+      description: "desc",
+      path: "/board",
+    });
+    assert.equal(board.title, "Board");
   });
 
   it("sitemaps public marketing and legal pages only", () => {

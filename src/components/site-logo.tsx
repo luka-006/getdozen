@@ -24,7 +24,7 @@ function LogoContent({
       <span
         className={
           wordmarkClassName ??
-          "font-display text-[18px] font-semibold tracking-[0.03em]"
+          "font-display text-[17px] font-bold leading-none tracking-[-0.02em] text-ink"
         }
       >
         ozen
@@ -41,11 +41,11 @@ export function SiteLogo({
   wordmarkClassName,
   tick,
 }: Props) {
-  const layout = `flex items-center gap-1.5 text-ink ${className}`.trim();
+  const layout = `flex items-baseline gap-1 text-ink ${className}`.trim();
 
   if (href) {
     return (
-      <Link href={href} className={layout}>
+      <Link href={href} className={layout} aria-label="Dozen">
         <LogoContent
           markClassName={markClassName}
           wordmarkClassName={wordmarkClassName}

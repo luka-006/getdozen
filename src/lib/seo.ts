@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { SITE_ORIGIN } from "@/lib/app-url";
 
 export const SITE_NAME = "Dozen";
+/** Root/home `<title>` — no subtitle suffix in search results. */
+export const SITE_HOME_TITLE = SITE_NAME;
 export const SITE_TAGLINE = "Test apps and games. Earn. Get feedback.";
 export const SITE_DESCRIPTION =
   "Dozen is a feedback marketplace for indie apps and games. Recruit closed testers, collect structured reviews, and earn dots for quality testing on Google Play, the App Store, Steam, itch, and web.";

@@ -9,7 +9,12 @@ import { SiteJsonLd } from "@/components/site-json-ld";
 import { getProfile } from "@/lib/auth";
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { isLaunchOpen } from "@/lib/launch";
-import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME } from "@/lib/seo";
+import {
+  SITE_DESCRIPTION,
+  SITE_HOME_TITLE,
+  SITE_KEYWORDS,
+  SITE_NAME,
+} from "@/lib/seo";
 import { DOZEN_MARK_INK } from "@/lib/dozen-mark-data";
 import "./globals.css";
 
@@ -38,7 +43,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_ORIGIN),
   title: {
-    default: SITE_NAME,
+    default: SITE_HOME_TITLE,
     template: `%s · ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
@@ -58,13 +63,13 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: SITE_NAME,
-    title: SITE_NAME,
+    title: SITE_HOME_TITLE,
     description: SITE_DESCRIPTION,
     url: SITE_ORIGIN,
   },
   twitter: {
     card: "summary_large_image",
-    title: SITE_NAME,
+    title: SITE_HOME_TITLE,
     description: SITE_DESCRIPTION,
   },
   alternates: {
