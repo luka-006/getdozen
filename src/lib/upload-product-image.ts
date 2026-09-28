@@ -4,15 +4,21 @@ import {
   productImageExtension,
   validateProductImage,
 } from "@/lib/product-image";
+import { productImagePublicUrl } from "@/lib/product-image-storage";
+
+export type UploadedProductImage = {
+  url: string;
+  path: string;
+};
 
 export async function uploadProductImageFromForm(
   formData: FormData,
   supabase: SupabaseClient,
   userId: string,
-): Promise<{ url: string | null } | { error: string }> {
+): Promise<{ image: UploadedProductImage | null } | { error: string }> {
   const raw = formData.get("product_image");
   if (!raw || !(raw instanceof File) || raw.size === 0) {
-    return { url: null };
+    return { image: null };
   }
 
   const buffer = new Uint8Array(await raw.arrayBuffer());
@@ -38,6 +44,10 @@ export async function uploadProductImageFromForm(
     return { error: error.message };
   }
 
-  const { data } = supabase.storage.from(PRODUCT_IMAGE_BUCKET).getPublicUrl(path);
-  return { url: data.publicUrl };
+  return {
+    image: {
+      path,
+      url: productImagePublicUrl(supabase, path),
+    },
+  };
 }

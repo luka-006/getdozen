@@ -11,6 +11,7 @@ import { RequestShareReport } from "@/components/request-share-report";
 import { requireProfile } from "@/lib/auth";
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { aggregateQuestionChipInsights } from "@/lib/chip-analytics";
+import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
 import { pageMetadata } from "@/lib/seo";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -221,7 +222,7 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
       <div className="mt-3 flex items-start gap-4">
         <AppIcon
           name={row.app_name}
-          iconUrl={row.app_icon_url}
+          iconUrl={resolveRequestProductImageUrl(row)}
           className="h-14 w-14 shrink-0"
         />
         <div className="min-w-0 flex-1">

@@ -33,6 +33,7 @@ import { parsePriorityMultiplier, priorityCost } from "@/lib/priority";
 import type { RequestFormState } from "@/lib/request-form";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { deleteStoredProductImages } from "@/lib/product-image-storage";
 import { uploadProductImageFromForm } from "@/lib/upload-product-image";
 
 const customQuestionSchema = z.object({
@@ -141,12 +142,33 @@ const FIELD_LABELS: Record<string, string> = {
   product_image: "Product image",
 };
 
-async function productImageUrlFromForm(
+async function productImageFromForm(
   formData: FormData,
   userId: string,
-): Promise<{ url: string | null } | { error: string }> {
+): Promise<
+  { image: { url: string; path: string } | null } | { error: string }
+> {
   const supabase = await createClient();
   return uploadProductImageFromForm(formData, supabase, userId);
+}
+
+function productImageColumns(
+  image: { url: string; path: string } | null,
+): { product_image_url: string | null; product_image_path: string | null } {
+  if (!image) {
+    return { product_image_url: null, product_image_path: null };
+  }
+  return {
+    product_image_url: image.url,
+    product_image_path: image.path,
+  };
+}
+
+async function discardUploadedProductImage(path: string | null | undefined) {
+  const key = path?.trim();
+  if (!key) return;
+  const admin = createAdminClient();
+  await deleteStoredProductImages(admin, [key]);
 }
 
 function formatZodError(error: z.ZodError): string {
@@ -292,7 +314,7 @@ export async function createFeedbackRequest(
     return { error: `Not enough ${currencyName()}. Use Buy ${currencyName()} below.` };
   }
 
-  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  const imageResult = await productImageFromForm(formData, profile.id);
   if ("error" in imageResult) {
     return { error: imageResult.error };
   }
@@ -320,13 +342,14 @@ export async function createFeedbackRequest(
       credit_cost: creditCost,
       bounty_multiplier: bountyMultiplier,
       test_credentials_encrypted: encrypted,
-      app_icon_url: imageResult.url,
+      ...productImageColumns(imageResult.image),
       expires_at: expiresAt.toISOString(),
     })
     .select("id")
     .single();
 
   if (error || !request) {
+    await discardUploadedProductImage(imageResult.image?.path);
     return { error: error?.message ?? "Could not create request" };
   }
 
@@ -364,6 +387,7 @@ export async function createFeedbackRequest(
   if (qError) {
     const admin = createAdminClient();
     await admin.from("requests").delete().eq("id", request.id);
+    await discardUploadedProductImage(imageResult.image?.path);
     return { error: qError.message };
   }
 
@@ -377,6 +401,7 @@ export async function createFeedbackRequest(
   } catch (e) {
     const admin = createAdminClient();
     await admin.from("requests").delete().eq("id", request.id);
+    await discardUploadedProductImage(imageResult.image?.path);
     return {
       error: e instanceof Error ? e.message : "Credit spend failed",
     };
@@ -421,7 +446,7 @@ export async function createTesterRequest(
     };
   }
 
-  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  const imageResult = await productImageFromForm(formData, profile.id);
   if ("error" in imageResult) {
     return { error: imageResult.error };
   }
@@ -447,13 +472,14 @@ export async function createTesterRequest(
       opt_in_link: storeOptInLink(data.platform, data.opt_in_link),
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
-      app_icon_url: imageResult.url,
+      ...productImageColumns(imageResult.image),
       expires_at: expiresAt.toISOString(),
     })
     .select("id")
     .single();
 
   if (error || !request) {
+    await discardUploadedProductImage(imageResult.image?.path);
     return { error: error?.message ?? "Could not create request" };
   }
 
@@ -467,6 +493,7 @@ export async function createTesterRequest(
   } catch (e) {
     const admin = createAdminClient();
     await admin.from("requests").delete().eq("id", request.id);
+    await discardUploadedProductImage(imageResult.image?.path);
     return {
       error: e instanceof Error ? e.message : "Credit spend failed",
     };
@@ -549,7 +576,7 @@ export async function createComboRequest(
     };
   }
 
-  const imageResult = await productImageUrlFromForm(formData, profile.id);
+  const imageResult = await productImageFromForm(formData, profile.id);
   if ("error" in imageResult) {
     return { error: imageResult.error };
   }
@@ -580,13 +607,14 @@ export async function createComboRequest(
       test_focus: data.test_focus,
       test_start_date: data.test_start_date,
       test_credentials_encrypted: encrypted,
-      app_icon_url: imageResult.url,
+      ...productImageColumns(imageResult.image),
       expires_at: expiresAt.toISOString(),
     })
     .select("id")
     .single();
 
   if (error || !request) {
+    await discardUploadedProductImage(imageResult.image?.path);
     return { error: error?.message ?? "Could not create request" };
   }
 
@@ -624,6 +652,7 @@ export async function createComboRequest(
   if (qError) {
     const admin = createAdminClient();
     await admin.from("requests").delete().eq("id", request.id);
+    await discardUploadedProductImage(imageResult.image?.path);
     return { error: qError.message };
   }
 
@@ -637,6 +666,7 @@ export async function createComboRequest(
   } catch (e) {
     const admin = createAdminClient();
     await admin.from("requests").delete().eq("id", request.id);
+    await discardUploadedProductImage(imageResult.image?.path);
     return {
       error: e instanceof Error ? e.message : "Credit spend failed",
     };

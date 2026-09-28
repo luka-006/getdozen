@@ -6,12 +6,14 @@ import { AppIcon } from "@/components/app-icon";
 import { PLATFORM_LABELS } from "@/lib/platform-labels";
 import { PlatformIcon } from "@/components/platform-icon";
 import { reviewEarnForQuestionCount } from "@/lib/constants";
+import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
 import { formatCredits } from "@/lib/utils";
 
 export type NextReviewPost = {
   id: string;
   app_name: string;
   app_icon_url?: string | null;
+  product_image_url?: string | null;
   app_description: string;
   platform?: string | null;
   question_count: number;
@@ -71,7 +73,7 @@ export function ReviewNextPosts({ posts }: { posts: NextReviewPost[] }) {
                 >
                   <AppIcon
                     name={post.app_name}
-                    iconUrl={post.app_icon_url}
+                    iconUrl={resolveRequestProductImageUrl(post)}
                     className="h-10 w-10 shrink-0"
                   />
                   <div className="min-w-0">
