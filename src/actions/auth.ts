@@ -106,10 +106,9 @@ export async function signUpWithEmail(formData: FormData) {
   }
 
   const hashedToken = linkData.properties?.hashed_token;
-  const emailOtp = linkData.properties?.email_otp;
-  if (!hashedToken || !emailOtp) {
+  if (!hashedToken) {
     redirect(
-      `/signup?error=${encodeURIComponent("Could not create confirmation code. Try again.")}`,
+      `/signup?error=${encodeURIComponent("Could not create confirmation link. Try again.")}`,
     );
   }
 
@@ -118,15 +117,9 @@ export async function signUpWithEmail(formData: FormData) {
   confirmUrl.searchParams.set("type", "signup");
   confirmUrl.searchParams.set("next", next);
 
-  const confirmPageUrl = new URL(`${siteUrl}/signup/confirm`);
-  confirmPageUrl.searchParams.set("email", email);
-  confirmPageUrl.searchParams.set("next", next);
-
   const mailed = await sendSignupConfirmEmail({
     to: email,
     confirmUrl: confirmUrl.toString(),
-    code: emailOtp,
-    confirmPageUrl: confirmPageUrl.toString(),
     displayName: fullName,
   });
   if (!mailed.ok) {
@@ -135,71 +128,10 @@ export async function signUpWithEmail(formData: FormData) {
     );
   }
 
-  redirect(confirmPageUrl.pathname + confirmPageUrl.search);
-}
-
-export async function confirmSignupCode(formData: FormData) {
-  const email = String(formData.get("email") ?? "").trim();
-  const token = String(formData.get("token") ?? "").replace(/\s/g, "");
-  const next = safeInternalPath(formData.get("next"), "/board");
-  const guard = await checkBotGuard(formData, await requestIp(), "signup");
-  if (!guard.ok) {
-    return { ok: false as const, error: guard.error };
-  }
-  if (!email) {
-    return { ok: false as const, error: "Enter a valid email." };
-  }
-  if (!/^\d{6}$/.test(token)) {
-    return {
-      ok: false as const,
-      error: "Enter the 6-digit code from your email.",
-    };
-  }
-
-  const supabase = await createClient();
-  let verified = await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "signup",
-  });
-  if (verified.error) {
-    verified = await verifyEmailOtp(supabase, email, token);
-  }
-  if (verified.error) {
-    return {
-      ok: false as const,
-      error: "That code did not match. Try again.",
-    };
-  }
-
-  const user = verified.data.user;
-  if (user) {
-    try {
-      const admin = createAdminClient();
-      const { data: existing } = await admin
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!existing) {
-        const name =
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
-          "Maker";
-        await admin.from("profiles").insert({
-          id: user.id,
-          email: user.email ?? "",
-          display_name: String(name).slice(0, 40),
-        });
-      }
-    } catch {
-      // Non-fatal
-    }
-  }
-
-  redirect(next);
+  return {
+    ok: true as const,
+    message: "Check your email for the confirmation link.",
+  };
 }
 
 export async function signInWithGoogle(formData: FormData) {
