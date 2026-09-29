@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { DropdownPanel } from "@/components/dropdown-panel";
 import { FOCUS_TAGS, PLATFORMS, PRODUCT_TYPES } from "@/lib/constants";
 import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
-import { PlatformIcon } from "@/components/platform-icon";
 import type { BoardSortId } from "@/lib/board-filters";
 
 export type BoardFilters = {

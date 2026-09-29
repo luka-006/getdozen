@@ -7,7 +7,6 @@ import { AppIcon } from "@/components/app-icon";
 import { BoardFiltersMenu, type BoardFilters } from "@/components/board-filters-menu";
 import { PLATFORMS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/constants";
 import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
-import { PlatformIcon } from "@/components/platform-icon";
 import { isBoostActive } from "@/lib/boost";
 import { testerCubes } from "@/lib/tester-progress";
 import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
@@ -396,10 +395,7 @@ function RequestCard({
               </span>
             ) : null}
             {platformLabel ? (
-              <span className="inline-flex items-center gap-1 text-[13px] text-ink/60">
-                <PlatformIcon platform={request.platform ?? "web"} className="h-3.5 w-3.5" />
-                {platformLabel}
-              </span>
+              <span className="text-[13px] text-ink/60">{platformLabel}</span>
             ) : null}
             {request.focus_tag ? (
               <span className="text-[13px] text-ink/60">{request.focus_tag}</span>
