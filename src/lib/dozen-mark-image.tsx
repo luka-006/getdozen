@@ -1,14 +1,17 @@
 import {
   DOZEN_MARK_BLUE,
-  DOZEN_MARK_DOT_R,
-  DOZEN_MARK_DOTS,
+  DOZEN_MARK_CELL,
+  DOZEN_MARK_CELLS,
+  DOZEN_MARK_COLS,
+  DOZEN_MARK_GAP,
   DOZEN_MARK_INK,
-  DOZEN_MARK_SPINE,
+  DOZEN_MARK_ROWS,
+  DOZEN_MARK_RX,
   DOZEN_MARK_VIEW,
   DOZEN_MARK_YELLOW,
 } from "@/lib/dozen-mark-data";
 
-/** Mark renderer for `next/og` ImageResponse (no SVG). */
+/** Flexbox mark for `next/og` ImageResponse (no CSS grid). */
 export function DozenMarkBoxes({
   size,
   background,
@@ -17,14 +20,13 @@ export function DozenMarkBoxes({
   background?: string;
 }) {
   const scale = size / DOZEN_MARK_VIEW;
-  const spine = {
-    left: DOZEN_MARK_SPINE.x * scale,
-    top: DOZEN_MARK_SPINE.y * scale,
-    width: DOZEN_MARK_SPINE.width * scale,
-    height: DOZEN_MARK_SPINE.height * scale,
-    radius: DOZEN_MARK_SPINE.rx * scale,
-  };
-  const dotR = DOZEN_MARK_DOT_R * scale;
+  const cell = DOZEN_MARK_CELL * scale;
+  const gap = DOZEN_MARK_GAP * scale;
+  const rx = Math.max(1, DOZEN_MARK_RX * scale);
+  const gridW = DOZEN_MARK_COLS * cell + (DOZEN_MARK_COLS - 1) * gap;
+  const gridH = DOZEN_MARK_ROWS * cell + (DOZEN_MARK_ROWS - 1) * gap;
+  const ox = (size - gridW) / 2;
+  const oy = (size - gridH) / 2;
 
   return (
     <div
@@ -37,28 +39,17 @@ export function DozenMarkBoxes({
         borderRadius: Math.round(size * 0.18),
       }}
     >
-      <div
-        style={{
-          position: "absolute",
-          left: spine.left,
-          top: spine.top,
-          width: spine.width,
-          height: spine.height,
-          background: DOZEN_MARK_BLUE,
-          borderRadius: spine.radius,
-        }}
-      />
-      {DOZEN_MARK_DOTS.map((dot, i) => (
+      {DOZEN_MARK_CELLS.map(({ c, r, yellow }) => (
         <div
-          key={i}
+          key={`${c}-${r}`}
           style={{
             position: "absolute",
-            left: dot.x * scale - dotR,
-            top: dot.y * scale - dotR,
-            width: dotR * 2,
-            height: dotR * 2,
-            background: dot.golden ? DOZEN_MARK_YELLOW : DOZEN_MARK_BLUE,
-            borderRadius: dotR,
+            left: ox + c * (cell + gap),
+            top: oy + r * (cell + gap),
+            width: cell,
+            height: cell,
+            background: yellow ? DOZEN_MARK_YELLOW : DOZEN_MARK_BLUE,
+            borderRadius: rx,
           }}
         />
       ))}
