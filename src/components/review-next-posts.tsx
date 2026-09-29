@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppIcon } from "@/components/app-icon";
 import { PLATFORM_LABELS } from "@/lib/platform-labels";
-import { PlatformIcon } from "@/components/platform-icon";
 import { reviewEarnForQuestionCount } from "@/lib/constants";
 import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
 import { formatCredits } from "@/lib/utils";
@@ -83,10 +82,7 @@ export function ReviewNextPosts({ posts }: { posts: NextReviewPost[] }) {
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[12px] text-ink/50">
                       {platform && PLATFORM_LABELS[platform] ? (
-                        <span className="inline-flex items-center gap-0.5">
-                          <PlatformIcon platform={platform} className="h-3 w-3" />
-                          {PLATFORM_LABELS[platform]}
-                        </span>
+                        <span>{PLATFORM_LABELS[platform]}</span>
                       ) : null}
                       <span>{post.question_count} questions</span>
                       {payout ? (
