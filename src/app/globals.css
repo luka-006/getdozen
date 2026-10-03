@@ -928,18 +928,41 @@ a.tester-history-card .stat-cell {
   }
 }
 
-@keyframes dozen-tick {
+.dozen-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes dozen-count {
   0% {
-    opacity: 0.25;
-  }
-  35% {
-    opacity: 1;
+    opacity: 0.2;
+    transform: scale(0.8);
   }
   55% {
-    opacity: 0.4;
+    opacity: 1;
+    transform: scale(1.16);
   }
   100% {
     opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes dozen-credit {
+  0% {
+    opacity: 0.2;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.45);
+  }
+  70% {
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -956,8 +979,22 @@ a.tester-history-card .stat-cell {
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .dozen-tick {
-    animation: dozen-tick 900ms ease-out 200ms 1 both;
+  a.dozen-logo:hover .dozen-dot,
+  a.dozen-logo:focus-visible .dozen-dot,
+  .dozen-count .dozen-dot {
+    animation: dozen-count 340ms cubic-bezier(0.3, 0.7, 0.4, 1)
+      calc(var(--i) * 42ms) 1 both;
+  }
+
+  .dozen-count .dozen-dot {
+    animation-delay: calc(250ms + var(--i) * 55ms);
+  }
+
+  a.dozen-logo:hover .dozen-dot-credit,
+  a.dozen-logo:focus-visible .dozen-dot-credit,
+  .dozen-count .dozen-dot-credit {
+    animation-name: dozen-credit;
+    animation-duration: 620ms;
   }
 }
 
