@@ -150,7 +150,7 @@ export function BoardFiltersMenu({ filters, onChange }: Props) {
                   patch({ sort: e.target.value as BoardSortId })
                 }
               >
-                <option value="default">Boost · Pro · waiting</option>
+                <option value="default">Bounty · waiting</option>
                 <option value="newest">Newest first</option>
                 <option value="oldest">Longest waiting</option>
                 <option value="bounty">Highest bounty</option>
