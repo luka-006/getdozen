@@ -34,10 +34,12 @@ export default async function NewRequestPage({ searchParams }: Props) {
         : "tester";
 
   return (
-    <div className="mx-auto w-full max-w-[720px] px-4 py-8">
-      <div>
-        <h1 className="font-display text-[32px] font-semibold">Post request</h1>
-        <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] text-ink/65">
+    <div className="post-page mx-auto w-full max-w-[720px] px-4 py-8 max-md:py-4">
+      <div className="post-page-head">
+        <h1 className="font-display text-[32px] font-semibold max-md:text-[15px] max-md:font-medium max-md:text-ink/55">
+          Post request
+        </h1>
+        <p className="mt-2 flex flex-wrap items-center gap-2 text-[13px] text-ink/65 max-md:mt-1">
           <CreditIcon className="h-4 w-4 text-ink" />
           <span className="rounded-[6px] bg-credit px-1.5 py-0.5 font-mono text-ink">
             {formatDots(profile.credits)}

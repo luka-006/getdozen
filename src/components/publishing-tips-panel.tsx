@@ -18,13 +18,11 @@ export function PublishingTipsPanel({
   if (tips.length === 0) return null;
 
   return (
-    <aside
-      className="rounded-[6px] border border-border bg-mist/60 px-3 py-3"
-      aria-label="Common publishing pitfalls"
-    >
-      <p className="text-[12px] font-semibold uppercase tracking-wide text-ink/55">
+    <details className="tips-fold rounded-[6px] border border-border bg-mist/60 px-3 py-3">
+      <summary className="cursor-pointer text-[12px] font-semibold uppercase tracking-wide text-ink/55">
         Common pitfalls
-      </p>
+      </summary>
+      <aside className="tips-fold-body" aria-label="Common publishing pitfalls">
       <ul className="mt-2 space-y-2 text-[12px] leading-relaxed text-ink/75">
         {tips.map((tip) => (
           <li key={tip.id} className="flex gap-2">
@@ -46,6 +44,7 @@ export function PublishingTipsPanel({
           </li>
         ))}
       </ul>
-    </aside>
+      </aside>
+    </details>
   );
 }
