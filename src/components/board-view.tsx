@@ -7,6 +7,7 @@ import { AppIcon } from "@/components/app-icon";
 import { BoardFiltersMenu, type BoardFilters } from "@/components/board-filters-menu";
 import { PLATFORMS, TESTER_DAYS, reviewEarnForQuestionCount } from "@/lib/constants";
 import { PLATFORM_LABELS, PRODUCT_TYPE_LABELS } from "@/lib/platform-labels";
+import { compareBoardRows } from "@/lib/board-sort";
 import { isBoostActive } from "@/lib/boost";
 import { testerCubes } from "@/lib/tester-progress";
 import { resolveRequestProductImageUrl } from "@/lib/product-image-display";
@@ -155,26 +156,9 @@ export function BoardView({
       else active.push(row);
     }
 
-    const sorter = (a: RequestRow, b: RequestRow) => {
-      if (filters.sort === "newest") {
-        return waitHours(a.created_at) - waitHours(b.created_at);
-      }
-      if (filters.sort === "oldest") {
-        return waitHours(b.created_at) - waitHours(a.created_at);
-      }
-      if (filters.sort === "bounty") {
-        const aBounty = Number(a.bounty_multiplier) || 1;
-        const bBounty = Number(b.bounty_multiplier) || 1;
-        if (aBounty !== bBounty) return bBounty - aBounty;
-      }
-      const aBoost = isBoostActive(a.boosted_until) ? 1 : 0;
-      const bBoost = isBoostActive(b.boosted_until) ? 1 : 0;
-      if (aBoost !== bBoost) return bBoost - aBoost;
-      const aPro = profileMap.get(a.user_id)?.is_pro ? 1 : 0;
-      const bPro = profileMap.get(b.user_id)?.is_pro ? 1 : 0;
-      if (aPro !== bPro) return bPro - aPro;
-      return waitHours(b.created_at) - waitHours(a.created_at);
-    };
+    const isPro = (userId: string) => Boolean(profileMap.get(userId)?.is_pro);
+    const sorter = (a: RequestRow, b: RequestRow) =>
+      compareBoardRows(a, b, filters.sort, isPro);
 
     active.sort(sorter);
     done.sort(sorter);

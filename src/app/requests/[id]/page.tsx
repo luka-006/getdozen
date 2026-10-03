@@ -20,7 +20,7 @@ import { decryptCredentials } from "@/lib/crypto";
 import { canBuyBoardBoost, isBoostActive } from "@/lib/boost";
 import { BOOST_PRICE_EUR } from "@/lib/pricing";
 import { formatDots } from "@/lib/currency";
-import { formatWait } from "@/lib/utils";
+import { formatCredits, formatWait } from "@/lib/utils";
 import {
   joinOptInEmailLabel,
   joinOptInEmailPlaceholder,
@@ -294,12 +294,8 @@ export default async function RequestDetailPage({ params, searchParams }: Props)
               <dd className="font-mono">{row.question_count}</dd>
             </div>
             <div className="stat-cell">
-              <dt className="text-ink/60">Posted for</dt>
-              <dd>
-                <span className="pill-credit font-mono">
-                  {formatDots(Number(row.credit_cost))}
-                </span>
-              </dd>
+              <dt className="text-ink/60">Dots</dt>
+              <dd className="font-mono">{formatCredits(Number(row.credit_cost))}</dd>
             </div>
             <div className="stat-cell">
               <dt className="text-ink/60">Reviewer earn</dt>
