@@ -983,11 +983,11 @@ a.tester-history-card .stat-cell {
   a.dozen-logo:focus-visible .dozen-dot,
   .dozen-count .dozen-dot {
     animation: dozen-count 340ms cubic-bezier(0.3, 0.7, 0.4, 1)
-      calc(var(--i) * 42ms) 1 both;
+      calc(var(--i) * 22ms) 1 both;
   }
 
   .dozen-count .dozen-dot {
-    animation-delay: calc(250ms + var(--i) * 55ms);
+    animation-delay: calc(250ms + var(--i) * 32ms);
   }
 
   a.dozen-logo:hover .dozen-dot-credit,
