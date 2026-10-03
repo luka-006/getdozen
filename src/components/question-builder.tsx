@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CreditIcon, PlusIcon, TrashIcon } from "@/components/icons";
 import {
   CORE_QUESTIONS,
@@ -49,6 +49,8 @@ export function QuestionBuilder({
   const [proofQuestion, setProofQuestion] = useState("");
   const [proofAnswer, setProofAnswer] = useState("");
   const [popKey, setPopKey] = useState(0);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const gateRef = useRef<HTMLInputElement>(null);
 
   const filledCustom = custom
     .map((q) => ({
@@ -65,6 +67,26 @@ export function QuestionBuilder({
   const payload = useMemo(() => JSON.stringify(filledCustom), [filledCustom]);
   const needExact = targetTotal ?? null;
   const exactOk = needExact == null || total === needExact;
+  const proofOk =
+    proofQuestion.trim().length >= 8 && proofAnswer.trim().length > 0;
+  const questionsReady = proofOk && (needExact != null ? exactOk : total >= MIN_QUESTIONS);
+  const onProofPage = questionIndex >= custom.length;
+
+  useEffect(() => {
+    setQuestionIndex((current) => Math.min(current, custom.length));
+  }, [custom.length]);
+
+  useEffect(() => {
+    const gate = gateRef.current;
+    if (!gate) return;
+    gate.setCustomValidity(
+      questionsReady
+        ? ""
+        : needExact != null
+          ? `This pack needs exactly ${needExact} questions, plus a proof answer.`
+          : `Add questions until you have ${MIN_QUESTIONS}, then add a proof answer.`,
+    );
+  }, [questionsReady, needExact]);
 
   const libraryGroups = useMemo(() => {
     const map = new Map<string, string[]>();
@@ -133,7 +155,35 @@ export function QuestionBuilder({
 
   return (
     <div className="space-y-8">
-      <section className="space-y-3">
+      <button
+        type="button"
+        data-oq-inner-prev
+        hidden
+        disabled={questionIndex === 0}
+        onClick={() => setQuestionIndex((current) => Math.max(0, current - 1))}
+      />
+      <button
+        type="button"
+        data-oq-inner-next
+        hidden
+        disabled={onProofPage}
+        onClick={() =>
+          setQuestionIndex((current) => Math.min(custom.length, current + 1))
+        }
+      />
+      <button
+        type="button"
+        data-oq-focus-question
+        hidden
+        onClick={(event) => {
+          const next = Number(event.currentTarget.dataset.index);
+          if (Number.isFinite(next)) setQuestionIndex(next);
+        }}
+      />
+      <p className="text-[13px] text-ink/55 md:hidden">
+        Three core questions are already included.
+      </p>
+      <section className="hidden space-y-3 md:block">
         <h2 className="font-display text-[22px] font-semibold">Core questions</h2>
         <ol className="mt-3 space-y-2">
           {CORE_QUESTIONS.map((q) => (
@@ -147,7 +197,12 @@ export function QuestionBuilder({
       <section className="space-y-3">
         <div className="flex items-end justify-between gap-3">
           <div>
-            <h2 className="font-display text-[22px] font-semibold">Your questions</h2>
+            <p className="font-mono text-[12px] text-ink/45 md:hidden">
+              {onProofPage
+                ? "Proof"
+                : `Question ${questionIndex + 1} of ${custom.length}`}
+            </p>
+            <h2 className="font-display text-[22px] font-semibold max-md:sr-only">Your questions</h2>
             <p className="text-[13px] text-ink/60">
               {needExact
                 ? `Need ${needExact} total (core + yours + proof).`
@@ -166,7 +221,8 @@ export function QuestionBuilder({
         <div className="space-y-4">
           {custom.map((item, index) => (
             <div
-              className="surface space-y-3 p-3 motion-fade-in"
+              className={`surface space-y-3 p-3 motion-fade-in${index === questionIndex ? "" : " max-md:hidden"}`}
+              data-q-index={index}
               key={`q-${index}-${popKey}`}
             >
               <div className="flex items-center justify-between gap-2">
@@ -189,8 +245,12 @@ export function QuestionBuilder({
                 maxLength={300}
                 placeholder="Ask one thing (8+ chars)"
               />
-              <div className="space-y-2">
-                <p className="text-[12px] text-ink/55">
+              <details className="suggestion-fold">
+                <summary className="text-[13px] font-medium text-blue md:hidden">
+                  Suggested answers, optional
+                </summary>
+                <div className="suggestion-fold-body space-y-2">
+                <p className="text-[12px] text-ink/55 max-md:mt-2 md:mt-0">
                   Suggested answers · optional, no extra cost
                 </p>
                 {item.suggestions.map((s, sIndex) => (
@@ -215,6 +275,7 @@ export function QuestionBuilder({
                   </button>
                 ) : null}
               </div>
+              </details>
             </div>
           ))}
         </div>
@@ -222,8 +283,12 @@ export function QuestionBuilder({
         <input type="hidden" name="custom_questions" value={payload} />
       </section>
 
-      <section className="space-y-3">
-        <h2 className="font-display text-[22px] font-semibold">Library</h2>
+      <details className="library-fold">
+        <summary className="text-[15px] font-semibold text-ink md:hidden">
+          Pick a saved question
+        </summary>
+        <div className="library-fold-body space-y-3">
+        <h2 className="font-display text-[22px] font-semibold max-md:mt-3 md:mt-0">Library</h2>
         {library.length === 0 ? (
           <p className="well px-3 py-3 text-[13px] text-ink/55">Empty.</p>
         ) : (
@@ -255,9 +320,10 @@ export function QuestionBuilder({
             ))}
           </div>
         )}
-      </section>
+        </div>
+      </details>
 
-      <section className="space-y-3">
+      <section className={onProofPage ? "space-y-3" : "space-y-3 max-md:hidden"}>
         <h2 className="font-display text-[22px] font-semibold">Proof</h2>
         <p className="text-[12px] text-ink/55">Required · counts as +1 {currencyUnits(1)}</p>
         <div className="field">
@@ -334,6 +400,14 @@ export function QuestionBuilder({
           ) : null}
         </p>
       )}
+      <input
+        ref={gateRef}
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        value="ready"
+        onChange={() => {}}
+      />
     </div>
   );
 }

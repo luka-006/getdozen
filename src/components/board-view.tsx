@@ -178,9 +178,40 @@ export function BoardView({
   }, [sorted.active, meId, profileMap, type, reviewedSet]);
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8">
-      <BoardHeader post={type !== "language"} />
+    <div className="board-page mx-auto w-full max-w-6xl px-4 py-8 max-md:py-5">
+      <BoardHeader post={type !== "language"} track={type} />
       <TrackTabs active={type} onSelect={setTrack} />
+      {type !== "language" ? (
+        <div className="board-platforms md:hidden" role="group" aria-label="Platform">
+          <button
+            type="button"
+            className={!filters.platform ? "board-platform-chip board-platform-chip-on" : "board-platform-chip"}
+            aria-pressed={!filters.platform}
+            onClick={() => setFiltersAndUrl({ ...filters, platform: undefined })}
+          >
+            All
+          </button>
+          {PLATFORMS.map((platform) => {
+            const on = filters.platform === platform;
+            return (
+              <button
+                key={platform}
+                type="button"
+                className={on ? "board-platform-chip board-platform-chip-on" : "board-platform-chip"}
+                aria-pressed={on}
+                onClick={() =>
+                  setFiltersAndUrl({
+                    ...filters,
+                    platform: on ? undefined : platform,
+                  })
+                }
+              >
+                {PLATFORM_LABEL[platform]}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {error ? <p className="mt-4 text-[13px] text-flag">{error}</p> : null}
 
@@ -368,13 +399,13 @@ function RequestCard({
           <AppIcon
             name={request.app_name}
             iconUrl={resolveRequestProductImageUrl(request)}
-            className="mt-0.5 h-11 w-11 shrink-0"
+            className="mt-0.5 h-12 w-12 shrink-0 md:h-11 md:w-11"
           />
           <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="font-medium">{request.app_name}</span>
+            <span className="font-medium text-[17px] leading-tight md:text-[15px]">{request.app_name}</span>
             {request.product_type === "game" ? (
-              <span className="rounded-[6px] bg-mist px-1.5 py-0.5 text-[11px] font-medium text-ink/70">
+              <span className="rounded-[6px] bg-mist px-1.5 py-0.5 text-[11px] font-medium text-ink/70 max-md:hidden">
                 {PRODUCT_TYPE_LABELS.game}
               </span>
             ) : null}
@@ -382,7 +413,7 @@ function RequestCard({
               <span className="text-[13px] text-ink/60">{platformLabel}</span>
             ) : null}
             {request.focus_tag ? (
-              <span className="text-[13px] text-ink/60">{request.focus_tag}</span>
+              <span className="text-[13px] text-ink/60 max-md:hidden">{request.focus_tag}</span>
             ) : null}
             {Number(request.bounty_multiplier) > 1 ? (
               <span className="rounded-[6px] bg-mist px-1.5 py-0.5 font-mono text-[12px] text-blue">
@@ -395,15 +426,15 @@ function RequestCard({
               </span>
             ) : null}
             {isBoostActive(request.boosted_until) ? (
-              <span className="text-[12px] text-blue">Boost</span>
+              <span className="text-[12px] text-blue max-md:hidden">Boost</span>
             ) : owner?.is_pro ? (
-              <span className="text-[12px] text-blue">Pro</span>
+              <span className="text-[12px] text-blue max-md:hidden">Pro</span>
             ) : null}
           </div>
-          <p className="truncate text-[13px] text-ink/65">
+          <p className="truncate text-[13px] text-ink/65 max-md:hidden">
             {request.app_description}
           </p>
-          <p className="text-[13px] text-ink/55">
+          <p className="text-[13px] text-ink/55 max-md:hidden">
             {owner?.display_name ?? "Maker"}
             {owner?.is_ramped ? " · Ramped" : ""}
             {owner && Number(owner.rating_count) > 0
@@ -419,11 +450,19 @@ function RequestCard({
           </div>
         </div>
         <div className="text-right">
-          <p className="font-mono text-[13px] text-ink/80">{wait}</p>
+          <p className="font-mono text-[18px] font-semibold leading-none text-ink md:text-[13px] md:font-normal md:text-ink/80">
+            <span className="md:hidden">
+              {type === "feedback"
+                ? `${request.question_count}q`
+                : `${request.testers_filled}/${request.testers_needed}`}
+            </span>
+            <span className="max-md:hidden">{wait}</span>
+          </p>
+          <p className="mt-1 font-mono text-[11px] text-ink/45 md:hidden">{wait}</p>
         </div>
       </div>
       {cubes ? (
-        <div className="mt-3">
+        <div className="mt-3 max-md:hidden">
           <DayStrip total={cubes.total} filled={cubes.filled} label={cubes.label} />
         </div>
       ) : null}
@@ -431,17 +470,25 @@ function RequestCard({
   );
 }
 
-function BoardHeader({ post = true }: { post?: boolean }) {
+function mobileBoardTitle(track: TrackId) {
+  if (track === "feedback") return "Pick one to review";
+  if (track === "combo") return "Pick a pack";
+  if (track === "language") return "Board";
+  return "Pick an app to test";
+}
+
+function BoardHeader({ post = true, track = "tester" }: { post?: boolean; track?: TrackId }) {
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="flex flex-col gap-4 md:flex-row md:flex-wrap md:items-end md:justify-between">
       <div>
-        <p className="eyebrow">Live board</p>
-        <h1 className="mt-2 font-display text-[34px] font-semibold leading-tight">
-          Open feedback & tests
+        <p className="eyebrow max-md:hidden">Live board</p>
+        <h1 className="font-display text-[34px] font-semibold leading-tight max-md:text-[2rem] md:mt-2">
+          <span className="md:hidden">{mobileBoardTitle(track)}</span>
+          <span className="max-md:hidden">Open feedback & tests</span>
         </h1>
       </div>
       {post ? (
-        <Link href="/requests/new" className="btn btn-primary">
+        <Link href="/requests/new" className="btn btn-primary max-md:min-h-[3.25rem] max-md:w-full">
           Post feedback
         </Link>
       ) : null}
