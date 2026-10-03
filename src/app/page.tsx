@@ -77,7 +77,7 @@ export default async function HomePage({
         <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
           <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,22rem)] lg:items-center lg:gap-8 xl:gap-12">
             <div className="max-w-xl space-y-5 lg:max-w-none">
-              <SiteLogo sizeClassName="text-[48px] sm:text-[56px]" tick />
+              <SiteLogo sizeClassName="text-[36px] sm:text-[44px]" tick />
               <h1 className="hero-title mt-3">
                 Real feedback on apps and games.
               </h1>
@@ -139,7 +139,7 @@ export default async function HomePage({
       <HomeJsonLd />
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl flex-col justify-center gap-12 px-4 py-16 lg:flex-row lg:items-center lg:gap-16">
         <div className="max-w-xl space-y-5">
-          <SiteLogo sizeClassName="text-[48px] sm:text-[56px]" tick />
+          <SiteLogo sizeClassName="text-[36px] sm:text-[44px]" tick />
           <h1 className="hero-title mt-3">
             Real feedback from real testers.
           </h1>

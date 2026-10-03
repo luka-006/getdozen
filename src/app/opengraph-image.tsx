@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { DOZEN_BRAND_BLUE, DOZEN_MARK_INK } from "@/lib/dozen-mark-data";
-import { DozenMarkBoxes } from "@/lib/dozen-mark-image";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/seo";
+import { DozenWordBoxes } from "@/lib/dozen-mark-image";
+import { SITE_TAGLINE } from "@/lib/seo";
 
 export const alt = "Dozen";
 export const size = { width: 1200, height: 630 };
@@ -10,7 +10,7 @@ export const contentType = "image/png";
 async function loadArchivo() {
   try {
     const css = await fetch(
-      "https://fonts.googleapis.com/css2?family=Archivo:wght@700&text=DozenTestappsEarnGetfeedback.",
+      "https://fonts.googleapis.com/css2?family=Archivo:wght@700&text=TestappsandgamesEarnGetfeedback.",
       { headers: { "User-Agent": "Mozilla/5.0" } },
     ).then((res) => res.text());
     const match = css.match(/src: url\(([^)]+)\)/);
@@ -44,30 +44,11 @@ export default async function Image() {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 28,
-            maxWidth: 720,
+            gap: 40,
+            maxWidth: 820,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 24,
-            }}
-          >
-            <DozenMarkBoxes size={112} />
-            <div
-              style={{
-                display: "flex",
-                fontSize: 72,
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-                fontFamily: archivo ? "Archivo" : "sans-serif",
-              }}
-            >
-              {SITE_NAME}
-            </div>
-          </div>
+          <DozenWordBoxes height={150} wordColor="#ffffff" />
           <div
             style={{
               display: "flex",

@@ -1,103 +1,83 @@
 import type { CSSProperties } from "react";
 import {
-  DOZEN_MARK_BLUE as BLUE,
-  DOZEN_MARK_CELL,
-  DOZEN_MARK_CELLS as CELLS,
-  DOZEN_MARK_COLS,
-  DOZEN_MARK_GAP,
-  DOZEN_MARK_ROWS,
-  DOZEN_MARK_RX,
-  DOZEN_MARK_VIEW,
-  DOZEN_MARK_YELLOW as YELLOW,
+  DOZEN_CELL,
+  DOZEN_CELL_RX,
+  DOZEN_D_CELLS,
+  DOZEN_MARK_BLUE,
+  DOZEN_MARK_INK,
+  DOZEN_MARK_YELLOW,
+  DOZEN_TILE,
+  DOZEN_TILE_RX,
+  dozenCellX,
+  dozenCellY,
+  dozenPixelBox,
+  dozenSoftCellPath,
+  type DozenCell,
 } from "@/lib/dozen-mark-data";
-import { cn } from "@/lib/utils";
+
+/**
+ * Rounded pixels of the Dozen mark. D pixels keep the favicon colours; "ozen"
+ * pixels take `wordFill`. With `animated`, pixels carry their column so the
+ * logo can light up left to right, the credit pixel last.
+ */
+export function DozenPixels({
+  cells,
+  wordFill = "currentColor",
+  animated,
+}: {
+  cells: DozenCell[];
+  wordFill?: string;
+  animated?: boolean;
+}) {
+  const lastCol = Math.max(...cells.map(({ c }) => c)) + 1;
+  return cells.map(({ c, r, credit, soft, word }) => {
+    const fill = word ? wordFill : credit ? DOZEN_MARK_YELLOW : DOZEN_MARK_BLUE;
+    const motion = animated
+      ? {
+          className: credit ? "dozen-dot dozen-dot-credit" : "dozen-dot",
+          style: { "--i": credit ? lastCol : c } as CSSProperties,
+        }
+      : {};
+    if (soft) {
+      return <path key={`${c}-${r}`} fill={fill} d={dozenSoftCellPath(c, r)} {...motion} />;
+    }
+    return (
+      <rect
+        key={`${c}-${r}`}
+        x={dozenCellX(c).toFixed(3)}
+        y={dozenCellY(r).toFixed(3)}
+        width={DOZEN_CELL}
+        height={DOZEN_CELL}
+        rx={DOZEN_CELL_RX}
+        fill={fill}
+        {...motion}
+      />
+    );
+  });
+}
 
 type Props = {
   className?: string;
-  style?: CSSProperties;
   title?: string;
-  /** Count the dots in once on load (landing hero). */
-  tick?: boolean;
-  /** Crop to the dots so the D can stand in for a letter. */
-  glyph?: boolean;
+  /** Draw the navy rounded tile behind the D, as in the favicon. */
+  tile?: boolean;
 };
 
-/**
- * Dozen mark — twelve dots form a capital D; one credit-yellow dot in the bowl.
- */
-export function DozenMark({
-  className = "h-8 w-8",
-  style,
-  title,
-  tick,
-  glyph,
-}: Props) {
-  const cell = DOZEN_MARK_CELL;
-  const gap = DOZEN_MARK_GAP;
-  const cols = DOZEN_MARK_COLS;
-  const rows = DOZEN_MARK_ROWS;
-  const gridW = cols * cell + (cols - 1) * gap;
-  const gridH = rows * cell + (rows - 1) * gap;
-  const ox = glyph ? 0 : (DOZEN_MARK_VIEW - gridW) / 2;
-  const oy = glyph ? 0 : (DOZEN_MARK_VIEW - gridH) / 2;
-  const rx = DOZEN_MARK_RX;
-
+/** The Dozen favicon D, cell for cell. */
+export function DozenMark({ className = "h-8 w-8", title, tile = true }: Props) {
+  const box = dozenPixelBox(7);
   return (
     <svg
-      viewBox={
-        glyph
-          ? `0 0 ${gridW} ${gridH}`
-          : `0 0 ${DOZEN_MARK_VIEW} ${DOZEN_MARK_VIEW}`
-      }
-      className={cn(className, tick && "dozen-count")}
-      style={style}
+      viewBox={tile ? `0 0 ${DOZEN_TILE} ${DOZEN_TILE}` : `${box.x} ${box.y} ${box.w} ${box.h}`}
+      className={className}
       aria-hidden={title ? undefined : true}
       role={title ? "img" : undefined}
     >
       {title ? <title>{title}</title> : null}
-      {CELLS.map(({ c, r, yellow, soft }, i) => {
-        const x = ox + c * (cell + gap);
-        const y = oy + r * (cell + gap);
-        const fill = yellow ? YELLOW : BLUE;
-        const dot = {
-          className: yellow ? "dozen-dot dozen-dot-credit" : "dozen-dot",
-          style: { "--i": i } as CSSProperties,
-        };
-        if (soft) {
-          const R = 1.55;
-          return (
-            <path
-              key={`${c}-${r}`}
-              fill={fill}
-              {...dot}
-              d={[
-                `M${x + rx} ${y}`,
-                `H${x + cell - rx}`,
-                `Q${x + cell} ${y} ${x + cell} ${y + rx}`,
-                `V${y + cell - R}`,
-                `Q${x + cell} ${y + cell} ${x + cell - R} ${y + cell}`,
-                `H${x + rx}`,
-                `Q${x} ${y + cell} ${x} ${y + cell - rx}`,
-                `V${y + rx}`,
-                `Q${x} ${y} ${x + rx} ${y}`,
-                "Z",
-              ].join(" ")}
-            />
-          );
-        }
-        return (
-          <rect
-            key={`${c}-${r}`}
-            x={x}
-            y={y}
-            width={cell}
-            height={cell}
-            rx={rx}
-            fill={fill}
-            {...dot}
-          />
-        );
-      })}
+      {tile ? (
+        <rect width={DOZEN_TILE} height={DOZEN_TILE} rx={DOZEN_TILE_RX} fill={DOZEN_MARK_INK} />
+      ) : null}
+      <DozenPixels cells={DOZEN_D_CELLS} />
     </svg>
   );
 }
