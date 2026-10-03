@@ -1,71 +1,71 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { DozenMark } from "@/components/dozen-mark";
+import {
+  DOZEN_MARK_CELL as CELL,
+  DOZEN_MARK_COLS as COLS,
+  DOZEN_MARK_GAP as GAP,
+  DOZEN_MARK_ROWS as ROWS,
+} from "@/lib/dozen-mark-data";
 import { cn } from "@/lib/utils";
+
+/** Archivo's cap height: the dotted D stands exactly as tall as a capital. */
+const CAP_HEIGHT_EM = 0.686;
+const GLYPH_ASPECT =
+  (COLS * CELL + (COLS - 1) * GAP) / (ROWS * CELL + (ROWS - 1) * GAP);
+
+const glyphStyle: CSSProperties = {
+  height: `${CAP_HEIGHT_EM}em`,
+  width: `${(CAP_HEIGHT_EM * GLYPH_ASPECT).toFixed(3)}em`,
+  marginRight: "0.03em",
+};
 
 type Props = {
   href?: string;
   className?: string;
-  markClassName?: string;
-  wordmarkClassName?: string;
+  /** Font size of the lockup; the D scales with it. */
+  sizeClassName?: string;
   tick?: boolean;
 };
 
-const defaultWordmarkClass =
-  "font-display text-[18px] font-bold leading-none tracking-[-0.02em] text-ink";
-
-function LogoContent({
-  markClassName,
-  wordmarkClassName,
-  tick,
-}: Pick<Props, "markClassName" | "wordmarkClassName" | "tick">) {
+function LogoContent({ tick }: Pick<Props, "tick">) {
   return (
     <>
       <DozenMark
-        className={cn("block shrink-0", markClassName ?? "h-8 w-8")}
-        title="Dozen"
+        glyph
         tick={tick}
+        className="inline-block align-baseline"
+        style={glyphStyle}
       />
-      <span
-        className={cn(
-          "inline-block translate-y-[-0.06em]",
-          wordmarkClassName ?? defaultWordmarkClass,
-        )}
-      >
-        ozen
-      </span>
+      <span aria-hidden="true">ozen</span>
     </>
   );
 }
 
-/** Site wordmark: blocky D mark + "ozen" (reads as Dozen). */
+/** Site wordmark: the twelve-dot D is the capital of "Dozen". */
 export function SiteLogo({
   href,
-  className = "",
-  markClassName,
-  wordmarkClassName,
+  className,
+  sizeClassName = "text-[26px]",
   tick,
 }: Props) {
-  const layout = cn("inline-flex items-center gap-1.5 text-ink", className);
+  const layout = cn(
+    "dozen-logo inline-block whitespace-nowrap font-display font-semibold leading-none tracking-[-0.02em] text-blue",
+    sizeClassName,
+    className,
+  );
 
   if (href) {
     return (
       <Link href={href} className={layout} aria-label="Dozen">
-        <LogoContent
-          markClassName={markClassName}
-          wordmarkClassName={wordmarkClassName}
-          tick={tick}
-        />
+        <LogoContent tick={tick} />
       </Link>
     );
   }
 
   return (
-    <div className={layout}>
-      <LogoContent
-        markClassName={markClassName}
-        wordmarkClassName={wordmarkClassName}
-        tick={tick}
-      />
+    <div className={layout} role="img" aria-label="Dozen">
+      <LogoContent tick={tick} />
     </div>
   );
 }

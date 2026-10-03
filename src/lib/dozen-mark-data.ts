@@ -15,20 +15,23 @@ export type DozenMarkCell = {
 /**
  * Twelve dots form the capital D (a literal dozen). One credit-yellow dot sits
  * in the bowl — feedback / dots earned on the platform.
+ *
+ * Listed in stroke order (bottom, up the stem, over the bowl) so the logo
+ * animation counts to twelve and the credit dot closes the D.
  */
 export const DOZEN_MARK_CELLS: DozenMarkCell[] = [
+  { c: 1, r: 4 },
+  { c: 0, r: 4 },
+  { c: 0, r: 3 },
+  { c: 0, r: 2 },
+  { c: 0, r: 1 },
   { c: 0, r: 0 },
   { c: 1, r: 0 },
   { c: 2, r: 0 },
-  { c: 0, r: 1 },
   { c: 3, r: 1 },
-  { c: 0, r: 2 },
   { c: 3, r: 2 },
-  { c: 0, r: 3 },
-  { c: 2, r: 3, yellow: true },
   { c: 3, r: 3 },
-  { c: 0, r: 4 },
-  { c: 1, r: 4 },
+  { c: 2, r: 3, yellow: true },
 ];
 
 export const DOZEN_MARK_VIEW = 32;
