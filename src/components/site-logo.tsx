@@ -12,15 +12,14 @@ type Props = {
   sizeClassName?: string;
   /** "dark" sets "ozen" in white for navy backgrounds. */
   tone?: "light" | "dark";
-  tick?: boolean;
 };
 
-function Wordmark({ tick }: Pick<Props, "tick">) {
+function Wordmark() {
   return (
     <svg
       viewBox={`${BOX.x} ${BOX.y} ${BOX.w} ${BOX.h}`}
       aria-hidden="true"
-      className={cn("block h-[1em] overflow-visible", tick && "dozen-count")}
+      className="dozen-count block h-[1em] overflow-visible"
       style={{ width: `${(BOX.w / BOX.h).toFixed(4)}em` }}
     >
       <DozenPixels cells={DOZEN_WORD_CELLS} animated />
@@ -35,9 +34,8 @@ function Wordmark({ tick }: Pick<Props, "tick">) {
 export function SiteLogo({
   href,
   className,
-  sizeClassName = "text-[24px]",
+  sizeClassName = "text-[20px]",
   tone = "light",
-  tick,
 }: Props) {
   const layout = cn(
     "dozen-logo inline-block leading-none",
@@ -49,14 +47,14 @@ export function SiteLogo({
   if (href) {
     return (
       <Link href={href} className={layout} aria-label="Dozen">
-        <Wordmark tick={tick} />
+        <Wordmark />
       </Link>
     );
   }
 
   return (
     <div className={layout} role="img" aria-label="Dozen">
-      <Wordmark tick={tick} />
+      <Wordmark />
     </div>
   );
 }
