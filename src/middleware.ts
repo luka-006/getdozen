@@ -157,9 +157,17 @@ export async function middleware(request: NextRequest) {
   }
 
   if (path === "/login" || path === "/signup") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/board";
-    return NextResponse.redirect(url);
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profile) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/board";
+      return NextResponse.redirect(url);
+    }
   }
 
   return supabaseResponse;
