@@ -3,7 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { SiteLogo } from "@/components/site-logo";
-import { getSessionUser } from "@/lib/auth";
+import { getProfile, getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
 import { HomeJsonLd } from "@/components/home-json-ld";
 import { pageMetadata, SITE_DESCRIPTION, SITE_HOME_TITLE } from "@/lib/seo";
@@ -63,7 +63,10 @@ export default async function HomePage({
   searchParams: Promise<{ waitlist?: string }>;
 }) {
   const [user, query] = await Promise.all([getSessionUser(), searchParams]);
-  if (isLaunchOpen() && user) redirect("/board");
+  if (isLaunchOpen() && user) {
+    const profile = await getProfile();
+    if (profile) redirect("/board");
+  }
 
   if (!isLaunchOpen()) {
     const notice =
