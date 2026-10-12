@@ -6,6 +6,12 @@ import {
   isLegacyAdminPath,
 } from "@/lib/admin-console-path";
 import { isLaunchOpen } from "@/lib/launch";
+import {
+  guardLoginRedirect,
+  isLoginPath,
+  isSignupPath,
+  launchSessionRedirect,
+} from "@/lib/middleware-auth";
 import { isPublicSeoPath } from "@/lib/seo";
 
 function isLegalPath(path: string): boolean {
@@ -66,7 +72,9 @@ function middlewareNeedsAuth(path: string): boolean {
     return !isWaitlistOpenPath(path);
   }
 
-  if (path.startsWith("/login") || path.startsWith("/signup")) {
+  // Session lookup stays on so a signed-in visit still redirects to /board.
+  // Signed-out visits must not be sent to /login from these paths (that loops).
+  if (isLoginPath(path) || isSignupPath(path)) {
     return true;
   }
 
@@ -149,16 +157,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  if (!user) {
+  const redirect = guardLoginRedirect(
+    path,
+    launchSessionRedirect(path, Boolean(user)),
+  );
+  if (redirect) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", path);
-    return NextResponse.redirect(url);
-  }
-
-  if (path === "/login" || path === "/signup") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/board";
+    url.pathname = redirect.pathname;
+    if (redirect.next !== undefined) {
+      url.searchParams.set("next", redirect.next);
+    }
     return NextResponse.redirect(url);
   }
 
