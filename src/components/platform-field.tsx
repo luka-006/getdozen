@@ -1,54 +1,52 @@
 "use client";
 
-import { platformsForProductType, type Platform, type ProductType } from "@/lib/constants";
-import { PLATFORM_LABELS } from "@/lib/platform-labels";
+import { ChoiceTiles } from "@/components/choice-tiles";
 import { StarIcon } from "@/components/icons";
-
-function RequiredMark() {
-  return (
-    <span className="ml-1 inline-flex text-flag" title="Required" aria-label="required">
-      <StarIcon />
-    </span>
-  );
-}
+import {
+  platformsForProductType,
+  type Platform,
+  type ProductType,
+} from "@/lib/constants";
+import { PLATFORM_LABELS } from "@/lib/platform-labels";
 
 type Props = {
   productType?: ProductType;
-  defaultValue?: Platform;
+  value?: Platform;
   required?: boolean;
   onPlatformChange?: (platform: Platform) => void;
 };
 
 export function PlatformField({
   productType = "app",
-  defaultValue,
+  value,
   required = true,
   onPlatformChange,
 }: Props) {
   const options = platformsForProductType(productType);
-  const initial = defaultValue ?? options[0];
+  const selected = value && options.includes(value) ? value : options[0]!;
 
   return (
     <div className="field">
       <label htmlFor="platform">
         Platform
-        {required ? <RequiredMark /> : null}
+        {required ? (
+          <span className="ml-1 inline-flex text-flag" title="Required" aria-label="required">
+            <StarIcon />
+          </span>
+        ) : null}
       </label>
-      <select
+      <ChoiceTiles
         id="platform"
         name="platform"
-        className="select"
-        defaultValue={initial}
-        key={`${productType}-${initial}`}
+        label="Platform"
+        value={selected}
         required={required}
-        onChange={(e) => onPlatformChange?.(e.target.value as Platform)}
-      >
-        {options.map((p) => (
-          <option key={p} value={p}>
-            {PLATFORM_LABELS[p]}
-          </option>
-        ))}
-      </select>
+        options={options.map((platform) => ({
+          value: platform,
+          label: PLATFORM_LABELS[platform],
+        }))}
+        onChange={(next) => onPlatformChange?.(next as Platform)}
+      />
     </div>
   );
 }
