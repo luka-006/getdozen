@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import {
   clearAdminSession,
@@ -25,6 +26,7 @@ function gateRedirect(error?: string) {
 }
 
 export async function verifyAdminGate(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireAdminOwner();
 
   if (!consoleConfigured()) {
@@ -48,12 +50,14 @@ export async function verifyAdminGate(formData: FormData) {
 }
 
 export async function signOutAdminConsole() {
+  await assertProductAccess();
   await requireAdminOwner();
   await clearAdminSession();
   redirect(`${adminConsolePath()}/gate`);
 }
 
 export async function adminRefundCredits(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const userId = String(formData.get("user_id") ?? "").trim();
@@ -93,6 +97,7 @@ export async function adminRefundCredits(formData: FormData) {
 }
 
 export async function adminAdjustCredits(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const userId = String(formData.get("user_id") ?? "").trim();
@@ -146,6 +151,7 @@ export async function adminAdjustCredits(formData: FormData) {
 }
 
 export async function adminConfirmReview(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const reviewId = String(formData.get("review_id") ?? "").trim();
@@ -199,6 +205,7 @@ export async function adminConfirmReview(formData: FormData) {
 }
 
 export async function adminRejectReview(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const reviewId = String(formData.get("review_id") ?? "").trim();
@@ -241,6 +248,7 @@ export async function adminRejectReview(formData: FormData) {
 }
 
 export async function adminBanUser(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const userId = String(formData.get("user_id") ?? "").trim();
@@ -260,6 +268,7 @@ export async function adminBanUser(formData: FormData) {
 }
 
 export async function adminRemoveFromWaitlist(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const waitlistId = String(formData.get("waitlist_id") ?? "").trim();

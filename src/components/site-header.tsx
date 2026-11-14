@@ -13,14 +13,11 @@ export function SiteHeader({
   profile: Profile | null;
   waitlistLock?: boolean;
 }) {
-  if (waitlistLock && !profile?.is_admin) {
+  if (waitlistLock) {
     return (
       <header className="sticky top-0 z-20 border-b border-border/80 bg-paper/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3">
           <SiteLogo href="/" />
-          <Link href="/blog" className="text-[13px] text-ink/80 hover:text-blue">
-            Blog
-          </Link>
         </div>
       </header>
     );

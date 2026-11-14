@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { requireProfile } from "@/lib/auth";
 import { canPurchaseDots } from "@/lib/credits";
 import { currencyUnits, stripeDotsLineItem } from "@/lib/currency";
@@ -94,6 +95,7 @@ async function ensureStripeCustomer(profile: {
 }
 
 export async function purchaseDotPack(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const offer = resolveDotOffer(String(formData.get("pack_id") ?? ""));
 
@@ -160,6 +162,7 @@ export async function purchaseDotPack(formData: FormData) {
 }
 
 export async function purchaseDotsAmount(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const returnTo = safeInternalPath(formData.get("return_to"), "/wallet");
   const raw =
@@ -227,6 +230,7 @@ export const purchaseCreditPack = purchaseDotPack;
 export const purchaseCreditsAmount = purchaseDotsAmount;
 
 export async function startProSubscription() {
+  await assertProductAccess();
   const profile = await requireProfile();
 
   if (profile.is_pro) {
@@ -293,6 +297,7 @@ export async function startProSubscription() {
 }
 
 export async function openBillingPortal() {
+  await assertProductAccess();
   const profile = await requireProfile();
   if (!stripeConfigured()) {
     redirect(`/wallet?error=${encodeURIComponent("Stripe not configured")}`);
@@ -320,6 +325,7 @@ export async function openBillingPortal() {
 }
 
 export async function purchaseBoardBoost(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const requestId = String(formData.get("request_id") ?? "").trim();
   const returnTo = `/requests/${requestId}`;

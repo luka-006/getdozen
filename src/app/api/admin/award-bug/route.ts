@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { waitlistApiGuard } from "@/lib/waitlist-guard";
 import { grantBugReportAward } from "@/lib/bug-award";
 import { verifyBugAwardToken } from "@/lib/bug-award-token";
 
@@ -66,6 +67,8 @@ function awardPopup(message: string, status: number, success: boolean) {
 }
 
 export async function GET(request: Request) {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   const url = new URL(request.url);
   const bugId = url.searchParams.get("bug")?.trim() ?? "";
   const sig = url.searchParams.get("sig")?.trim() ?? "";

@@ -3,7 +3,9 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { resolveRequestOrigin } from "@/lib/app-url";
-import { isLaunchOpen } from "@/lib/launch";
+import { isLaunchOpen, waitlistMode } from "@/lib/launch";
+import { hasWaitlistBypass } from "@/lib/waitlist-guard";
+import { isAllowlistedAdminEmail } from "@/lib/waitlist-lock";
 import { safeInternalPath } from "@/lib/safe-path";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { markWaitlistConfirmed } from "@/lib/waitlist";
@@ -120,7 +122,7 @@ export async function GET(request: Request) {
       const admin = createAdminClient();
       const { data: existing } = await admin
         .from("profiles")
-        .select("id, is_admin")
+        .select("id")
         .eq("id", user.id)
         .maybeSingle();
 
@@ -137,11 +139,15 @@ export async function GET(request: Request) {
         });
       }
 
-      if (user.email && (!isLaunchOpen() || next.startsWith("/waitlist"))) {
+      const bypass =
+        !waitlistMode() ||
+        isAllowlistedAdminEmail(user.email) ||
+        (await hasWaitlistBypass());
+      if (user.email && (!bypass || next.startsWith("/waitlist"))) {
         await markWaitlistConfirmed(user.email);
       }
 
-      if (!isLaunchOpen() && !existing?.is_admin) {
+      if (waitlistMode() && !bypass) {
         next = "/waitlist/confirmed";
         await supabase.auth.signOut();
       }

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
@@ -277,6 +278,7 @@ export async function createFeedbackRequest(
   _prev: RequestFormState,
   formData: FormData,
 ): Promise<RequestFormState> {
+  await assertProductAccess();
   const profile = await requireProfile();
   const parsed = feedbackSchema.safeParse({
     product_type: formData.get("product_type") || "app",
@@ -416,6 +418,7 @@ export async function createTesterRequest(
   _prev: RequestFormState,
   formData: FormData,
 ): Promise<RequestFormState> {
+  await assertProductAccess();
   const profile = await requireProfile();
   const parsed = testerSchema.safeParse({
     product_type: formData.get("product_type") || "app",
@@ -509,6 +512,7 @@ export async function createComboRequest(
   _prev: RequestFormState,
   formData: FormData,
 ): Promise<RequestFormState> {
+  await assertProductAccess();
   const profile = await requireProfile();
   const pack = getComboPack(String(formData.get("combo_pack") ?? ""));
   if (!pack) {

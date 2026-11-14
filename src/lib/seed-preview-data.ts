@@ -5,6 +5,7 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CORE_QUESTIONS, QUESTION_LIBRARY } from "@/lib/constants";
+import { assertSeedAllowed } from "@/lib/seed-guard";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const CHECKIN_INTERVAL_DAYS = 3;
@@ -794,6 +795,7 @@ async function seed(force: boolean) {
 export async function runSeedPreview(
   options: SeedPreviewOptions = {},
 ): Promise<SeedPreviewResult> {
+  assertSeedAllowed("seed-preview-data");
   const { clear = false, force = false } = options;
 
   if (clear) {

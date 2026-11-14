@@ -1,3 +1,4 @@
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata({
@@ -7,10 +8,11 @@ export const metadata = pageMetadata({
   index: false,
 });
 
-export default function RequestsLayout({
+export default async function RequestsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  await assertProductAccess();
   return children;
 }

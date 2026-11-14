@@ -1,11 +1,13 @@
 "use server";
 
 import { requestIp } from "@/lib/assert-human";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { getSessionUser } from "@/lib/auth";
 import { checkBotGuard } from "@/lib/bot-guard";
 import { parseSupportMessage, sendSupportEmail } from "@/lib/support-mail";
 
 export async function submitSupportMessage(formData: FormData) {
+  await assertProductAccess();
   const guard = await checkBotGuard(formData, await requestIp(), "support");
   if (!guard.ok) return { ok: false as const, error: guard.error };
 

@@ -1425,7 +1425,7 @@ a.tester-history-card .stat-cell {
 }
 
 .page-enter {
-  animation: page-enter 260ms ease-out both;
+  animation: page-enter 260ms ease-out;
 }
 
 .surface-hover {
@@ -1477,6 +1477,70 @@ a.tester-history-card .stat-cell {
   }
 }
 
+.waitlist-story {
+  position: relative;
+}
+
+.waitlist-pin {
+  display: grid;
+  min-height: 100svh;
+  align-items: center;
+  gap: 1.25rem;
+  width: min(72rem, 100%);
+  margin: 0 auto;
+  padding: 5.25rem 1rem 2rem;
+  box-sizing: border-box;
+}
+
+.waitlist-copy {
+  position: relative;
+  min-height: 15rem;
+}
+
+.waitlist-copy-card {
+  position: absolute;
+  inset: 0;
+  max-width: 36rem;
+}
+
+.waitlist-stage {
+  position: relative;
+  height: min(68svh, 720px);
+}
+
+.waitlist-poster,
+.waitlist-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.waitlist-poster {
+  transition: opacity 0.2s linear;
+}
+
+.waitlist-canvas {
+  display: block;
+}
+
+.waitlist-static {
+  display: none;
+}
+
+@media (min-width: 900px) {
+  .waitlist-pin {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 480px);
+    gap: 2.5rem;
+    padding: 2rem 1.5rem;
+  }
+
+  .waitlist-stage {
+    height: min(78svh, 820px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .dropdown-panel,
@@ -1491,5 +1555,23 @@ a.tester-history-card .stat-cell {
 
   .nav-link::after {
     transition: none;
+  }
+
+  .waitlist-pin {
+    display: none;
+  }
+
+  .waitlist-static {
+    display: grid;
+    gap: 3.5rem;
+    width: min(40rem, 100%);
+    margin: 0 auto;
+    padding: 2.5rem 1rem 1rem;
+  }
+
+  .waitlist-static img {
+    width: min(100%, 420px);
+    height: auto;
+    margin: 0 auto;
   }
 }

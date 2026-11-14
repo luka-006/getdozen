@@ -14,6 +14,7 @@ import { haveInteracted } from "@/lib/profile-reviews";
 import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { visibleShippedApps } from "@/lib/public-shipped";
 import { formatDots } from "@/lib/currency";
 import { formatCredits } from "@/lib/utils";
 
@@ -76,7 +77,7 @@ export default async function ProfilePage({ params, searchParams }: Props) {
 
   if (!profile) notFound();
 
-  const shipped = shippedRes.data ?? [];
+  const shipped = visibleShippedApps(shippedRes.data ?? []);
   const thanks = thanksRes.data ?? [];
   const languages = languagesRes.data ?? [];
   const peerReviews = peerReviewsRes.data ?? [];

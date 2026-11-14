@@ -1,9 +1,12 @@
 import { getBlogPosts, getIndexableBlogTags, blogTagPath } from "@/lib/blog";
+import { waitlistApiGuard } from "@/lib/waitlist-guard";
 import { SITE_ORIGIN } from "@/lib/app-url";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 
 /** Plain-text site map for LLM crawlers (llms.txt convention). */
 export async function GET() {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   const posts = getBlogPosts();
   const tags = getIndexableBlogTags();
 

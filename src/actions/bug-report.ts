@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { requestIp } from "@/lib/assert-human";
 import { getSessionUser } from "@/lib/auth";
 import {
@@ -17,6 +18,7 @@ import {
 import { checkBotGuard } from "@/lib/bot-guard";
 
 export async function submitBugReport(formData: FormData) {
+  await assertProductAccess();
   const guard = await checkBotGuard(formData, await requestIp(), "bug");
   if (!guard.ok) return { ok: false as const, error: guard.error };
 
@@ -38,6 +40,7 @@ export async function submitBugReport(formData: FormData) {
 }
 
 export async function awardBugReport(formData: FormData) {
+  await assertProductAccess();
   await requireAdminConsoleSession();
 
   const bugId = String(formData.get("bug_id") ?? "");

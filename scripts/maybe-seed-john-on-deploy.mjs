@@ -9,6 +9,13 @@ if (process.env.SEED_JOHN_ON_DEPLOY !== "1") {
   process.exit(0);
 }
 
+if (process.env.VERCEL_ENV === "production") {
+  console.error(
+    "maybe-seed-john-on-deploy: refused because VERCEL_ENV=production. Demo data is not written.",
+  );
+  process.exit(0);
+}
+
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
   console.error("maybe-seed-john-on-deploy: missing Supabase env vars");
   process.exit(1);

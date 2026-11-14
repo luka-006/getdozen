@@ -13,7 +13,12 @@ const LINKS = [
   { href: LEGAL_PATHS.notice, label: "Legal" },
 ] as const;
 
-export function SiteFooter() {
+export function SiteFooter({ waitlistLock = false }: { waitlistLock?: boolean }) {
+  const links = waitlistLock
+    ? LINKS.filter((link) =>
+        ["/privacy", "/terms", "/cookies"].includes(link.href),
+      )
+    : LINKS;
   return (
     <footer className="border-t border-border bg-paper">
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-5">
@@ -21,8 +26,8 @@ export function SiteFooter() {
           © {new Date().getFullYear()} {LEGAL.brand}. All rights reserved.
         </p>
         <nav className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <SupportButton />
-          {LINKS.map((link) => (
+          {waitlistLock ? null : <SupportButton />}
+          {links.map((link) => (
             <Link
               key={link.href}
               href={link.href}

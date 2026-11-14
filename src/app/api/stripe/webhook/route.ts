@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { waitlistApiGuard } from "@/lib/waitlist-guard";
 import type Stripe from "stripe";
 import { appendLedger } from "@/lib/credits";
 import { PRO_MONTHLY_DOTS } from "@/lib/constants";
@@ -199,6 +200,8 @@ async function fulfillProMonthlyInvoice(invoice: Stripe.Invoice) {
 }
 
 export async function POST(request: Request) {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   const stripe = getStripe();
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { waitlistApiGuard } from "@/lib/waitlist-guard";
 import { runRetentionCleanup } from "@/lib/retention-cleanup";
 
 function authorized(request: Request) {
@@ -12,6 +13,8 @@ function authorized(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   if (!authorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -26,5 +29,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   return GET(request);
 }
