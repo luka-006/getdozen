@@ -53,8 +53,10 @@ export type AccessDecision =
 
 export type AccessInput = {
   launchOpen: boolean;
-  /** Already normalized path. */
+  /** Already normalized path (lowercased). */
   path: string;
+  /** Same normalization with case preserved. Defaults to `path`. */
+  structuralPath?: string;
   method: string;
   headers?: LockHeaders;
   /** Valid invite cookie or allowlisted admin email. */
@@ -64,7 +66,22 @@ export type AccessInput = {
   adminConsolePath?: string;
 };
 
-export function normalizeLockPath(input: string): string {
+/**
+ * Exact routes that stay reachable while the product is locked.
+ * Compared after slash/dot normalization and before lowercasing, so
+ * `/api/cron/` is `/api/cron` and `/API/CRON` is not.
+ */
+export const WAITLIST_STRIPE_WEBHOOK_PATH = "/api/stripe/webhook";
+export const WAITLIST_CRON_PATHS = [
+  "/api/cron",
+  "/api/cron/cleanup-retention",
+  "/api/cron/seed-john-profile",
+  "/api/cron/waitlist-launch",
+] as const;
+
+const WAITLIST_CRON_PATH_SET = new Set<string>(WAITLIST_CRON_PATHS);
+
+export function normalizeLockPath(input: string, lowercase = true): string {
   let path = input.split("?")[0]?.split("#")[0] ?? "";
   path = path.replace(/\\/g, "/").replace(/\0/g, "");
   for (let pass = 0; pass < 2; pass += 1) {
@@ -76,7 +93,7 @@ export function normalizeLockPath(input: string): string {
       break;
     }
   }
-  path = path.toLowerCase();
+  if (lowercase) path = path.toLowerCase();
   if (!path.startsWith("/")) path = `/${path}`;
   const parts: string[] = [];
   for (const part of path.split("/")) {
@@ -93,6 +110,14 @@ export function normalizeLockPath(input: string): string {
 
 export function isWaitlistDocumentPath(path: string): boolean {
   return WAITLIST_PAGES.has(normalizeLockPath(path));
+}
+
+/** Stripe webhook is POST only. Vercel cron is GET only. No prefixes, no HEAD. */
+export function isOperationalAllowlisted(structuralPath: string, method: string): boolean {
+  const name = method.toUpperCase();
+  if (structuralPath === WAITLIST_STRIPE_WEBHOOK_PATH) return name === "POST";
+  if (WAITLIST_CRON_PATH_SET.has(structuralPath)) return name === "GET";
+  return false;
 }
 
 function allowsMethod(method: string, allowed: string[]): boolean {
@@ -208,6 +233,9 @@ export function decideAccess(input: AccessInput): AccessDecision {
       return { kind: "not-found" };
     }
 
+    if (isOperationalAllowlisted(input.structuralPath ?? path, method)) {
+      return { kind: "next" };
+    }
     if (!isWaitlistAllowlisted(path, method)) return { kind: "not-found" };
     return { kind: "next" };
   }
@@ -233,10 +261,14 @@ export function decideAccess(input: AccessInput): AccessDecision {
 }
 
 export function evaluateRequest(
-  input: Omit<AccessInput, "path"> & { pathname: string },
+  input: Omit<AccessInput, "path" | "structuralPath"> & { pathname: string },
 ): AccessDecision {
   const { pathname, ...rest } = input;
-  return decideAccess({ ...rest, path: normalizeLockPath(pathname) });
+  return decideAccess({
+    ...rest,
+    path: normalizeLockPath(pathname),
+    structuralPath: normalizeLockPath(pathname, false),
+  });
 }
 
 export function inviteCookieSecret(): string | null {

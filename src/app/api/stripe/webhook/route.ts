@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { waitlistApiGuard } from "@/lib/waitlist-guard";
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import { appendLedger } from "@/lib/credits";
 import { PRO_MONTHLY_DOTS } from "@/lib/constants";
 import { getStripe } from "@/lib/stripe";
@@ -200,27 +199,27 @@ async function fulfillProMonthlyInvoice(invoice: Stripe.Invoice) {
 }
 
 export async function POST(request: Request) {
-  const waitlistDenied = await waitlistApiGuard();
-  if (waitlistDenied) return waitlistDenied;
-  const stripe = getStripe();
-  const secret = process.env.STRIPE_WEBHOOK_SECRET;
-
-  if (!stripe || !secret) {
-    return NextResponse.json({ error: "Stripe webhook not configured" }, { status: 500 });
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim() ?? "";
+  if (!secret) {
+    return new NextResponse(null, { status: 401, headers: { "cache-control": "no-store" } });
   }
 
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
   if (!signature) {
-    return NextResponse.json({ error: "Missing signature" }, { status: 400 });
+    return new NextResponse(null, { status: 400, headers: { "cache-control": "no-store" } });
   }
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(body, signature, secret);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Invalid signature";
-    return NextResponse.json({ error: message }, { status: 400 });
+    event = Stripe.webhooks.constructEvent(body, signature, secret);
+  } catch {
+    return new NextResponse(null, { status: 400, headers: { "cache-control": "no-store" } });
+  }
+
+  const stripe = getStripe();
+  if (!stripe) {
+    return new NextResponse(null, { status: 500, headers: { "cache-control": "no-store" } });
   }
 
   const claimed = await claimEvent(event.id, event.type);

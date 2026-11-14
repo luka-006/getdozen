@@ -13,6 +13,7 @@ import {
   inviteCodeMatches,
   inviteCookieSecret,
   isAllowlistedAdminEmail,
+  isOperationalAllowlisted,
   isWaitlistAllowlisted,
   normalizeLockPath,
   signInviteCookie,
@@ -92,6 +93,7 @@ async function emailIsAllowlistedAdmin(request: NextRequest): Promise<boolean> {
 
 export async function middleware(request: NextRequest) {
   const path = normalizeLockPath(request.nextUrl.pathname);
+  const structuralPath = normalizeLockPath(request.nextUrl.pathname, false);
   const method = request.method.toUpperCase();
   const launchOpen = isLaunchOpen();
 
@@ -104,6 +106,7 @@ export async function middleware(request: NextRequest) {
     if (
       !unlocked &&
       !isWaitlistAllowlisted(path, method) &&
+      !isOperationalAllowlisted(structuralPath, method) &&
       hasSupabaseSessionCookie(request)
     ) {
       unlocked = await emailIsAllowlistedAdmin(request);

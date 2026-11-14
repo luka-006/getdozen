@@ -77,9 +77,14 @@ describe("waitlist mode", () => {
     ["/contact", "GET"],
     ["/legal", "GET"],
     ["/terms/payment", "GET"],
-    ["/api/cron", "GET"],
     ["/api/cron", "POST"],
-    ["/api/stripe/webhook", "POST"],
+    ["/api/cron", "HEAD"],
+    ["/api/stripe/webhook", "GET"],
+    ["/api/stripe/webhook-anything", "POST"],
+    ["/api/cron/x/../other", "GET"],
+    ["/API/CRON", "GET"],
+    ["/Api/stripe/webhook", "POST"],
+    ["/api/cron/cleanup", "GET"],
     ["/api/resend/inbound", "POST"],
     ["/api/admin/award-bug", "POST"],
     ["/_next/data/build/board.json", "GET"],
@@ -119,6 +124,12 @@ describe("waitlist mode", () => {
     ["/_next/image", "GET"],
     ["/marketing/phones/desktop/testers/000.webp", "GET"],
     ["/icon-96.png", "GET"],
+    ["/api/cron", "GET"],
+    ["/api/cron/", "GET"],
+    ["/api/cron/cleanup-retention", "GET"],
+    ["/api/cron/seed-john-profile", "GET"],
+    ["/api/cron/waitlist-launch", "GET"],
+    ["/api/stripe/webhook", "POST"],
   ] as const;
 
   for (const [pathname, method] of allowed) {
@@ -179,6 +190,18 @@ describe("waitlist mode", () => {
 
   it("404s /setup instead of redirecting", () => {
     assert.equal(decide("/setup").kind, "not-found");
+  });
+
+  it("lets only the exact cron GET and stripe webhook POST through", () => {
+    assert.equal(decide("/api/cron", { method: "GET" }).kind, "next");
+    assert.equal(decide("/api/cron/", { method: "GET" }).kind, "next");
+    assert.equal(decide("/api/stripe/webhook", { method: "POST" }).kind, "next");
+    assert.equal(decide("/api/cron/x/../other", { method: "GET" }).kind, "not-found");
+    assert.equal(decide("/API/CRON", { method: "GET" }).kind, "not-found");
+    assert.equal(decide("/Api/Cron/Cleanup-Retention", { method: "GET" }).kind, "not-found");
+    assert.equal(decide("/api/stripe/webhook-anything", { method: "POST" }).kind, "not-found");
+    assert.equal(decide("/api/stripe/webhook/", { method: "GET" }).kind, "not-found");
+    assert.equal(decide("/api/cron", { method: "POST" }).kind, "not-found");
   });
 });
 

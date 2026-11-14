@@ -71,9 +71,44 @@ check 404 GET /legal
 check 404 GET /terms/payment
 check 404 GET /setup
 check 404 GET /admin
-check 404 GET /api/cron
+check 401 GET /api/cron
+check 401 GET /api/cron/cleanup-retention
+check 401 GET /api/cron/seed-john-profile
+check 401 GET /api/cron/waitlist-launch
+check 401 GET /api/cron -H "Authorization: Bearer wrong-token"
+check 401 GET /api/cron -H "x-cron-secret: not-the-bearer" -H "x-vercel-cron: 1"
 check 404 POST /api/cron
-check 404 POST /api/stripe/webhook
+check 404 GET /API/CRON
+check 404 GET /api/cron/cleanup
+check 404 GET /api/stripe/webhook
+check 404 POST /api/stripe/webhook-anything
+webhook_headers="$(curl -sS -m 20 -D - -o /tmp/waitlist-webhook-body.txt -X POST -H "content-type: application/json" --data '{}' "$BASE/api/stripe/webhook" || true)"
+webhook_code="$(printf "%s\n" "$webhook_headers" | awk 'BEGIN{c=""} /^HTTP/{c=$2} END{print c}')"
+if [[ "$webhook_code" != "400" && "$webhook_code" != "401" ]]; then
+  echo "FAIL $webhook_code POST /api/stripe/webhook (wanted 400 or 401)" >&2
+  fail=1
+else
+  echo "ok   $webhook_code POST /api/stripe/webhook without signature"
+fi
+if grep -qi "<html" /tmp/waitlist-webhook-body.txt; then
+  echo "FAIL webhook body contained HTML" >&2
+  fail=1
+fi
+cron_body="$(curl -sS -m 20 "$BASE/api/cron" || true)"
+if printf "%s" "$cron_body" | grep -qi "<html"; then
+  echo "FAIL cron body contained HTML" >&2
+  fail=1
+else
+  echo "ok   GET /api/cron body is not app HTML"
+fi
+# curl would resolve ".." itself. --path-as-is keeps the near-miss path.
+near="$(curl -sS -m 20 --path-as-is -o /dev/null -w "%{http_code}" "$BASE/api/cron/x/../other" || echo 000)"
+if [[ "$near" != "404" ]]; then
+  echo "FAIL $near GET /api/cron/x/../other (wanted 404)" >&2
+  fail=1
+else
+  echo "ok   404 GET /api/cron/x/../other"
+fi
 check 404 GET /api/resend/inbound
 check 404 GET /_next/data/build/board.json
 check 404 GET /llms.txt
