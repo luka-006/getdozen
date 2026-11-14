@@ -7,6 +7,11 @@ import {
   launchSessionRedirect,
 } from "@/lib/middleware-auth";
 import {
+  REFERRAL_COOKIE,
+  REFERRAL_COOKIE_MAX_AGE,
+  resolveReferralCapture,
+} from "@/lib/referral-capture";
+import {
   INVITE_COOKIE,
   INVITE_COOKIE_MAX_AGE,
   evaluateRequest,
@@ -20,6 +25,23 @@ import {
   verifyInviteCookie,
   type LockHeaders,
 } from "@/lib/waitlist-lock";
+
+function withReferralCookie(request: NextRequest, response: NextResponse) {
+  const captured = resolveReferralCapture({
+    query: request.nextUrl.searchParams.get("ref"),
+    cookie: request.cookies.get(REFERRAL_COOKIE)?.value ?? null,
+  });
+  if (captured.setCookie && captured.code) {
+    response.cookies.set(REFERRAL_COOKIE, captured.code, {
+      httpOnly: false,
+      secure: request.nextUrl.protocol === "https:",
+      sameSite: "lax",
+      path: "/",
+      maxAge: REFERRAL_COOKIE_MAX_AGE,
+    });
+  }
+  return response;
+}
 
 function lockHeaders(request: NextRequest): LockHeaders {
   return {
@@ -123,14 +145,17 @@ export async function middleware(request: NextRequest) {
     adminConsolePath: normalizeLockPath(adminConsolePath()),
   });
 
-  if (decision.kind === "not-found") return notFoundResponse();
+  if (decision.kind === "not-found") return withReferralCookie(request, notFoundResponse());
 
   if (decision.kind === "invite") {
     if (!inviteCodeMatches(decision.code) || !inviteCookieSecret()) {
-      return notFoundResponse();
+      return withReferralCookie(request, notFoundResponse());
     }
     const token = await signInviteCookie(inviteCookieSecret()!);
-    const response = NextResponse.redirect(new URL("/", request.url));
+    const response = withReferralCookie(
+      request,
+      NextResponse.redirect(new URL("/", request.url)),
+    );
     response.cookies.set(INVITE_COOKIE, token, {
       httpOnly: true,
       secure: request.nextUrl.protocol === "https:",
@@ -142,16 +167,19 @@ export async function middleware(request: NextRequest) {
   }
 
   if (decision.kind === "redirect") {
-    return NextResponse.redirect(new URL(decision.pathname, request.url));
+    return withReferralCookie(
+      request,
+      NextResponse.redirect(new URL(decision.pathname, request.url)),
+    );
   }
 
   if (decision.kind === "rewrite") {
     const url = request.nextUrl.clone();
     url.pathname = decision.pathname;
-    return NextResponse.rewrite(url);
+    return withReferralCookie(request, NextResponse.rewrite(url));
   }
 
-  if (decision.kind === "next") return continueWith(request, path);
+  if (decision.kind === "next") return withReferralCookie(request, continueWith(request, path));
 
   let supabaseResponse = continueWith(request, path);
   const supabase = createServerClient(
@@ -180,7 +208,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (waitlistMode() && !unlocked) {
-    return notFoundResponse();
+    return withReferralCookie(request, notFoundResponse());
   }
 
   const redirect = guardLoginRedirect(
@@ -195,10 +223,10 @@ export async function middleware(request: NextRequest) {
     } else {
       url.searchParams.delete("next");
     }
-    return NextResponse.redirect(url);
+    return withReferralCookie(request, NextResponse.redirect(url));
   }
 
-  return supabaseResponse;
+  return withReferralCookie(request, supabaseResponse);
 }
 
 export const config = {

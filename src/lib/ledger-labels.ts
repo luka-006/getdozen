@@ -22,6 +22,8 @@ const REASON_LABELS: Record<string, string> = {
   admin_credit: "Adjustment",
   admin_debit: "Adjustment",
   signup_bonus: "Signup bonus",
+  waitlist_bonus: "Waitlist bonus",
+  referral_bonus: "Referral bonus",
   board_boost: "Board boost",
   pro_monthly_grant: "Pro monthly Dots",
 };

@@ -15,6 +15,10 @@ const body = {
   mailer_templates_magic_link_content: `<h2>Your Dozen code</h2>
 <p style="font-size:28px;letter-spacing:8px;font-family:ui-monospace,monospace;font-weight:700">{{ .Token }}</p>
 <p>Enter this code on getdozen.dev. It expires in one hour.</p>
+{{ if .Data }}{{ if .Data.referral_url }}
+<p>{{ if .Data.referral_line }}{{ .Data.referral_line }}{{ end }}</p>
+<p><a href="{{ .Data.referral_url }}">{{ .Data.referral_url }}</a></p>
+{{ end }}{{ end }}
 <p><a href="{{ .SiteURL }}/auth/confirm">Enter code</a></p>`,
 };
 

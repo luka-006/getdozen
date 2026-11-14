@@ -6,6 +6,8 @@ describe("ledgerReasonLabel", () => {
   it("maps known reasons to plain labels", () => {
     assert.equal(ledgerReasonLabel("stripe_purchase"), "Bought Dots");
     assert.equal(ledgerReasonLabel("tester_checkin"), "Tester check-in");
+    assert.equal(ledgerReasonLabel("waitlist_bonus"), "Waitlist bonus");
+    assert.equal(ledgerReasonLabel("referral_bonus"), "Referral bonus");
   });
 
   it("handles admin notes", () => {
