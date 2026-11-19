@@ -1,4 +1,6 @@
+import { getReferralShare } from "@/lib/account-rewards";
 import { requireProfile } from "@/lib/auth";
+import { ReferralShare } from "@/components/referral-share";
 import { CreditBadge } from "@/components/credit-badge";
 import { BuyDotsSection } from "@/components/buy-dots-section";
 import { WalletLedger } from "@/components/wallet-ledger";
@@ -24,6 +26,10 @@ export default async function WalletPage({ searchParams }: Props) {
     .limit(50);
 
   const entries = (ledger ?? []) as CreditLedgerEntry[];
+  const share = await getReferralShare({
+    userId: profile.id,
+    email: profile.email,
+  });
   const purchaseErrors: Record<string, string | null> = {};
   for (const pack of DOT_PACKS) {
     const check = canPurchaseDots(profile, pack.dots);
@@ -59,6 +65,15 @@ export default async function WalletPage({ searchParams }: Props) {
       </div>
 
       <BuyDotsSection isPro={profile.is_pro} purchaseErrors={purchaseErrors} />
+
+      {share.code && share.shareUrl ? (
+        <ReferralShare
+          code={share.code}
+          shareUrl={share.shareUrl}
+          inviteLine={share.inviteLine}
+          pendingLine={share.pendingLine}
+        />
+      ) : null}
 
       <WalletLedger entries={entries} />
     </div>

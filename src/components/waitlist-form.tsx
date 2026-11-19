@@ -12,15 +12,27 @@ export function WaitlistForm({
   initialEmail = "",
   initialPhase = "idle",
   notice = null,
+  referralCode = null,
+  bonusLine = null,
+  inviteLine = null,
 }: {
   initialEmail?: string;
   initialPhase?: Phase;
   notice?: string | null;
+  referralCode?: string | null;
+  bonusLine?: string | null;
+  inviteLine?: string | null;
 }) {
   const [phase, setPhase] = useState<Phase>(initialPhase);
   const [email, setEmail] = useState(initialEmail);
   const [error, setError] = useState<string | null>(notice);
   const [digits, setDigits] = useState(["", "", "", "", "", ""]);
+  const [share, setShare] = useState<{
+    referralCode: string | null;
+    shareUrl: string | null;
+    pendingLine: string | null;
+    inviteLine: string | null;
+  } | null>(null);
   const [captchaNonce, setCaptchaNonce] = useState(0);
   const inputs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -51,6 +63,12 @@ export function WaitlistForm({
       setPhase("code");
       return;
     }
+    setShare({
+      referralCode: result.referralCode ?? null,
+      shareUrl: result.shareUrl ?? null,
+      pendingLine: result.pendingLine ?? null,
+      inviteLine: result.inviteLine ?? inviteLine,
+    });
     setPhase("joined");
   }
 
@@ -65,7 +83,15 @@ export function WaitlistForm({
   }
 
   if (phase === "joined") {
-    return <WaitlistJoined email={email} />;
+    return (
+      <WaitlistJoined
+        email={email}
+        referralCode={share?.referralCode}
+        shareUrl={share?.shareUrl}
+        pendingLine={share?.pendingLine}
+        inviteLine={share?.inviteLine ?? inviteLine}
+      />
+    );
   }
 
   if (phase === "code" || phase === "confirming") {
@@ -136,6 +162,12 @@ export function WaitlistForm({
         <p className="mt-1 text-[14px] text-ink/65">
           Enter your email. We will write at launch.
         </p>
+        {bonusLine ? (
+          <p className="mt-1 text-[14px] text-ink/65">{bonusLine}</p>
+        ) : null}
+        {inviteLine ? (
+          <p className="mt-1 text-[14px] text-ink/65">{inviteLine}</p>
+        ) : null}
       </div>
       <div className="field">
         <label htmlFor="waitlist-email">Email</label>
@@ -150,6 +182,7 @@ export function WaitlistForm({
           disabled={phase === "sending"}
         />
       </div>
+      {referralCode ? <input type="hidden" name="ref" value={referralCode} /> : null}
       <Captcha action="waitlist" resetSignal={captchaNonce} />
       {error ? <p className="text-[13px] text-flag">{error}</p> : null}
       <button

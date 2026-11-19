@@ -8,6 +8,7 @@
 - [ ] `npx tsx scripts/verify-cron.ts https://getdozen.dev`
 - [ ] Legal env on Vercel: `LEGAL_OIB`, `LEGAL_OPERATOR_NAME`, `LEGAL_ADDRESS`
 - [ ] Turnstile keys set (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET`)
+- [ ] Launch reward env, optional: `WAITLIST_BONUS_DOTS`, `REFERRAL_BONUS_DOTS`, `REFERRAL_MAX` (blank uses `src/lib/reward-config.ts`; a non-integer or value <= 0 disables that grant)
 - [ ] Stripe live mode + webhook receiving events
 - [ ] Resend outbound + inbound MX verified (or subdomain workaround per README)
 

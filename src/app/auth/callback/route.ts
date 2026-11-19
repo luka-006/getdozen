@@ -7,7 +7,7 @@ import { isLaunchOpen, waitlistMode } from "@/lib/launch";
 import { hasWaitlistBypass } from "@/lib/waitlist-guard";
 import { isAllowlistedAdminEmail } from "@/lib/waitlist-lock";
 import { safeInternalPath } from "@/lib/safe-path";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { ensureProfile, settleLaunchRewards } from "@/lib/account-rewards";
 import { markWaitlistConfirmed } from "@/lib/waitlist";
 
 const EMAIL_OTP_TYPES = new Set<string>([
@@ -119,25 +119,11 @@ export async function GET(request: Request) {
 
   if (user) {
     try {
-      const admin = createAdminClient();
-      const { data: existing } = await admin
-        .from("profiles")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (!existing) {
-        const name =
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email?.split("@")[0] ||
-          "Maker";
-        await admin.from("profiles").insert({
-          id: user.id,
-          email: user.email ?? "",
-          display_name: String(name).slice(0, 40),
-        });
-      }
+      await ensureProfile({
+        id: user.id,
+        email: user.email,
+        user_metadata: user.user_metadata,
+      });
 
       const bypass =
         !waitlistMode() ||
@@ -147,12 +133,16 @@ export async function GET(request: Request) {
         await markWaitlistConfirmed(user.email);
       }
 
+      // Confirm first so a waitlist row is eligible, then grant. The profile
+      // insert above covers a wallet created after the auth user.
+      await settleLaunchRewards(user.id);
+
       if (waitlistMode() && !bypass) {
         next = "/waitlist/confirmed";
         await supabase.auth.signOut();
       }
-    } catch {
-      // Non-fatal
+    } catch (err) {
+      console.error("auth callback rewards", err);
     }
   }
 

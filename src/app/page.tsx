@@ -1,10 +1,14 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
 import { SiteLogo } from "@/components/site-logo";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
+import { REFERRAL_COOKIE, resolveReferralCapture } from "@/lib/referral-capture";
+import { inviteFriendsLine, waitlistJoinLine } from "@/lib/referral-copy";
+import { referralBonusDots, waitlistBonusDots } from "@/lib/reward-config";
 import { hasWaitlistBypass } from "@/lib/waitlist-guard";
 import { visibleShippedApps } from "@/lib/public-shipped";
 import { HomeJsonLd } from "@/components/home-json-ld";
@@ -57,7 +61,7 @@ export const metadata = pageMetadata({
 export default async function HomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ waitlist?: string }>;
+  searchParams: Promise<{ waitlist?: string; ref?: string }>;
 }) {
   let user: Awaited<ReturnType<typeof getSessionUser>> = null;
   try {
@@ -74,12 +78,25 @@ export default async function HomePage({
         ? "That email link was already used. Request a new code."
         : null;
 
+    const cookieStore = await cookies();
+    const captured = resolveReferralCapture({
+      query: query.ref,
+      cookie: cookieStore.get(REFERRAL_COOKIE)?.value,
+    });
+    const bonus = waitlistBonusDots();
+    const referral = referralBonusDots();
+
     return (
       <div className="atmosphere">
         <HomeJsonLd />
         <WaitlistScroll />
         <section id="waitlist" className="mx-auto w-full max-w-lg px-4 pb-20">
-          <WaitlistForm notice={notice} />
+          <WaitlistForm
+            notice={notice}
+            referralCode={captured.code}
+            bonusLine={bonus == null ? null : waitlistJoinLine(bonus)}
+            inviteLine={referral == null ? null : inviteFriendsLine(referral)}
+          />
         </section>
       </div>
     );

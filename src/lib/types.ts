@@ -36,6 +36,7 @@ export type Profile = {
   stripe_subscription_id?: string | null;
   is_admin: boolean;
   is_banned: boolean;
+  referral_code?: string | null;
   created_at: string;
 };
 

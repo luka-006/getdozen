@@ -8,7 +8,9 @@ import { CreditIcon } from "@/components/icons";
 import { ProfileIdentityEditor } from "@/components/profile-identity-editor";
 import { ProfileStats, type ProfileStat } from "@/components/profile-stats";
 import { ProfileReviewForm } from "@/components/profile-review-form";
+import { getReferralShare } from "@/lib/account-rewards";
 import { getProfile } from "@/lib/auth";
+import { ReferralShare } from "@/components/referral-share";
 import { getPublicProfile } from "@/lib/profile-data";
 import { haveInteracted } from "@/lib/profile-reviews";
 import { pageMetadata } from "@/lib/seo";
@@ -76,6 +78,10 @@ export default async function ProfilePage({ params, searchParams }: Props) {
     ]);
 
   if (!profile) notFound();
+
+  const share = isOwn && me
+    ? await getReferralShare({ userId: me.id, email: me.email })
+    : null;
 
   const shipped = visibleShippedApps(shippedRes.data ?? []);
   const thanks = thanksRes.data ?? [];
@@ -194,6 +200,15 @@ export default async function ProfilePage({ params, searchParams }: Props) {
             </button>
           </form>
         </section>
+      ) : null}
+
+      {share?.code && share.shareUrl ? (
+        <ReferralShare
+          code={share.code}
+          shareUrl={share.shareUrl}
+          inviteLine={share.inviteLine}
+          pendingLine={share.pendingLine}
+        />
       ) : null}
 
       <section className="mt-10 space-y-4">
