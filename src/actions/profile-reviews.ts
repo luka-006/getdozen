@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import { haveInteracted } from "@/lib/profile-reviews";
@@ -15,6 +16,7 @@ function profileReviewRedirectPath(toUserId: string, returnPath: string | null) 
 }
 
 export async function submitProfileReview(formData: FormData) {
+  await assertProductAccess();
   const me = await requireProfile();
   const toUserId = String(formData.get("to_user_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
@@ -75,6 +77,7 @@ export async function submitProfileReview(formData: FormData) {
 }
 
 export async function deleteProfileReview(formData: FormData) {
+  await assertProductAccess();
   const me = await requireProfile();
   const reviewId = String(formData.get("review_id") ?? "");
   const toUserId = String(formData.get("to_user_id") ?? "");

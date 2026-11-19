@@ -23,34 +23,11 @@ on:
 jobs:
   seed:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Seed preview + John promo profile
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          INCLUDE_PREVIEW: ${{ github.event_name == 'workflow_dispatch' && inputs.include_preview_seed || 'true' }}
-          FORCE_SEED: ${{ github.event_name == 'workflow_dispatch' && inputs.force || 'true' }}
+      - name: Refuse production seed
         run: |
-          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
-            echo "::error::Missing GitHub secrets: NEXT_PUBLIC_SUPABASE_URL and/or SUPABASE_SERVICE_ROLE_KEY"
-            exit 1
-          fi
-          if [ "$INCLUDE_PREVIEW" = "true" ]; then
-            npx tsx scripts/seed-preview-data.ts --force
-          fi
-          ARGS=()
-          if [ "$FORCE_SEED" = "true" ]; then
-            ARGS+=(--force)
-          fi
-          npx tsx scripts/seed-john-profile.ts "${ARGS[@]}"
+          echo "Seed paths do not run from this workflow."
+          echo "Demo posts and Wall of Fame sample apps must not be written to production."
+          echo "A non-production database can still be seeded with scripts/seed-preview-data.ts when VERCEL_ENV is not production."
+          exit 1

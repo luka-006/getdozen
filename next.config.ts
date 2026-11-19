@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["getdozen.dev", "www.getdozen.dev"],
+  skipTrailingSlashRedirect: true,
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],

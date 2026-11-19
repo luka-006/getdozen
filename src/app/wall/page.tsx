@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getProfile } from "@/lib/auth";
+import { visibleShippedApps } from "@/lib/public-shipped";
 import { pageMetadata } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ShippedApp } from "@/lib/types";
@@ -22,7 +23,7 @@ export default async function WallPage() {
     .order("launched_at", { ascending: false })
     .limit(100);
 
-  const shipped = (apps ?? []) as ShippedApp[];
+  const shipped = visibleShippedApps((apps ?? []) as ShippedApp[]);
   const helperIds = [...new Set(shipped.flatMap((app) => app.helper_ids ?? []))];
   const ownerIds = [...new Set(shipped.map((app) => app.owner_id))];
   const allIds = [...new Set([...helperIds, ...ownerIds])];

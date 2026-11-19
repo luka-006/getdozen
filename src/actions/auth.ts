@@ -1,13 +1,12 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { resolveAppUrlFromHeaders } from "@/lib/app-url";
 import { assertHuman, requestIp } from "@/lib/assert-human";
 import { sendSignupConfirmEmail } from "@/lib/auth-mail";
-import { verifyEmailOtp } from "@/lib/auth-otp";
 import { avatarPresetById } from "@/lib/avatar-presets";
 import { checkBotGuard } from "@/lib/bot-guard";
-import { isLaunchOpen } from "@/lib/launch";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { safeInternalPath } from "@/lib/safe-path";
@@ -19,6 +18,7 @@ function loginCredentialError(message: string) {
 }
 
 export async function signInWithEmailPassword(formData: FormData) {
+  await assertProductAccess();
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const next = safeInternalPath(formData.get("next"), "/board");
@@ -51,9 +51,7 @@ export async function signInWithEmailPassword(formData: FormData) {
 }
 
 export async function signUpWithEmail(formData: FormData) {
-  if (!isLaunchOpen()) {
-    redirect("/");
-  }
+  await assertProductAccess();
 
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
@@ -135,6 +133,7 @@ export async function signUpWithEmail(formData: FormData) {
 }
 
 export async function signInWithGoogle(formData: FormData) {
+  await assertProductAccess();
   const next = safeInternalPath(formData.get("next"), "/board");
   const siteUrl = await resolveAppUrlFromHeaders();
   const supabase = await createClient();
@@ -162,12 +161,14 @@ export async function signInWithGoogle(formData: FormData) {
 }
 
 export async function signOut() {
+  await assertProductAccess();
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/");
 }
 
 export async function requestPasswordReset(formData: FormData) {
+  await assertProductAccess();
   await assertHuman(formData, "/login/forgot", {}, "reset");
   const email = String(formData.get("email") ?? "").trim();
   const siteUrl = await resolveAppUrlFromHeaders();
@@ -184,6 +185,7 @@ export async function requestPasswordReset(formData: FormData) {
 }
 
 export async function updateProfile(formData: FormData) {
+  await assertProductAccess();
   const supabase = await createClient();
   const {
     data: { user },
@@ -212,6 +214,7 @@ export async function updateProfile(formData: FormData) {
 }
 
 export async function updateProfileAvatar(formData: FormData) {
+  await assertProductAccess();
   const supabase = await createClient();
   const {
     data: { user },

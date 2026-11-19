@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireProfile } from "@/lib/auth";
@@ -52,6 +53,7 @@ async function resolveHelperIds(emailsRaw: string | undefined, ownerId: string) 
 }
 
 export async function addShippedApp(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const parsed = shippedSchema.safeParse({
     app_name: formData.get("app_name"),

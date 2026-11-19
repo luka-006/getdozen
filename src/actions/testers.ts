@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import {
@@ -32,6 +33,7 @@ import {
 } from "@/lib/platform-access";
 
 export async function joinTesterRequest(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const requestId = String(formData.get("request_id") ?? "");
   const admin = createAdminClient();
@@ -189,6 +191,7 @@ export async function joinTesterRequest(formData: FormData) {
 }
 
 export async function submitCheckin(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const commitmentId = String(formData.get("commitment_id") ?? "");
   const answer = String(formData.get("prompt_answer") ?? "").trim();
@@ -263,6 +266,7 @@ export async function submitCheckin(formData: FormData) {
 }
 
 export async function completeTesterCommitment(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const commitmentId = String(formData.get("commitment_id") ?? "");
   const finalNotes = String(formData.get("final_notes") ?? "").trim();
@@ -347,6 +351,7 @@ export async function completeTesterCommitment(formData: FormData) {
 }
 
 export async function submitTestExperience(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const commitmentId = String(formData.get("commitment_id") ?? "");
   const ratingRaw = String(formData.get("experience_rating") ?? "");
@@ -402,6 +407,7 @@ export async function submitTestExperience(formData: FormData) {
 }
 
 export async function voidStaleCommitments() {
+  await assertProductAccess();
   const admin = createAdminClient();
   const { data: active } = await admin
     .from("tester_commitments")

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth";
 import {
@@ -58,6 +59,7 @@ async function enforceDailyLimit(profileId: string) {
 }
 
 export async function submitReview(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const requestId = String(formData.get("request_id") ?? "");
   const timeSpent = Number(formData.get("time_spent_seconds") ?? 0);
@@ -290,6 +292,7 @@ export async function submitReview(formData: FormData) {
 }
 
 export async function confirmReview(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const reviewId = String(formData.get("review_id") ?? "");
   const decision = String(formData.get("decision") ?? "");
@@ -415,6 +418,7 @@ export async function confirmReview(formData: FormData) {
 }
 
 export async function sendThanks(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const reviewId = String(formData.get("review_id") ?? "");
   const body = String(formData.get("body") ?? "").trim();
@@ -456,6 +460,7 @@ export async function sendThanks(formData: FormData) {
 }
 
 export async function awardReviewBug(formData: FormData) {
+  await assertProductAccess();
   const profile = await requireProfile();
   const reviewId = String(formData.get("review_id") ?? "");
   const result = await grantReviewBugAward(reviewId, profile.id);

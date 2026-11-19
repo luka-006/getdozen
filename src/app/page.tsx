@@ -5,6 +5,8 @@ import { DozenMark } from "@/components/dozen-mark";
 import { SiteLogo } from "@/components/site-logo";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
+import { hasWaitlistBypass } from "@/lib/waitlist-guard";
+import { visibleShippedApps } from "@/lib/public-shipped";
 import { HomeJsonLd } from "@/components/home-json-ld";
 import { pageMetadata, SITE_DESCRIPTION, SITE_HOME_TITLE } from "@/lib/seo";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -29,15 +31,10 @@ const WaitlistForm = dynamic(
   },
 );
 
-const WaitlistPhoneShowcase = dynamic(
-  () =>
-    import("@/components/waitlist-phone-showcase").then(
-      (m) => m.WaitlistPhoneShowcase,
-    ),
+const WaitlistScroll = dynamic(
+  () => import("@/components/waitlist-scroll").then((m) => m.WaitlistScroll),
   {
-    loading: () => (
-      <div className="waitlist-phone-showcase min-h-[320px]" aria-hidden />
-    ),
+    loading: () => <div className="min-h-[100svh]" aria-hidden />,
   },
 );
 
@@ -62,8 +59,14 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ waitlist?: string }>;
 }) {
-  const [user, query] = await Promise.all([getSessionUser(), searchParams]);
-  if (isLaunchOpen() && user) redirect("/board");
+  let user: Awaited<ReturnType<typeof getSessionUser>> = null;
+  try {
+    user = await getSessionUser();
+  } catch {
+    user = null;
+  }
+  const query = await searchParams;
+  if (user && (isLaunchOpen() || (await hasWaitlistBypass()))) redirect("/board");
 
   if (!isLaunchOpen()) {
     const notice =
@@ -74,48 +77,9 @@ export default async function HomePage({
     return (
       <div className="atmosphere">
         <HomeJsonLd />
-        <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(300px,520px)_minmax(0,22rem)] lg:items-center lg:gap-8 xl:gap-12">
-            <div className="max-w-xl space-y-5 lg:max-w-none">
-              <SiteLogo sizeClassName="text-[30px] sm:text-[36px]" />
-              <h1 className="hero-title mt-3">
-                Real feedback on apps and games.
-              </h1>
-              <p className="hero-lead mt-4">
-                Earn by testing other makers&apos; work: mobile apps, web tools,
-                and indie games. Post yours and get structured feedback when we
-                open.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-1">
-                <span className="pill pill-blue motion-stagger" style={{ animationDelay: "0ms" }}>
-                  Structured feedback
-                </span>
-                <span className="pill motion-stagger" style={{ animationDelay: "80ms" }}>
-                  Apps &amp; games
-                </span>
-                <span className="pill motion-stagger" style={{ animationDelay: "160ms" }}>
-                  Tester programs
-                </span>
-              </div>
-              <p className="font-mono text-[13px] text-ink/55">Opening soon</p>
-              <p className="text-[13px] text-ink/60">
-                <Link href="/blog/why-12-testers" className="text-blue">
-                  Why 12 testers
-                </Link>
-                {" · "}
-                <Link href="/blog" className="text-blue">
-                  Blog
-                </Link>
-              </p>
-            </div>
-
-            <WaitlistPhoneShowcase />
-
-            <div className="w-full space-y-6 lg:max-w-[22rem]">
-              <WaitlistForm notice={notice} />
-              <HeroClosedTest />
-            </div>
-          </div>
+        <WaitlistScroll />
+        <section id="waitlist" className="mx-auto w-full max-w-lg px-4 pb-20">
+          <WaitlistForm notice={notice} />
         </section>
       </div>
     );
@@ -129,7 +93,7 @@ export default async function HomePage({
       .select("*")
       .order("launched_at", { ascending: false })
       .limit(6);
-    wall = (data ?? []) as ShippedApp[];
+    wall = visibleShippedApps((data ?? []) as ShippedApp[]);
   } catch {
     wall = [];
   }

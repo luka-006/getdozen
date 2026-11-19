@@ -1,6 +1,7 @@
 "use server";
 
 import { requestIp } from "@/lib/assert-human";
+import { assertProductAccess } from "@/lib/waitlist-guard";
 import { getSessionUser } from "@/lib/auth";
 import { checkBotGuard } from "@/lib/bot-guard";
 import {
@@ -11,6 +12,7 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function submitPostReport(formData: FormData) {
+  await assertProductAccess();
   const requestId = String(formData.get("request_id") ?? "").trim();
   if (!requestId) {
     return { ok: false as const, error: "Missing post." };

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { waitlistApiGuard } from "@/lib/waitlist-guard";
 import { getResendClient } from "@/lib/resend-client";
 import { ownerInbox } from "@/lib/mail-inbox";
 import { resendFromAddress } from "@/lib/resend-mail";
@@ -17,6 +18,8 @@ type InboundEvent = {
 };
 
 export async function POST(request: Request) {
+  const waitlistDenied = await waitlistApiGuard();
+  if (waitlistDenied) return waitlistDenied;
   const resend = getResendClient();
   if (!resend) {
     return new NextResponse("Mailer not configured", { status: 503 });

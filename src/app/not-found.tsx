@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ContactEmailLink } from "@/components/contact-email-link";
+import { waitlistMode } from "@/lib/launch";
 
 export default function NotFound() {
+  const locked = waitlistMode();
   return (
     <div className="mx-auto flex min-h-[50vh] w-full max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
       <p className="font-mono text-[13px] uppercase tracking-[0.08em] text-ink/45">
@@ -12,10 +14,12 @@ export default function NotFound() {
         That page does not exist or was removed.
       </p>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <Link href="/board" className="btn btn-primary">
-          Go to board
-        </Link>
-        <Link href="/" className="btn btn-secondary">
+        {locked ? null : (
+          <Link href="/board" className="btn btn-primary">
+            Go to board
+          </Link>
+        )}
+        <Link href="/" className={locked ? "btn btn-primary" : "btn btn-secondary"}>
           Home
         </Link>
       </div>

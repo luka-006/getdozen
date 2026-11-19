@@ -1,8 +1,22 @@
 import type { MetadataRoute } from "next";
 import { blogTagPath, getBlogPosts, getIndexableBlogTags } from "@/lib/blog";
+import { waitlistMode } from "@/lib/launch";
 import { absoluteUrl, SITEMAP_PATHS } from "@/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 export default function sitemap(): MetadataRoute.Sitemap {
+  if (waitlistMode()) {
+    return [
+      {
+        url: absoluteUrl("/"),
+        lastModified: new Date(),
+        changeFrequency: "weekly",
+        priority: 1,
+      },
+    ];
+  }
+
   const pages = SITEMAP_PATHS.map((entry) => ({
     url: absoluteUrl(entry.path),
     lastModified: new Date(),

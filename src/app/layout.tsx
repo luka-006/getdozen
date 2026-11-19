@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { BugReportLazy } from "@/components/bug-report-lazy";
 import { CookieBanner } from "@/components/cookie-banner";
@@ -7,7 +8,9 @@ import { SiteFooter } from "@/components/site-footer";
 import { SiteHeaderLoader } from "@/components/site-header-loader";
 import { SiteJsonLd } from "@/components/site-json-ld";
 import { SITE_ORIGIN } from "@/lib/app-url";
-import { isLaunchOpen } from "@/lib/launch";
+import { waitlistMode } from "@/lib/launch";
+import { assertProductAccess, hasWaitlistBypass } from "@/lib/waitlist-guard";
+import { isWaitlistDocumentPath } from "@/lib/waitlist-lock";
 import {
   SITE_DESCRIPTION,
   SITE_HOME_TITLE,
@@ -82,12 +85,19 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const waitlistLock = !isLaunchOpen();
+  let waitlistLock = false;
+  if (waitlistMode()) {
+    const path = (await headers()).get("x-dozen-pathname");
+    if (!path || !isWaitlistDocumentPath(path)) {
+      await assertProductAccess();
+    }
+    waitlistLock = !(await hasWaitlistBypass());
+  }
 
   return (
     <html
@@ -99,9 +109,9 @@ export default function RootLayout({
           <SiteJsonLd />
           <SiteHeaderLoader waitlistLock={waitlistLock} />
           <main className="flex-1">{children}</main>
-          <SiteFooter />
+          <SiteFooter waitlistLock={waitlistLock} />
           <CookieBanner />
-          <BugReportLazy />
+          {waitlistLock ? null : <BugReportLazy />}
         </PostHogProviderLazy>
       </body>
     </html>

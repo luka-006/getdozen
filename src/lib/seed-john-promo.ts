@@ -4,6 +4,7 @@
  */
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CORE_QUESTIONS, QUESTION_LIBRARY } from "@/lib/constants";
+import { assertSeedAllowed } from "@/lib/seed-guard";
 import { runSeedPreview, type SeedPreviewResult } from "@/lib/seed-preview-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -762,6 +763,7 @@ export async function runSeedPreviewIfNeeded(
 export async function runSeedJohnPromo(
   options: SeedJohnPromoOptions = {},
 ): Promise<SeedJohnPromoResult> {
+  assertSeedAllowed("seed-john-profile");
   const runtime = createRuntime(options);
   const johnId = await ensureJohnId(runtime.admin);
   logAction(`Found ${JOHN_EMAIL} → ${johnId}`, runtime.dryRun);
