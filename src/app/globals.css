@@ -1061,288 +1061,6 @@ a.tester-history-card .stat-cell {
   }
 }
 
-/* —— Waitlist phone showcase (spaced frontal layout) —— */
-
-.waitlist-phone-showcase {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  padding: 0.5rem 0;
-  animation: fade-up 520ms ease-out both;
-}
-
-.waitlist-spread-glow {
-  position: absolute;
-  inset: 8% 0 12%;
-  margin: auto;
-  width: 70%;
-  height: 70%;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--blue) 14%, transparent) 0%,
-    transparent 72%
-  );
-  filter: blur(32px);
-  pointer-events: none;
-}
-
-.waitlist-spread {
-  position: relative;
-  width: min(480px, 100%);
-  height: min(540px, 66vh);
-  min-height: 430px;
-}
-
-.waitlist-spread-card {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  max-width: calc(100% - 0.5rem);
-}
-
-.waitlist-spread-card--tl {
-  top: 2%;
-  left: 0;
-  z-index: 2;
-}
-
-.waitlist-spread-card--mr {
-  top: 38%;
-  right: 0;
-  z-index: 3;
-}
-
-.waitlist-spread-card--bl {
-  bottom: 2%;
-  left: 0;
-  z-index: 1;
-}
-
-.waitlist-spread-card--caption-left .waitlist-phone-caption {
-  text-align: right;
-}
-
-.waitlist-spread-card--caption-below {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.45rem;
-}
-
-.waitlist-spread-card--caption-below .waitlist-phone-caption {
-  max-width: 9rem;
-}
-
-.waitlist-phone-caption {
-  flex: 0 1 7.5rem;
-  min-width: 0;
-}
-
-.waitlist-phone-device {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.waitlist-phone-device--sm .waitlist-phone-shell {
-  width: 118px;
-  padding: 7px;
-  border-radius: 28px;
-}
-
-.waitlist-phone-device--md .waitlist-phone-shell {
-  width: 142px;
-  padding: 8px;
-  border-radius: 32px;
-}
-
-.waitlist-phone-device--lg .waitlist-phone-shell {
-  width: 168px;
-  padding: 9px;
-  border-radius: 36px;
-}
-
-@media (min-width: 640px) {
-  .waitlist-spread {
-    width: min(460px, 100%);
-    height: min(520px, 64vh);
-  }
-
-  .waitlist-phone-device--sm .waitlist-phone-shell {
-    width: 128px;
-  }
-
-  .waitlist-phone-device--md .waitlist-phone-shell {
-    width: 152px;
-  }
-
-  .waitlist-phone-device--lg .waitlist-phone-shell {
-    width: 182px;
-    padding: 10px;
-    border-radius: 38px;
-  }
-
-  .waitlist-phone-caption {
-    flex-basis: 8.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .waitlist-phone-device--lg .waitlist-phone-shell {
-    width: 196px;
-    padding: 10px;
-    border-radius: 40px;
-  }
-}
-
-.waitlist-phone-shell {
-  position: relative;
-  background: linear-gradient(165deg, #3d3d42 0%, #141416 45%, #0a0a0c 100%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 20%, transparent),
-    0 20px 40px color-mix(in srgb, var(--ink) 18%, transparent),
-    0 4px 12px color-mix(in srgb, var(--ink) 10%, transparent);
-}
-
-.waitlist-phone-notch {
-  position: absolute;
-  top: 11px;
-  left: 50%;
-  z-index: 3;
-  width: 28%;
-  min-width: 52px;
-  max-width: 72px;
-  height: 14px;
-  transform: translateX(-50%);
-  border-radius: 10px;
-  background: #0a0a0c;
-}
-
-.waitlist-phone-device--lg .waitlist-phone-notch {
-  top: 14px;
-  height: 16px;
-}
-
-.waitlist-phone-screen {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  aspect-ratio: 390 / 844;
-  width: 100%;
-  border-radius: 22px;
-  background: #fff;
-}
-
-.waitlist-phone-device--md .waitlist-phone-screen {
-  border-radius: 24px;
-}
-
-.waitlist-phone-device--lg .waitlist-phone-screen {
-  border-radius: 28px;
-}
-
-.waitlist-phone-shot {
-  object-fit: cover;
-  object-position: left top;
-}
-
-.waitlist-phone-shine {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  border-radius: inherit;
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, white 12%, transparent) 0%,
-    transparent 36%
-  );
-  pointer-events: none;
-}
-
-.waitlist-phone-shadow {
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  z-index: -1;
-  width: 70%;
-  height: 12px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--ink) 20%, transparent);
-  filter: blur(10px);
-}
-
-.waitlist-phone-eyebrow {
-  font-family: var(--font-plex-mono), monospace;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--blue) 85%, var(--ink));
-}
-
-.waitlist-phone-title {
-  margin-top: 0.2rem;
-  font-family: var(--font-archivo), sans-serif;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  color: var(--ink);
-}
-
-.waitlist-phone-desc {
-  margin-top: 0.25rem;
-  font-size: 12px;
-  line-height: 1.4;
-  color: color-mix(in srgb, var(--ink) 58%, transparent);
-}
-
-@media (min-width: 640px) {
-  .waitlist-phone-title {
-    font-size: 17px;
-  }
-
-  .waitlist-phone-desc {
-    font-size: 13px;
-  }
-}
-
-@media (max-width: 1023px) {
-  .waitlist-phone-showcase {
-    order: -1;
-    margin-bottom: 0.5rem;
-  }
-
-  .waitlist-spread {
-    position: static;
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-    height: auto;
-    min-height: 0;
-  }
-
-  .waitlist-spread-card {
-    position: static;
-    max-width: 100%;
-    justify-content: center;
-  }
-
-  .waitlist-spread-card--caption-left {
-    flex-direction: row-reverse;
-  }
-
-  .waitlist-spread-card--caption-left .waitlist-phone-caption {
-    text-align: left;
-  }
-
-  .waitlist-phone-caption {
-    flex: 0 1 9rem;
-  }
-}
-
 /* —— Page & navigation motion —— */
 
 .nav-link {
@@ -1477,70 +1195,6 @@ a.tester-history-card .stat-cell {
   }
 }
 
-.waitlist-story {
-  position: relative;
-}
-
-.waitlist-pin {
-  display: grid;
-  min-height: 100svh;
-  align-items: center;
-  gap: 1.25rem;
-  width: min(72rem, 100%);
-  margin: 0 auto;
-  padding: 5.25rem 1rem 2rem;
-  box-sizing: border-box;
-}
-
-.waitlist-copy {
-  position: relative;
-  min-height: 15rem;
-}
-
-.waitlist-copy-card {
-  position: absolute;
-  inset: 0;
-  max-width: 36rem;
-}
-
-.waitlist-stage {
-  position: relative;
-  height: min(68svh, 720px);
-}
-
-.waitlist-poster,
-.waitlist-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-
-.waitlist-poster {
-  transition: opacity 0.2s linear;
-}
-
-.waitlist-canvas {
-  display: block;
-}
-
-.waitlist-static {
-  display: none;
-}
-
-@media (min-width: 900px) {
-  .waitlist-pin {
-    grid-template-columns: minmax(0, 1fr) minmax(280px, 480px);
-    gap: 2.5rem;
-    padding: 2rem 1.5rem;
-  }
-
-  .waitlist-stage {
-    height: min(78svh, 820px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .dropdown-panel,
@@ -1556,22 +1210,126 @@ a.tester-history-card .stat-cell {
   .nav-link::after {
     transition: none;
   }
+}
 
+.waitlist-stage {
+  position: relative;
+}
+
+.waitlist-pin {
+  position: relative;
+  height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+.waitlist-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.waitlist-frame-mobile {
+  display: none;
+}
+
+@media (max-width: 799px) {
+  .waitlist-frame-desktop {
+    display: none;
+  }
+
+  .waitlist-frame-mobile {
+    display: block;
+  }
+}
+
+.waitlist-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 22rem;
+  padding: 5.4rem 1.25rem 2.5rem;
+  pointer-events: none;
+}
+
+.waitlist-copy::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 8% -18% 0 -8%;
+  background: radial-gradient(
+    ellipse at 18% 42%,
+    color-mix(in srgb, var(--paper) 72%, transparent),
+    transparent 68%
+  );
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+.waitlist-copy a {
+  pointer-events: auto;
+}
+
+.waitlist-stills {
+  display: none;
+}
+
+@media (min-width: 960px) {
+  .waitlist-copy {
+    position: absolute;
+    left: max(1.5rem, 6vw);
+    top: 50%;
+    width: min(22rem, 30vw);
+    max-width: none;
+    padding: 0 2.5rem 0 0;
+    transform: translateY(-58%);
+    background: none;
+  }
+
+  .waitlist-copy::before {
+    inset: -20% -30% -20% -12%;
+    background: radial-gradient(
+      ellipse at 10% 50%,
+      color-mix(in srgb, var(--paper) 62%, transparent),
+      transparent 72%
+    );
+    filter: blur(28px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .waitlist-pin {
     display: none;
   }
 
-  .waitlist-static {
+  .waitlist-stills {
     display: grid;
-    gap: 3.5rem;
-    width: min(40rem, 100%);
-    margin: 0 auto;
-    padding: 2.5rem 1rem 1rem;
   }
+}
 
-  .waitlist-static img {
-    width: min(100%, 420px);
-    height: auto;
-    margin: 0 auto;
-  }
+.waitlist-stage[data-flat="true"] .waitlist-pin {
+  display: none;
+}
+
+.waitlist-stage[data-flat="true"] .waitlist-stills,
+.waitlist-stills {
+  gap: 3.5rem;
+  width: min(40rem, 100%);
+  margin: 0 auto;
+  padding: 4.5rem 1rem 2rem;
+}
+
+.waitlist-stage[data-flat="true"] .waitlist-stills {
+  display: grid;
+}
+
+.waitlist-still img {
+  width: min(100%, 420px);
+  height: auto;
+  margin: 0 auto;
 }
