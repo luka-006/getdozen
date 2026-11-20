@@ -1,12 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
-import { Component, useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef } from "react";
 
-const WaitlistPhones = dynamic(
-  () => import("@/components/waitlist-phones").then((mod) => mod.WaitlistPhones),
-  { ssr: false },
-);
+const FRAME_COUNT = 16;
 
 const MOMENTS = [
   {
@@ -36,62 +32,47 @@ const MOMENTS = [
 ] as const;
 
 function momentIndex(progress: number) {
-  if (progress < 0.28) return 0;
-  if (progress < 0.7) return 1;
-  if (progress < 0.84) return 2;
+  if (progress < 0.58) return 0;
+  if (progress < 0.82) return 1;
+  if (progress < 0.94) return 2;
   return 3;
 }
 
-class WebglBoundary extends Component<
-  { onFail: () => void; children: ReactNode },
-  { failed: boolean }
-> {
-  state = { failed: false };
+function aspectOf(width: number) {
+  return width < 800 ? "mobile" : "desktop";
+}
 
-  static getDerivedStateFromError() {
-    return { failed: true };
-  }
-
-  componentDidCatch() {
-    this.props.onFail();
-  }
-
-  render() {
-    if (this.state.failed) return null;
-    return this.props.children;
-  }
+function frameSrc(aspect: string, index: number) {
+  return `/marketing/waitlist/frames/${aspect}/${String(index).padStart(2, "0")}.webp`;
 }
 
 export function WaitlistStage() {
   const rootRef = useRef<HTMLElement>(null);
   const pinRef = useRef<HTMLDivElement>(null);
+  const desktopRef = useRef<HTMLImageElement>(null);
+  const mobileRef = useRef<HTMLImageElement>(null);
   const eyeRef = useRef<HTMLParagraphElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
   const bodyRef = useRef<HTMLParagraphElement>(null);
-  const progressRef = useRef(0);
-  const invalidateRef = useRef<() => void>(() => {});
-  const [show3d, setShow3d] = useState(false);
   const shown = useRef(0);
+  const progressRef = useRef(0);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const desktop = desktopRef.current;
+    const mobile = mobileRef.current;
+    if (!root || !desktop || !mobile) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduce) {
       root.dataset.reduce = "true";
       return;
     }
 
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry?.isIntersecting) setShow3d(true);
-      },
-      { rootMargin: "240px" },
-    );
-    observer.observe(root);
-
     let dead = false;
     let trigger: { kill: () => void } | null = null;
+    let aspect = aspectOf(window.innerWidth);
+    let shownFrame = -1;
+    const ready = new Set<string>();
 
     const paintCopy = (progress: number) => {
       const index = momentIndex(progress);
@@ -102,6 +83,39 @@ export function WaitlistStage() {
       if (titleRef.current) titleRef.current.textContent = moment.title;
       if (bodyRef.current) bodyRef.current.textContent = moment.body;
     };
+
+    const paintFrame = (progress: number) => {
+      const index = Math.round(Math.min(1, Math.max(0, progress)) * (FRAME_COUNT - 1));
+      aspect = aspectOf(window.innerWidth);
+      if (index === shownFrame) return;
+      shownFrame = index;
+      const desktopSrc = frameSrc("desktop", index);
+      const mobileSrc = frameSrc("mobile", index);
+      if (desktop.getAttribute("src") !== desktopSrc) desktop.src = desktopSrc;
+      if (mobile.getAttribute("src") !== mobileSrc) mobile.src = mobileSrc;
+    };
+
+    const preload = () => {
+      const next = aspectOf(window.innerWidth);
+      for (let index = 0; index < FRAME_COUNT; index += 1) {
+        const src = frameSrc(next, index);
+        if (ready.has(src)) continue;
+        const image = new Image();
+        image.decoding = "async";
+        image.src = src;
+        ready.add(src);
+      }
+    };
+
+    const markReady = () => {
+      root.dataset.ready = "true";
+    };
+    const visible = aspectOf(window.innerWidth) === "mobile" ? mobile : desktop;
+    desktop.addEventListener("load", markReady);
+    mobile.addEventListener("load", markReady);
+    if (visible.complete && visible.naturalWidth > 0) markReady();
+    preload();
+    paintFrame(0);
 
     void (async () => {
       const gsap = (await import("gsap")).default;
@@ -119,16 +133,26 @@ export function WaitlistStage() {
         onUpdate: (self) => {
           progressRef.current = self.progress;
           paintCopy(self.progress);
-          invalidateRef.current();
+          paintFrame(self.progress);
         },
       });
-      progressRef.current = 0;
-      invalidateRef.current();
     })();
+
+    const onResize = () => {
+      const next = aspectOf(window.innerWidth);
+      if (next === aspect) return;
+      aspect = next;
+      shownFrame = -1;
+      preload();
+      paintFrame(progressRef.current);
+    };
+    window.addEventListener("resize", onResize);
 
     return () => {
       dead = true;
-      observer.disconnect();
+      desktop.removeEventListener("load", markReady);
+      mobile.removeEventListener("load", markReady);
+      window.removeEventListener("resize", onResize);
       trigger?.kill();
     };
   }, []);
@@ -136,6 +160,29 @@ export function WaitlistStage() {
   return (
     <section ref={rootRef} className="waitlist-stage" aria-label="Dozen, opening soon">
       <div ref={pinRef} className="waitlist-pin">
+        {/* Two frames so a matching <source> cannot pin the poster and ignore scroll. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={desktopRef}
+          className="waitlist-frame waitlist-frame-desktop"
+          src={frameSrc("desktop", 0)}
+          alt=""
+          width={1440}
+          height={900}
+          fetchPriority="high"
+          decoding="async"
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          ref={mobileRef}
+          className="waitlist-frame waitlist-frame-mobile"
+          src={frameSrc("mobile", 0)}
+          alt=""
+          width={780}
+          height={1688}
+          fetchPriority="high"
+          decoding="async"
+        />
         <div className="waitlist-copy">
           <p
             ref={eyeRef}
@@ -153,54 +200,16 @@ export function WaitlistStage() {
             Join waitlist
           </a>
         </div>
-        <div className="waitlist-canvas-slot" aria-hidden="true">
-          <picture className="waitlist-poster">
-            <source
-              media="(max-width: 800px)"
-              srcSet="/marketing/waitlist/stills/review-mobile.webp"
-            />
-            <img
-              src="/marketing/waitlist/stills/review.webp"
-              alt=""
-              width={960}
-              height={1200}
-              fetchPriority="low"
-              decoding="async"
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-            />
-          </picture>
-          {show3d ? (
-            <WebglBoundary
-              onFail={() => {
-                if (rootRef.current) rootRef.current.dataset.flat = "true";
-              }}
-            >
-              <WaitlistPhones
-                progressRef={progressRef}
-                invalidateRef={invalidateRef}
-                onReady={() => {
-                  if (rootRef.current) rootRef.current.dataset.ready = "true";
-                  void import("gsap/ScrollTrigger").then(({ ScrollTrigger }) => {
-                    ScrollTrigger.refresh();
-                  });
-                }}
-              />
-            </WebglBoundary>
-          ) : null}
-        </div>
       </div>
       <div className="waitlist-stills">
         {MOMENTS.map((moment) => (
           <figure key={moment.id} className="waitlist-still">
-            {/* Static phone renders. next/image would re-encode these WebP stills. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/marketing/waitlist/stills/${moment.id}.webp`}
               alt=""
               width={960}
-              height={1200}
+              height={600}
               loading={moment.id === "review" ? "eager" : "lazy"}
             />
             <figcaption>
