@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import math
 import os
+import shutil
+import subprocess
 import sys
 
 import bpy
@@ -23,6 +25,12 @@ import mathutils
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 SCREENS = os.environ.get("DOZEN_SCREENS", "/tmp/dozen-hi")
 PNG_ROOT = os.environ.get("DOZEN_CYCLE_PNG", "/tmp/dozen-cycles")
+# studio_small_09, 1k, CC0 from Poly Haven. https://polyhaven.com/a/studio_small_09
+HDRI = os.path.join(os.path.dirname(__file__), "hdri", "studio_small_09_1k.hdr")
+OIDN = os.environ.get(
+    "DOZEN_OIDN",
+    "/tmp/oidn/oidn-2.3.3.x86_64.linux/bin/oidnDenoise",
+)
 
 FRAME_COUNT = 16
 SCREEN_IDS = ("review", "testers", "wallet", "referral")
@@ -103,25 +111,41 @@ def titanium(name: str, color, roughness: float, anisotropic: float) -> bpy.type
     set_input(node, "Metallic", 1.0)
     set_input(node, "Roughness", roughness)
     set_input(node, "Anisotropic", anisotropic)
-    set_input(node, "Anisotropic Rotation", 0.0)
-    set_input(node, "Coat Weight", 0.35)
-    set_input(node, "Coat Roughness", 0.08)
+    set_input(node, "Anisotropic Rotation", 0.25)
+    set_input(node, "Coat Weight", 0.12)
+    set_input(node, "Coat Roughness", 0.04)
     set_input(node, "Coat IOR", 1.5)
-    set_input(node, "Specular IOR Level", 0.55)
+    set_input(node, "Specular IOR Level", 0.85)
     return mat
 
 
 def glass_back() -> bpy.types.Material:
     mat = principled("back-glass")
     node = bsdf_of(mat)
-    set_input(node, "Base Color", (0.012, 0.014, 0.02, 1))
-    set_input(node, "Metallic", 0.08)
-    set_input(node, "Roughness", 0.09)
-    set_input(node, "IOR", 1.52)
+    set_input(node, "Base Color", (0.008, 0.009, 0.012, 1))
+    set_input(node, "Metallic", 0.0)
+    set_input(node, "Roughness", 0.12)
+    set_input(node, "IOR", 1.5)
     set_input(node, "Coat Weight", 1.0)
-    set_input(node, "Coat Roughness", 0.045)
+    set_input(node, "Coat Roughness", 0.02)
     set_input(node, "Coat IOR", 1.5)
     set_input(node, "Specular IOR Level", 1.0)
+    return mat
+
+
+def cover_glass() -> bpy.types.Material:
+    """Clear sheet over the screen. Transmission stays high so type is not fogged."""
+    mat = principled("cover-glass")
+    node = bsdf_of(mat)
+    set_input(node, "Base Color", (1.0, 1.0, 1.0, 1))
+    set_input(node, "Metallic", 0.0)
+    set_input(node, "Roughness", 0.015)
+    set_input(node, "IOR", 1.45)
+    set_input(node, "Transmission Weight", 1.0)
+    set_input(node, "Coat Weight", 1.0)
+    set_input(node, "Coat Roughness", 0.01)
+    set_input(node, "Coat IOR", 1.5)
+    set_input(node, "Specular IOR Level", 0.4)
     return mat
 
 
@@ -148,14 +172,13 @@ def screen_material(path: str) -> bpy.types.Material:
     image.colorspace_settings.name = "sRGB"
     tex.image = image
     tex.interpolation = "Cubic"
-    mat.node_tree.links.new(tex.outputs["Color"], node.inputs["Base Color"])
+    # Emission only, strength 1, sRGB. Lights must not tint the UI.
+    set_input(node, "Base Color", (0.0, 0.0, 0.0, 1))
     mat.node_tree.links.new(tex.outputs["Color"], node.inputs["Emission Color"])
-    set_input(node, "Emission Strength", 0.72)
-    set_input(node, "Roughness", 0.22)
+    set_input(node, "Emission Strength", 1.0)
+    set_input(node, "Roughness", 0.4)
     set_input(node, "Metallic", 0.0)
-    set_input(node, "Coat Weight", 1.0)
-    set_input(node, "Coat Roughness", 0.04)
-    set_input(node, "Coat IOR", 1.5)
+    set_input(node, "Coat Weight", 0.0)
     mat["image"] = image.name
     return mat
 
@@ -219,6 +242,34 @@ def rounded_prism(name: str, w: float, h: float, d: float, radius: float, segs: 
     return link(obj)
 
 
+def rounded_screen(name: str, w: float, h: float, radius: float, segs: int = 16):
+    """Flat rounded panel facing +Y. UVs match the screenshot, corners match the body."""
+    hw, hh = w / 2, h / 2
+    radius = min(radius, hw * 0.98, hh * 0.98)
+    corners = (
+        (hw - radius, hh - radius, 0.0, math.pi / 2),
+        (-hw + radius, hh - radius, math.pi / 2, math.pi),
+        (-hw + radius, -hh + radius, math.pi, math.pi * 1.5),
+        (hw - radius, -hh + radius, math.pi * 1.5, math.pi * 2),
+    )
+    pts = []
+    for cx, cz, a0, a1 in corners:
+        for i in range(segs):
+            a = a0 + (a1 - a0) * (i / segs)
+            pts.append((cx + radius * math.cos(a), 0.0, cz + radius * math.sin(a)))
+    bm = bmesh.new()
+    verts = [bm.verts.new(p) for p in pts]
+    face = bm.faces.new(verts)
+    uv_layer = bm.loops.layers.uv.new("UV")
+    for loop in face.loops:
+        co = loop.vert.co
+        loop[uv_layer].uv = (0.5 - co.x / w, co.z / h + 0.5)
+    mesh = bpy.data.meshes.new(name)
+    bm.to_mesh(mesh)
+    bm.free()
+    return link(bpy.data.objects.new(name, mesh))
+
+
 def screen_plane(name: str, w: float, h: float):
     """Plane facing +Y. Width along X, height along Z. UVs match the screenshot."""
     bm = bmesh.new()
@@ -258,9 +309,9 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     root = bpy.data.objects.new("phone", None)
     link(root)
 
-    body_mat = titanium("frame", (0.02, 0.021, 0.024), 0.34, 0.88)
-    island_mat = titanium("island", (0.035, 0.037, 0.042), 0.22, 0.4)
-    ring_mat = titanium("ring", (0.16, 0.17, 0.18), 0.16, 0.35)
+    body_mat = titanium("frame", (0.028, 0.029, 0.032), 0.38, 0.92)
+    island_mat = titanium("island", (0.04, 0.042, 0.046), 0.22, 0.45)
+    ring_mat = titanium("ring", (0.62, 0.63, 0.65), 0.18, 0.55)
     back_mat = glass_back()
     lens_mat = lens_glass()
     pupil_mat = principled("pupil")
@@ -281,17 +332,22 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     body.data.materials.append(body_mat)
     body.parent = root
 
-    bezel = rounded_prism("bezel", PW - 0.0032, PD - 0.0036, 0.00045, CORNER - 0.001, 10)
+    # Black bezel sits inside the titanium lip. The screen is a smaller
+    # rounded panel, so the white UI cannot poke past the phone corners.
+    bezel_w, bezel_h = PW - 0.0024, PD - 0.0024
+    bezel = rounded_screen("bezel", bezel_w, bezel_h, max(0.004, CORNER - 0.0012), 16)
     bezel.data.materials.append(bezel_mat)
-    bezel.location.y = PH / 2 + 0.0002
+    bezel.location.y = PH / 2 + 0.00035
     bezel.parent = root
 
-    screen = screen_plane("screen", PW - 0.0066, PD - 0.0074)
+    screen_w, screen_h = PW - 0.0064, PD - 0.0064
+    screen_r = max(0.0035, CORNER - 0.0032)
+    screen = rounded_screen("screen", screen_w, screen_h, screen_r, 16)
     screen.data.materials.append(screen_material(screen_path))
     screen.location.y = PH / 2 + 0.00055
     screen.parent = root
 
-    back = screen_plane("back", PW - 0.0052, PD - 0.006)
+    back = rounded_screen("back", PW - 0.0036, PD - 0.0036, max(0.004, CORNER - 0.0018), 16)
     back.data.materials.append(back_mat)
     back.rotation_euler.x = math.pi
     back.location.y = -PH / 2 - 0.00045
@@ -347,59 +403,55 @@ def new_phone(screen_path: str) -> bpy.types.Object:
 
 
 def studio() -> None:
+    if not os.path.isfile(HDRI):
+        raise SystemExit(f"missing studio HDRI {HDRI}")
     world = bpy.data.worlds.new("studio")
     bpy.context.scene.world = world
     world.use_nodes = True
-    bg = world.node_tree.nodes["Background"]
-    bg.inputs["Color"].default_value = (0.42, 0.45, 0.5, 1)
-    bg.inputs["Strength"].default_value = 0.28
+    nt = world.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputWorld")
+    bg = nt.nodes.new("ShaderNodeBackground")
+    env = nt.nodes.new("ShaderNodeTexEnvironment")
+    env.image = bpy.data.images.load(HDRI)
+    env.image.colorspace_settings.name = "Linear Rec.709"
+    mapping = nt.nodes.new("ShaderNodeMapping")
+    mapping.inputs["Rotation"].default_value[2] = math.radians(80)
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    nt.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
+    nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
+    nt.links.new(env.outputs["Color"], bg.inputs["Color"])
+    bg.inputs["Strength"].default_value = 0.07
+    nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
 
-    def area(name, loc, size, power, color):
+    def area(name, loc, size, power, color, cast_shadow: bool):
         light = bpy.data.lights.new(name, "AREA")
         light.shape = "RECTANGLE"
         light.size = size
-        light.size_y = size * 0.62
+        light.size_y = size * 0.55
         light.energy = power
         light.color = color
+        light.use_shadow = cast_shadow
         obj = bpy.data.objects.new(name, light)
         obj.location = loc
         direction = mathutils.Vector((0, 0, 0.02)) - mathutils.Vector(loc)
         obj.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
         link(obj)
 
-    area("key", (0.42, 1.05, 0.78), 0.7, 90, (1.0, 0.98, 0.94))
-    area("rim", (-0.7, -0.35, 0.38), 0.28, 70, (0.72, 0.82, 1.0))
-    area("fill", (-0.2, 1.25, 0.55), 0.9, 12, (0.96, 0.97, 1.0))
+    # Key and rim shape the metal. Only the overhead light casts, so the
+    # shadow catcher gets a contact shadow and not a painted floor.
+    area("key", (0.48, 0.7, 0.62), 0.55, 55, (1.0, 0.97, 0.92), False)
+    area("rim", (-0.7, -0.35, 0.42), 0.18, 90, (0.78, 0.86, 1.0), False)
+    area("shadow", (0.0, 0.2, 1.8), 2.2, 28, (1.0, 1.0, 1.0), True)
 
-    # Softboxes the metal can actually reflect. Kept out of the lens.
-    def card(name, loc, scale, color, strength):
-        mesh = bpy.data.meshes.new(name)
-        bm = bmesh.new()
-        bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=1)
-        bm.to_mesh(mesh)
-        bm.free()
-        obj = bpy.data.objects.new(name, mesh)
-        obj.location = loc
-        obj.scale = scale
-        direction = mathutils.Vector((0, 0, 0)) - mathutils.Vector(loc)
-        obj.rotation_euler = direction.to_track_quat("Z", "Y").to_euler()
-        mat = principled(name + "-mat")
-        node = bsdf_of(mat)
-        set_input(node, "Emission Color", (*color, 1))
-        set_input(node, "Emission Strength", strength)
-        set_input(node, "Base Color", (*color, 1))
-        obj.data.materials.append(mat)
-        link(obj)
-
-    # Behind the camera, so the glass picks up a soft ceiling highlight
-    # instead of a hard rectangle across the lower back.
-    card("softbox", (0.04, 0.85, 0.62), (0.28, 0.7, 1), (1, 1, 1), 1.6)
-    card("blue", (-1.6, 1.1, 0.35), (0.22, 0.7, 1), (0.12, 0.31, 0.85), 2.2)
-    for obj in bpy.context.scene.objects:
-        if obj.type == "LIGHT":
-            obj.data.use_shadow = obj.name in {"key", "rim"}
-        if obj.name in {"softbox", "blue"}:
-            obj.visible_shadow = False
+    floor = bpy.data.objects.new("floor", bpy.data.meshes.new("floor"))
+    bm = bmesh.new()
+    bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=12)
+    bm.to_mesh(floor.data)
+    bm.free()
+    floor.location = (0.0, 0.0, -PD / 2 - 0.012)
+    floor.is_shadow_catcher = True
+    link(floor)
 
 
 def contact_shadow() -> bpy.types.Object:
@@ -508,27 +560,27 @@ BACK_PITCH = 0.1
 TURN = math.pi * 2 + HERO_YAW
 
 DESKTOP = [
-    (0.00, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), HERO_YAW, HERO_PITCH, 0, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 1),
+    (0.00, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), HERO_YAW, HERO_PITCH, 0, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
     (0.18, (0.01, 0.46, 0.045), (-0.02, 0.0, 0.012), (-0.04, 0.02, 0.0), 1.35, 0.08, 0, (0.04, -0.08, 0.04), BACK_YAW, BACK_PITCH, 0.62, 1),
     (0.34, (0.0, 0.40, 0.05), (-0.005, 0.0, 0.016), (-0.01, 0.01, 0.006), 2.45, 0.04, 0, (0.45, -0.3, -0.16), BACK_YAW, 0.0, 0.04, 1),
     (0.50, (0.008, 0.052, 0.048), (0.008, 0.0, 0.046), (0.0, 0.0, 0.0), math.pi, 0.0, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
-    (0.66, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), TURN, HERO_PITCH, 1, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 1),
-    (0.80, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), TURN, HERO_PITCH, 1, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 1),
-    (0.86, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), TURN, HERO_PITCH, 2, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 2),
-    (0.96, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), TURN, HERO_PITCH, 2, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 2),
-    (1.00, (-0.005, 0.48, 0.04), (-0.05, 0.0, 0.01), (-0.078, 0.03, -0.004), TURN, HERO_PITCH, 3, (-0.016, -0.05, 0.028), BACK_YAW, BACK_PITCH, 0.78, 3),
+    (0.66, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 1, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
+    (0.80, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 1, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
+    (0.86, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 2, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 2),
+    (0.96, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 2, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 2),
+    (1.00, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 3, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 3),
 ]
 
 MOBILE = [
-    (0.00, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), HERO_YAW, HERO_PITCH, 0, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.00, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), HERO_YAW, HERO_PITCH, 0, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
     (0.20, (0.0, 0.40, 0.15), (0.0, 0.0, 0.03), (0.0, 0.01, -0.05), 1.4, 0.06, 0, (0.01, -0.07, -0.02), BACK_YAW, BACK_PITCH, 0.48, 1),
     (0.36, (0.0, 0.36, 0.12), (0.0, 0.0, 0.02), (0.0, 0.004, -0.04), 2.5, 0.02, 0, (0.4, -0.28, -0.2), BACK_YAW, 0.0, 0.04, 1),
     (0.50, (0.004, 0.058, -0.016), (0.004, 0.0, -0.02), (0.0, 0.0, -0.066), math.pi, 0.0, 0, (0.55, -0.4, -0.3), 0.2, 0.0, 0.01, 1),
-    (0.66, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), TURN, HERO_PITCH, 1, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.80, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), TURN, HERO_PITCH, 1, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.86, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), TURN, HERO_PITCH, 2, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (0.96, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), TURN, HERO_PITCH, 2, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (1.00, (0.0, 0.52, 0.13), (0.0, 0.0, 0.018), (0.0, 0.01, -0.02), TURN, HERO_PITCH, 3, (-0.004, -0.036, 0.02), BACK_YAW, BACK_PITCH, 0.74, 3),
+    (0.66, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.80, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.86, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 2),
+    (0.96, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 2),
+    (1.00, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 3, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 3),
 ]
 
 
@@ -539,7 +591,7 @@ def place_shadow(disc: bpy.types.Object, location, scale: float, hide: bool) -> 
     disc.scale = (0.095 * amount, 0.052 * amount, 1)
 
 
-def apply_pose(phones, shadows, cam, keys, index: int, count: int) -> None:
+def apply_pose(phones, cam, keys, index: int, count: int) -> None:
     t = 0 if count <= 1 else index / (count - 1)
     u, a, b = sample(keys, t)
     cam.location = mix_vec(a[1], b[1], u)
@@ -559,11 +611,6 @@ def apply_pose(phones, shadows, cam, keys, index: int, count: int) -> None:
     back.scale = (s, s, s)
     set_screen(back, SCREEN_IDS[int(round(lerp(a[11], b[11], u)))])
 
-    # A macro lens is full-bleed. A contact oval in that frame would read as a smudge.
-    hide = cam.location.y < 0.16
-    place_shadow(shadows[0], front.location, 1.0, hide)
-    place_shadow(shadows[1], back.location, s, hide)
-
 
 def set_screen(phone: bpy.types.Object, screen_id: str) -> None:
     image_name = f"screen-{screen_id}"
@@ -580,17 +627,19 @@ def configure_render(aspect: str, scale: float) -> None:
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = 80
+    scene.cycles.samples = 64
+    # This Blender build ships without OpenImageDenoise. Frames are denoised
+    # afterwards with the OIDN CPU binary. See denoise_png().
     scene.cycles.use_denoising = False
     scene.cycles.use_adaptive_sampling = True
-    scene.cycles.adaptive_threshold = 0.02
+    scene.cycles.adaptive_threshold = 0.015
     scene.render.film_transparent = True
     scene.render.image_settings.file_format = "PNG"
     scene.render.image_settings.color_mode = "RGBA"
     scene.render.image_settings.color_depth = "8"
     scene.view_settings.view_transform = "Standard"
     scene.view_settings.look = "None"
-    scene.view_settings.exposure = -0.15
+    scene.view_settings.exposure = 0.0
     if aspect == "mobile":
         scene.render.resolution_x = 780
         scene.render.resolution_y = 1688
@@ -609,6 +658,50 @@ def configure_render(aspect: str, scale: float) -> None:
     return cam
 
 
+def denoise_png(path: str) -> None:
+    """OpenImageDenoise on the CPU, then put the original alpha back."""
+    if not os.path.isfile(OIDN):
+        print("oidn missing, left noisy", path)
+        return
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        print("ffmpeg missing, left noisy", path)
+        return
+    lib = os.path.join(os.path.dirname(os.path.dirname(OIDN)), "lib")
+    env = os.environ.copy()
+    env["LD_LIBRARY_PATH"] = lib + os.pathsep + env.get("LD_LIBRARY_PATH", "")
+    stem = path + ".oidn"
+    color = stem + ".pfm"
+    out = stem + ".out.pfm"
+    alpha = stem + ".alpha.png"
+    merged = stem + ".png"
+    subprocess.check_call(
+        [ffmpeg, "-y", "-i", path, "-update", "1", "-pix_fmt", "gbrpf32le", color],
+        stdout=subprocess.DEVNULL,
+    )
+    subprocess.check_call(
+        [ffmpeg, "-y", "-i", path, "-update", "1", "-vf", "alphaextract", alpha],
+        stdout=subprocess.DEVNULL,
+    )
+    subprocess.check_call(
+        [OIDN, "-d", "cpu", "--ldr", color, "--srgb", "-o", out, "--threads", "4"],
+        env=env,
+        stdout=subprocess.DEVNULL,
+    )
+    subprocess.check_call(
+        [
+            ffmpeg, "-y", "-i", out, "-i", alpha,
+            "-filter_complex", "[1:v]format=gray[a];[0:v][a]alphamerge",
+            "-update", "1", merged,
+        ],
+        stdout=subprocess.DEVNULL,
+    )
+    os.replace(merged, path)
+    for leftover in (color, out, alpha):
+        if os.path.isfile(leftover):
+            os.remove(leftover)
+
+
 def main() -> None:
     aspect, only, scale = parse_args()
     keys = DESKTOP if aspect == "desktop" else MOBILE
@@ -625,15 +718,16 @@ def main() -> None:
         images[screen_id] = image
     front = new_phone(os.path.join(SCREENS, "review.png"))
     back = new_phone(os.path.join(SCREENS, "testers.png"))
-    shadows = (contact_shadow(), contact_shadow())
     cam = configure_render(aspect, scale)
     out_dir = os.path.join(PNG_ROOT, aspect)
     os.makedirs(out_dir, exist_ok=True)
     frames = [only] if only is not None else list(range(FRAME_COUNT))
     for index in frames:
-        apply_pose((front, back), shadows, cam, keys, index, FRAME_COUNT)
-        bpy.context.scene.render.filepath = os.path.join(out_dir, f"{index:02d}.png")
+        apply_pose((front, back), cam, keys, index, FRAME_COUNT)
+        dest = os.path.join(out_dir, f"{index:02d}.png")
+        bpy.context.scene.render.filepath = dest
         bpy.ops.render.render(write_still=True)
+        denoise_png(dest)
         print("rendered", aspect, index)
 
 
