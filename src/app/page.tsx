@@ -2,6 +2,8 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
+import { WaitlistReasons } from "@/components/waitlist-reasons";
+import { WaitlistStage } from "@/components/waitlist-stage";
 import { SiteLogo } from "@/components/site-logo";
 import { getSessionUser } from "@/lib/auth";
 import { isLaunchOpen } from "@/lib/launch";
@@ -31,13 +33,6 @@ const WaitlistForm = dynamic(
   },
 );
 
-const WaitlistScroll = dynamic(
-  () => import("@/components/waitlist-scroll").then((m) => m.WaitlistScroll),
-  {
-    loading: () => <div className="min-h-[100svh]" aria-hidden />,
-  },
-);
-
 export const metadata = pageMetadata({
   title: SITE_HOME_TITLE,
   description: SITE_DESCRIPTION,
@@ -59,13 +54,13 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ waitlist?: string }>;
 }) {
+  const query = await searchParams;
   let user: Awaited<ReturnType<typeof getSessionUser>> = null;
   try {
     user = await getSessionUser();
   } catch {
     user = null;
   }
-  const query = await searchParams;
   if (user && (isLaunchOpen() || (await hasWaitlistBypass()))) redirect("/board");
 
   if (!isLaunchOpen()) {
@@ -77,8 +72,9 @@ export default async function HomePage({
     return (
       <div className="atmosphere">
         <HomeJsonLd />
-        <WaitlistScroll />
-        <section id="waitlist" className="mx-auto w-full max-w-lg px-4 pb-20">
+        <WaitlistStage />
+        <WaitlistReasons />
+        <section id="waitlist" className="mx-auto w-full max-w-lg scroll-mt-24 px-4 pb-20 pt-4">
           <WaitlistForm notice={notice} />
         </section>
       </div>

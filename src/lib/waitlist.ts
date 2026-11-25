@@ -18,18 +18,24 @@ export async function upsertWaitlistEmail(email: string) {
   if (error) throw new Error(error.message);
 }
 
-export async function markWaitlistConfirmed(email: string) {
+export async function markWaitlistConfirmed(email: string): Promise<string | null> {
   const normalized = normalizeWaitlistEmail(email);
-  if (!normalized) return;
+  if (!normalized) return null;
   const admin = createAdminClient();
-  await admin.from("waitlist").upsert(
-    {
-      email: normalized,
-      confirmed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "email" },
-  );
+  const { data, error } = await admin
+    .from("waitlist")
+    .upsert(
+      {
+        email: normalized,
+        confirmed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "email" },
+    )
+    .select("id")
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.id ?? null;
 }
 
 export async function removeWaitlistEmail(email: string): Promise<boolean> {
