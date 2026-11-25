@@ -154,16 +154,17 @@ def cover_glass() -> bpy.types.Material:
 
 
 def lens_glass() -> bpy.types.Material:
+    """Dark glass. A weak blue coat, not a mirror of the softbox."""
     mat = principled("lens-glass")
     node = bsdf_of(mat)
-    set_input(node, "Base Color", (0.004, 0.008, 0.014, 1))
+    set_input(node, "Base Color", (0.008, 0.012, 0.028, 1))
     set_input(node, "Metallic", 0.0)
-    set_input(node, "Roughness", 0.0)
-    set_input(node, "IOR", 1.7)
-    set_input(node, "Coat Weight", 1.0)
-    set_input(node, "Coat Roughness", 0.0)
-    set_input(node, "Coat IOR", 1.8)
-    set_input(node, "Specular IOR Level", 1.0)
+    set_input(node, "Roughness", 0.42)
+    set_input(node, "IOR", 1.5)
+    set_input(node, "Coat Weight", 0.18)
+    set_input(node, "Coat Roughness", 0.22)
+    set_input(node, "Coat IOR", 1.45)
+    set_input(node, "Specular IOR Level", 0.3)
     return mat
 
 
@@ -359,7 +360,7 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     link(root)
 
     body_mat = titanium("frame", (0.032, 0.033, 0.036), 0.16, 0.28)
-    island_mat = titanium("island", (0.04, 0.042, 0.046), 0.22, 0.45)
+    island_mat = titanium("island", (0.012, 0.012, 0.014), 0.55, 0.15)
     ring_mat = titanium("ring", (0.62, 0.63, 0.65), 0.18, 0.55)
     back_mat = glass_back()
     lens_mat = lens_glass()
@@ -456,7 +457,7 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     return root
 
 
-def studio() -> None:
+def studio(aspect: str):
     if not os.path.isfile(HDRI):
         raise SystemExit(f"missing studio HDRI {HDRI}")
     world = bpy.data.worlds.new("studio")
@@ -475,30 +476,70 @@ def studio() -> None:
     nt.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.18
+    bg.inputs["Strength"].default_value = 0.05
     nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
 
-    def area(name, loc, size, power, color, cast_shadow: bool):
+    def area(name, loc, size, power, color, cast_shadow: bool, size_y=None, twist=0.0, spread=None):
         light = bpy.data.lights.new(name, "AREA")
         light.shape = "RECTANGLE"
         light.size = size
-        light.size_y = size * 0.55
+        light.size_y = size * 0.55 if size_y is None else size_y
         light.energy = power
         light.color = color
         light.use_shadow = cast_shadow
+        if spread is not None:
+            light.spread = spread
         obj = bpy.data.objects.new(name, light)
         obj.location = loc
         direction = mathutils.Vector((0, 0, 0.02)) - mathutils.Vector(loc)
         obj.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
+        obj.rotation_euler.rotate_axis("Y", twist)
         link(obj)
+        return obj
 
     # Key and rim shape the metal. Neither casts. An infinite catcher ran off
     # the frame. Contact is a finite oval that fades before its own rim.
     area("key", (0.48, 0.7, 0.62), 0.55, 40, (1.0, 0.97, 0.92), False)
     area("rim", (-0.7, -0.35, 0.42), 0.22, 120, (0.82, 0.88, 1.0), False)
-    # Along the glass reflection ray (mostly +X, low), so the back shows a softbox.
-    area("softbox", (0.85, 0.32, 0.08), 0.9, 9, (0.96, 0.97, 1.0), False)
-    area("softbox-near", (0.32, 0.14, 0.2), 0.4, 28, (0.94, 0.96, 1.0), False)
+    # One thin light per back angle, sitting just off that shot's reflection
+    # ray. A wide softbox in the lobe turned the flip into a silver slab.
+    # Mobile cameras sit higher and closer, so their reflection rays point down.
+    if aspect == "mobile":
+        flip_loc, lens_loc = (0.48, 0.15, -0.10), (0.17, 0.16, -0.22)
+    else:
+        flip_loc, lens_loc = (0.55, 0.12, 0.02), (0.20, 0.26, -0.10)
+    flip = area(
+        "softbox", flip_loc, 0.09, 0.36, (0.96, 0.97, 1.0), False,
+        size_y=0.022, twist=0.55,
+    )
+    hero = area(
+        "softbox-near", (0.42, 0.36, -0.05), 0.09, 0.75, (0.94, 0.96, 1.0), False,
+        size_y=0.024, twist=0.4,
+    )
+    lens = area(
+        "softbox-lens", lens_loc, 0.16, 0.03 if aspect == "mobile" else 0.05, (0.93, 0.95, 1.0), False,
+        size_y=0.036, twist=0.9,
+    )
+    lights = [flip, hero, lens]
+    if aspect == "mobile":
+        # Frame 8 has already started yawing back toward the hero, so the
+        # hold light misses it. This one sits on that departing reflection.
+        lights.append(area(
+            "softbox-lens-out", (-0.04, 0.22, -0.13), 0.11, 0.034, (0.93, 0.95, 1.0), False,
+            size_y=0.028, twist=0.4,
+        ))
+    return lights
+
+
+def limit_softbox(lights) -> None:
+    """The streak lights the back glass and the rail only, not the lenses."""
+    coll = bpy.data.collections.new("back-glass")
+    bpy.context.scene.collection.children.link(coll)
+    for obj in bpy.data.objects:
+        if obj.type == "MESH" and (obj.name.startswith("back") or obj.name.startswith("body")):
+            coll.objects.link(obj)
+    for light_obj in lights:
+        light_obj.light_linking.receiver_collection = coll
 
 
 def contact_shadow() -> bpy.types.Object:
@@ -815,7 +856,7 @@ def main() -> None:
     aspect, only, scale = parse_args()
     keys = DESKTOP if aspect == "desktop" else MOBILE
     clean_scene()
-    studio()
+    softboxes = studio(aspect)
     images = {}
     for screen_id in SCREEN_IDS:
         path = os.path.join(SCREENS, f"{screen_id}.png")
@@ -827,6 +868,7 @@ def main() -> None:
         images[screen_id] = image
     front = new_phone(os.path.join(SCREENS, "review.png"))
     back = new_phone(os.path.join(SCREENS, "testers.png"))
+    limit_softbox(softboxes)
     shadows = (contact_shadow(), contact_shadow())
     cam = configure_render(aspect, scale)
     out_dir = os.path.join(PNG_ROOT, aspect)
