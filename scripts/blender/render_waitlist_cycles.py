@@ -115,7 +115,7 @@ def titanium(name: str, color, roughness: float, anisotropic: float) -> bpy.type
     set_input(node, "Metallic", 1.0)
     set_input(node, "Roughness", roughness)
     set_input(node, "Anisotropic", anisotropic)
-    set_input(node, "Anisotropic Rotation", 0.25)
+    set_input(node, "Anisotropic Rotation", 0.0)
     set_input(node, "Coat Weight", 0.12)
     set_input(node, "Coat Roughness", 0.04)
     set_input(node, "Coat IOR", 1.5)
@@ -126,12 +126,12 @@ def titanium(name: str, color, roughness: float, anisotropic: float) -> bpy.type
 def glass_back() -> bpy.types.Material:
     mat = principled("back-glass")
     node = bsdf_of(mat)
-    set_input(node, "Base Color", (0.008, 0.009, 0.012, 1))
+    set_input(node, "Base Color", (0.006, 0.007, 0.01, 1))
     set_input(node, "Metallic", 0.0)
-    set_input(node, "Roughness", 0.12)
-    set_input(node, "IOR", 1.5)
+    set_input(node, "Roughness", 0.05)
+    set_input(node, "IOR", 1.52)
     set_input(node, "Coat Weight", 1.0)
-    set_input(node, "Coat Roughness", 0.02)
+    set_input(node, "Coat Roughness", 0.11)
     set_input(node, "Coat IOR", 1.5)
     set_input(node, "Specular IOR Level", 1.0)
     return mat
@@ -358,7 +358,7 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     root = bpy.data.objects.new("phone", None)
     link(root)
 
-    body_mat = titanium("frame", (0.028, 0.029, 0.032), 0.38, 0.92)
+    body_mat = titanium("frame", (0.032, 0.033, 0.036), 0.16, 0.28)
     island_mat = titanium("island", (0.04, 0.042, 0.046), 0.22, 0.45)
     ring_mat = titanium("ring", (0.62, 0.63, 0.65), 0.18, 0.55)
     back_mat = glass_back()
@@ -394,7 +394,8 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     back = rounded_screen("back", PW - 0.0036, PD - 0.0036, max(0.004, CORNER - 0.0018), 16)
     back.data.materials.append(back_mat)
     back.rotation_euler.x = math.pi
-    back.location.y = -PH / 2 + 0.00015
+    # Proud of the body, so the back you see is glass rather than the frame.
+    back.location.y = -PH / 2 - 0.0004
     back.parent = root
 
     island_w, island_h = 0.036, 0.036
@@ -426,7 +427,7 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     add_lens(spread, spread)
     add_lens(-spread, -spread)
     flash = cylinder("flash", 0.00145, 0.00035, 48)
-    flash.data.materials.append(radial_glow("flash", 0.00145, (1.0, 0.98, 0.9, 1), 2.4, 0.8))
+    flash.data.materials.append(radial_glow("flash", 0.00145, (1.0, 0.98, 0.9, 1), 5.5, 1.1))
     flash.rotation_euler.x = math.pi / 2
     flash.location = (
         island.location.x + spread,
@@ -435,7 +436,7 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     )
     flash.parent = root
     halo = cylinder("flash-halo", 0.0048, 0.0002, 48)
-    halo.data.materials.append(radial_glow("flash-halo", 0.0048, (1.0, 0.95, 0.82, 1), 1.6, 0.45))
+    halo.data.materials.append(radial_glow("flash-halo", 0.0048, (1.0, 0.95, 0.82, 1), 2.8, 0.6))
     halo.rotation_euler.x = math.pi / 2
     halo.location = (
         flash.location.x,
@@ -474,7 +475,7 @@ def studio() -> None:
     nt.links.new(coord.outputs["Generated"], mapping.inputs["Vector"])
     nt.links.new(mapping.outputs["Vector"], env.inputs["Vector"])
     nt.links.new(env.outputs["Color"], bg.inputs["Color"])
-    bg.inputs["Strength"].default_value = 0.07
+    bg.inputs["Strength"].default_value = 0.18
     nt.links.new(bg.outputs["Background"], out.inputs["Surface"])
 
     def area(name, loc, size, power, color, cast_shadow: bool):
@@ -493,8 +494,11 @@ def studio() -> None:
 
     # Key and rim shape the metal. Neither casts. An infinite catcher ran off
     # the frame. Contact is a finite oval that fades before its own rim.
-    area("key", (0.48, 0.7, 0.62), 0.55, 55, (1.0, 0.97, 0.92), False)
-    area("rim", (-0.7, -0.35, 0.42), 0.18, 90, (0.78, 0.86, 1.0), False)
+    area("key", (0.48, 0.7, 0.62), 0.55, 40, (1.0, 0.97, 0.92), False)
+    area("rim", (-0.7, -0.35, 0.42), 0.22, 120, (0.82, 0.88, 1.0), False)
+    # Along the glass reflection ray (mostly +X, low), so the back shows a softbox.
+    area("softbox", (0.85, 0.32, 0.08), 0.9, 9, (0.96, 0.97, 1.0), False)
+    area("softbox-near", (0.32, 0.14, 0.2), 0.4, 28, (0.94, 0.96, 1.0), False)
 
 
 def contact_shadow() -> bpy.types.Object:
@@ -598,35 +602,36 @@ def mix_vec(a, b, u):
 # Island at yaw pi, phone at origin: world offset about (0.016, 0.006, 0.046).
 HERO_YAW = 0.46
 HERO_PITCH = 0.12
-BACK_YAW = 2.95
+BACK_YAW = 2.72
 BACK_PITCH = 0.1
 TURN = math.pi * 2 + HERO_YAW
 
 DESKTOP = [
-    (0.00, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), HERO_YAW, HERO_PITCH, 0, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 1),
+    (0.00, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), HERO_YAW, HERO_PITCH, 0, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 1),
     (0.18, (0.01, 0.64, 0.10), (-0.018, 0.0, 0.028), (-0.032, 0.02, 0.022), 1.35, 0.08, 0, (0.03, -0.07, 0.055), BACK_YAW, BACK_PITCH, 0.62, 1),
     (0.34, (0.0, 0.62, 0.11), (0.0, 0.0, 0.03), (0.0, 0.012, 0.024), 2.45, 0.04, 0, (0.45, -0.3, -0.08), BACK_YAW, 0.0, 0.04, 1),
     # Lens hold. Square to the back, shifted so the cluster sits right of the copy.
     # Progress 0.5 (frame 8) falls inside this hold.
-    (0.46, (0.02, 0.46, 0.13), (-0.05, 0.0, 0.055), (-0.09, 0.0, 0.048), math.pi, 0.08, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
-    (0.58, (0.02, 0.46, 0.13), (-0.05, 0.0, 0.055), (-0.09, 0.0, 0.048), math.pi, 0.08, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
-    (0.66, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 1, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 1),
-    (0.80, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 1, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 1),
-    (0.86, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 2, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 2),
-    (0.96, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 2, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 2),
-    (1.00, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 3, (0.028, -0.02, 0.060), BACK_YAW, BACK_PITCH, 0.78, 3),
+    # Closer 3/4 of the camera module, on the right, with the page empty on the left.
+    (0.46, (0.0, 0.30, 0.06), (-0.02, 0.0, 0.052), (-0.036, 0.0, 0.006), math.pi - 0.4, 0.22, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
+    (0.58, (0.0, 0.30, 0.06), (-0.02, 0.0, 0.052), (-0.036, 0.0, 0.006), math.pi - 0.4, 0.22, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
+    (0.66, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 1, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 1),
+    (0.80, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 1, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 1),
+    (0.86, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 2, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 2),
+    (0.96, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 2, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 2),
+    (1.00, (-0.005, 0.56, 0.115), (-0.02, 0.0, 0.062), (-0.055, 0.02, 0.068), TURN, HERO_PITCH, 3, (-0.012, -0.04, 0.05), BACK_YAW, BACK_PITCH, 0.8, 3),
 ]
 
 MOBILE = [
-    (0.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), HERO_YAW, HERO_PITCH, 0, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), HERO_YAW, HERO_PITCH, 0, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 1),
     (0.20, (0.0, 0.58, 0.18), (0.0, 0.0, 0.05), (0.0, 0.01, -0.016), 1.4, 0.06, 0, (0.01, -0.06, 0.0), BACK_YAW, BACK_PITCH, 0.48, 1),
     (0.36, (0.0, 0.56, 0.16), (0.0, 0.0, 0.04), (0.0, 0.004, -0.018), 2.5, 0.02, 0, (0.4, -0.28, -0.08), BACK_YAW, 0.0, 0.04, 1),
-    (0.50, (0.004, 0.058, -0.016), (0.004, 0.0, -0.02), (0.0, 0.0, -0.066), math.pi, 0.0, 0, (0.55, -0.4, -0.3), 0.2, 0.0, 0.01, 1),
-    (0.66, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.80, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.86, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (0.96, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (1.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 3, (-0.05, -0.02, -0.018), BACK_YAW, BACK_PITCH, 0.74, 3),
+    (0.50, (0.0, 0.19, 0.02), (-0.012, 0.0, 0.0), (-0.012, 0.0, -0.03), math.pi - 0.4, 0.3, 0, (0.55, -0.4, -0.3), 0.2, 0.0, 0.01, 1),
+    (0.66, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 1),
+    (0.80, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 1),
+    (0.86, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 2),
+    (0.96, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 2),
+    (1.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.02), (0.028, 0.012, -0.02), TURN, HERO_PITCH, 3, (-0.016, -0.036, -0.026), BACK_YAW, BACK_PITCH, 0.76, 3),
 ]
 
 
@@ -642,12 +647,8 @@ def place_shadow(disc: bpy.types.Object, location, scale: float, hide: bool) -> 
 
 
 def lens_fade_amount(distance: float) -> float:
-    if distance >= 0.34:
-        return 0.0
-    if distance <= 0.16:
-        return 1.0
-    t = (0.34 - distance) / (0.34 - 0.16)
-    return t * t * (3 - 2 * t)
+    # The lens phone sits entirely on the right. A left-side fade drew a dark panel.
+    return 0.0
 
 
 def apply_pose(phones, shadows, cam, keys, index: int, count: int) -> float:
