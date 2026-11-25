@@ -2,6 +2,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DozenMark } from "@/components/dozen-mark";
+import { WaitlistReasons } from "@/components/waitlist-reasons";
 import { WaitlistStage } from "@/components/waitlist-stage";
 import { SiteLogo } from "@/components/site-logo";
 import { getSessionUser } from "@/lib/auth";
@@ -72,6 +73,7 @@ export default async function HomePage({
       <div className="atmosphere">
         <HomeJsonLd />
         <WaitlistStage />
+        <WaitlistReasons />
         <section id="waitlist" className="mx-auto w-full max-w-lg scroll-mt-24 px-4 pb-20 pt-4">
           <WaitlistForm notice={notice} />
         </section>

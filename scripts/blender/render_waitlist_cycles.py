@@ -46,9 +46,9 @@ def argv_after() -> list[str]:
     return []
 
 
-def parse_args() -> tuple[str, int | None, float]:
+def parse_args() -> tuple[str, list[int] | None, float]:
     aspect = "desktop"
-    frame = None
+    frames = None
     scale = 1.0
     args = argv_after()
     i = 0
@@ -58,7 +58,11 @@ def parse_args() -> tuple[str, int | None, float]:
             i += 2
             continue
         if args[i] == "--frame" and i + 1 < len(args):
-            frame = int(args[i + 1])
+            frames = [int(args[i + 1])]
+            i += 2
+            continue
+        if args[i] == "--frames" and i + 1 < len(args):
+            frames = [int(part) for part in args[i + 1].split(",") if part != ""]
             i += 2
             continue
         if args[i] == "--scale" and i + 1 < len(args):
@@ -66,7 +70,7 @@ def parse_args() -> tuple[str, int | None, float]:
             i += 2
             continue
         i += 1
-    return aspect, frame, scale
+    return aspect, frames, scale
 
 
 def clean_scene() -> None:
@@ -305,6 +309,51 @@ def cylinder(name: str, radius: float, depth: float, verts: int = 64):
     return link(obj)
 
 
+def radial_glow(name: str, radius: float, color, strength: float, power: float) -> bpy.types.Material:
+    """Bright centre, gone at the rim. The flash reads as a glow, not a coin."""
+    mat = bpy.data.materials.new(name)
+    mat.use_nodes = True
+    nt = mat.node_tree
+    nt.nodes.clear()
+    out = nt.nodes.new("ShaderNodeOutputMaterial")
+    emission = nt.nodes.new("ShaderNodeEmission")
+    emission.inputs["Color"].default_value = color
+    emission.inputs["Strength"].default_value = strength
+    transparent = nt.nodes.new("ShaderNodeBsdfTransparent")
+    mix = nt.nodes.new("ShaderNodeMixShader")
+    coord = nt.nodes.new("ShaderNodeTexCoord")
+    sep = nt.nodes.new("ShaderNodeSeparateXYZ")
+    mul_x = nt.nodes.new("ShaderNodeMath")
+    mul_x.operation = "MULTIPLY"
+    mul_y = nt.nodes.new("ShaderNodeMath")
+    mul_y.operation = "MULTIPLY"
+    add = nt.nodes.new("ShaderNodeMath")
+    add.operation = "ADD"
+    length = nt.nodes.new("ShaderNodeMath")
+    length.operation = "SQRT"
+    norm = nt.nodes.new("ShaderNodeMath")
+    norm.operation = "DIVIDE"
+    norm.inputs[1].default_value = radius
+    curved = nt.nodes.new("ShaderNodeMath")
+    curved.operation = "POWER"
+    curved.inputs[1].default_value = power
+    nt.links.new(coord.outputs["Object"], sep.inputs["Vector"])
+    nt.links.new(sep.outputs["X"], mul_x.inputs[0])
+    nt.links.new(sep.outputs["X"], mul_x.inputs[1])
+    nt.links.new(sep.outputs["Y"], mul_y.inputs[0])
+    nt.links.new(sep.outputs["Y"], mul_y.inputs[1])
+    nt.links.new(mul_x.outputs["Value"], add.inputs[0])
+    nt.links.new(mul_y.outputs["Value"], add.inputs[1])
+    nt.links.new(add.outputs["Value"], length.inputs[0])
+    nt.links.new(length.outputs["Value"], norm.inputs[0])
+    nt.links.new(norm.outputs["Value"], curved.inputs[0])
+    nt.links.new(curved.outputs["Value"], mix.inputs["Fac"])
+    nt.links.new(emission.outputs["Emission"], mix.inputs[1])
+    nt.links.new(transparent.outputs["BSDF"], mix.inputs[2])
+    nt.links.new(mix.outputs["Shader"], out.inputs["Surface"])
+    return mat
+
+
 def new_phone(screen_path: str) -> bpy.types.Object:
     root = bpy.data.objects.new("phone", None)
     link(root)
@@ -318,11 +367,6 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     set_input(bsdf_of(pupil_mat), "Base Color", (0.0, 0.0, 0.0, 1))
     set_input(bsdf_of(pupil_mat), "Roughness", 0.08)
     set_input(bsdf_of(pupil_mat), "Metallic", 0.2)
-    flash_mat = principled("flash")
-    set_input(bsdf_of(flash_mat), "Base Color", (1.0, 0.93, 0.78, 1))
-    set_input(bsdf_of(flash_mat), "Emission Color", (1.0, 0.9, 0.7, 1))
-    set_input(bsdf_of(flash_mat), "Emission Strength", 6.0)
-    set_input(bsdf_of(flash_mat), "Roughness", 0.25)
     bezel_mat = principled("bezel")
     set_input(bsdf_of(bezel_mat), "Base Color", (0.01, 0.01, 0.012, 1))
     set_input(bsdf_of(bezel_mat), "Roughness", 0.45)
@@ -381,15 +425,24 @@ def new_phone(screen_path: str) -> bpy.types.Object:
     add_lens(-spread, spread)
     add_lens(spread, spread)
     add_lens(-spread, -spread)
-    flash = cylinder("flash", 0.0023, 0.0008, 40)
-    flash.data.materials.append(flash_mat)
+    flash = cylinder("flash", 0.00145, 0.00035, 48)
+    flash.data.materials.append(radial_glow("flash", 0.00145, (1.0, 0.98, 0.9, 1), 2.4, 0.8))
     flash.rotation_euler.x = math.pi / 2
     flash.location = (
         island.location.x + spread,
-        island.location.y - 0.0012,
+        island.location.y - 0.00135,
         island.location.z - spread,
     )
     flash.parent = root
+    halo = cylinder("flash-halo", 0.0048, 0.0002, 48)
+    halo.data.materials.append(radial_glow("flash-halo", 0.0048, (1.0, 0.95, 0.82, 1), 1.6, 0.45))
+    halo.rotation_euler.x = math.pi / 2
+    halo.location = (
+        flash.location.x,
+        island.location.y - 0.00085,
+        flash.location.z,
+    )
+    halo.parent = root
     lidar = cylinder("lidar", 0.00115, 0.0005, 24)
     lidar.data.materials.append(pupil_mat)
     lidar.rotation_euler.x = math.pi / 2
@@ -438,20 +491,10 @@ def studio() -> None:
         obj.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
         link(obj)
 
-    # Key and rim shape the metal. Only the overhead light casts, so the
-    # shadow catcher gets a contact shadow and not a painted floor.
+    # Key and rim shape the metal. Neither casts. An infinite catcher ran off
+    # the frame. Contact is a finite oval that fades before its own rim.
     area("key", (0.48, 0.7, 0.62), 0.55, 55, (1.0, 0.97, 0.92), False)
     area("rim", (-0.7, -0.35, 0.42), 0.18, 90, (0.78, 0.86, 1.0), False)
-    area("shadow", (0.0, 0.2, 1.8), 2.2, 28, (1.0, 1.0, 1.0), True)
-
-    floor = bpy.data.objects.new("floor", bpy.data.meshes.new("floor"))
-    bm = bmesh.new()
-    bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=12)
-    bm.to_mesh(floor.data)
-    bm.free()
-    floor.location = (0.0, 0.0, -PD / 2 - 0.012)
-    floor.is_shadow_catcher = True
-    link(floor)
 
 
 def contact_shadow() -> bpy.types.Object:
@@ -494,7 +537,7 @@ def contact_shadow() -> bpy.types.Object:
     soften = nt.nodes.new("ShaderNodeMapRange")
     soften.inputs["From Min"].default_value = 0.0
     soften.inputs["From Max"].default_value = 1.0
-    soften.inputs["To Min"].default_value = 0.58
+    soften.inputs["To Min"].default_value = 0.42
     soften.inputs["To Max"].default_value = 1.0
     nt.links.new(coord.outputs["Generated"], sep.inputs["Vector"])
     nt.links.new(sep.outputs["X"], sub_x.inputs[0])
@@ -561,9 +604,12 @@ TURN = math.pi * 2 + HERO_YAW
 
 DESKTOP = [
     (0.00, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), HERO_YAW, HERO_PITCH, 0, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
-    (0.18, (0.01, 0.46, 0.045), (-0.02, 0.0, 0.012), (-0.04, 0.02, 0.0), 1.35, 0.08, 0, (0.04, -0.08, 0.04), BACK_YAW, BACK_PITCH, 0.62, 1),
-    (0.34, (0.0, 0.40, 0.05), (-0.005, 0.0, 0.016), (-0.01, 0.01, 0.006), 2.45, 0.04, 0, (0.45, -0.3, -0.16), BACK_YAW, 0.0, 0.04, 1),
-    (0.50, (0.008, 0.052, 0.048), (0.008, 0.0, 0.046), (0.0, 0.0, 0.0), math.pi, 0.0, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
+    (0.18, (0.01, 0.64, 0.10), (-0.018, 0.0, 0.028), (-0.032, 0.02, 0.022), 1.35, 0.08, 0, (0.03, -0.07, 0.055), BACK_YAW, BACK_PITCH, 0.62, 1),
+    (0.34, (0.0, 0.62, 0.11), (0.0, 0.0, 0.03), (0.0, 0.012, 0.024), 2.45, 0.04, 0, (0.45, -0.3, -0.08), BACK_YAW, 0.0, 0.04, 1),
+    # Lens hold. Square to the back, shifted so the cluster sits right of the copy.
+    # Progress 0.5 (frame 8) falls inside this hold.
+    (0.46, (0.026, 0.092, 0.046), (0.026, 0.0, 0.044), (0.0, 0.0, 0.0), math.pi, 0.0, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
+    (0.58, (0.026, 0.092, 0.046), (0.026, 0.0, 0.044), (0.0, 0.0, 0.0), math.pi, 0.0, 0, (0.7, -0.4, -0.25), 0.2, 0.0, 0.01, 1),
     (0.66, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 1, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
     (0.80, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 1, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 1),
     (0.86, (-0.005, 0.56, 0.08), (-0.048, 0.0, 0.03), (-0.072, 0.028, 0.016), TURN, HERO_PITCH, 2, (-0.012, -0.048, 0.046), BACK_YAW, BACK_PITCH, 0.78, 2),
@@ -572,26 +618,39 @@ DESKTOP = [
 ]
 
 MOBILE = [
-    (0.00, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), HERO_YAW, HERO_PITCH, 0, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.20, (0.0, 0.40, 0.15), (0.0, 0.0, 0.03), (0.0, 0.01, -0.05), 1.4, 0.06, 0, (0.01, -0.07, -0.02), BACK_YAW, BACK_PITCH, 0.48, 1),
-    (0.36, (0.0, 0.36, 0.12), (0.0, 0.0, 0.02), (0.0, 0.004, -0.04), 2.5, 0.02, 0, (0.4, -0.28, -0.2), BACK_YAW, 0.0, 0.04, 1),
+    (0.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), HERO_YAW, HERO_PITCH, 0, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.20, (0.0, 0.58, 0.18), (0.0, 0.0, 0.05), (0.0, 0.01, -0.016), 1.4, 0.06, 0, (0.01, -0.06, 0.0), BACK_YAW, BACK_PITCH, 0.48, 1),
+    (0.36, (0.0, 0.56, 0.16), (0.0, 0.0, 0.04), (0.0, 0.004, -0.018), 2.5, 0.02, 0, (0.4, -0.28, -0.08), BACK_YAW, 0.0, 0.04, 1),
     (0.50, (0.004, 0.058, -0.016), (0.004, 0.0, -0.02), (0.0, 0.0, -0.066), math.pi, 0.0, 0, (0.55, -0.4, -0.3), 0.2, 0.0, 0.01, 1),
-    (0.66, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.80, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 1),
-    (0.86, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (0.96, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 2),
-    (1.00, (0.0, 0.46, -0.02), (0.0, 0.0, 0.06), (0.0, 0.012, -0.04), TURN, HERO_PITCH, 3, (-0.008, -0.036, 0.012), BACK_YAW, BACK_PITCH, 0.74, 3),
+    (0.66, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.80, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), TURN, HERO_PITCH, 1, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 1),
+    (0.86, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 2),
+    (0.96, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), TURN, HERO_PITCH, 2, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 2),
+    (1.00, (0.0, 0.50, 0.02), (0.0, 0.0, 0.045), (0.0, 0.012, -0.02), TURN, HERO_PITCH, 3, (-0.008, -0.036, 0.026), BACK_YAW, BACK_PITCH, 0.74, 3),
 ]
 
 
 def place_shadow(disc: bpy.types.Object, location, scale: float, hide: bool) -> None:
-    disc.location = (location[0], location[1] - 0.01, -PD / 2 - 0.006)
+    amount = 0.0 if hide or scale < 0.2 else max(0.0, scale)
+    disc.location = (
+        location[0],
+        location[1] + 0.008 * max(amount, 0.35),
+        location[2] - PD / 2 - 0.005,
+    )
     disc.rotation_euler = (0, 0, 0)
-    amount = 0.0 if hide else max(0.0, scale)
-    disc.scale = (0.095 * amount, 0.052 * amount, 1)
+    disc.scale = (0.034 * amount, 0.011 * amount, 1)
 
 
-def apply_pose(phones, cam, keys, index: int, count: int) -> None:
+def lens_fade_amount(distance: float) -> float:
+    if distance >= 0.34:
+        return 0.0
+    if distance <= 0.16:
+        return 1.0
+    t = (0.34 - distance) / (0.34 - 0.16)
+    return t * t * (3 - 2 * t)
+
+
+def apply_pose(phones, shadows, cam, keys, index: int, count: int) -> float:
     t = 0 if count <= 1 else index / (count - 1)
     u, a, b = sample(keys, t)
     cam.location = mix_vec(a[1], b[1], u)
@@ -611,6 +670,12 @@ def apply_pose(phones, cam, keys, index: int, count: int) -> None:
     back.scale = (s, s, s)
     set_screen(back, SCREEN_IDS[int(round(lerp(a[11], b[11], u)))])
 
+    close = cam.location.y < 0.16
+    front_shadow, back_shadow = shadows
+    place_shadow(front_shadow, front.location, 1.0, close)
+    place_shadow(back_shadow, back.location, s, close or s < 0.2)
+    return lens_fade_amount(cam.location.y)
+
 
 def set_screen(phone: bpy.types.Object, screen_id: str) -> None:
     image_name = f"screen-{screen_id}"
@@ -627,7 +692,7 @@ def configure_render(aspect: str, scale: float) -> None:
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
     scene.cycles.device = "CPU"
-    scene.cycles.samples = 64
+    scene.cycles.samples = int(os.environ.get("DOZEN_SAMPLES", "48"))
     # This Blender build ships without OpenImageDenoise. Frames are denoised
     # afterwards with the OIDN CPU binary. See denoise_png().
     scene.cycles.use_denoising = False
@@ -658,9 +723,52 @@ def configure_render(aspect: str, scale: float) -> None:
     return cam
 
 
+def fade_copy_column(path: str, amount: float) -> None:
+    """Clear the left side of a lens frame so the headline sits on the page."""
+    if amount <= 0.01:
+        return
+    try:
+        import numpy as np
+        from PIL import Image
+    except ImportError:
+        print("pillow/numpy missing, skipped lens fade", path)
+        return
+    image = Image.open(path).convert("RGBA")
+    pixels = np.array(image)
+    width = pixels.shape[1]
+    xs = np.arange(width, dtype=np.float32) / max(1, width - 1)
+    start, end = 0.26, 0.40
+    t = np.clip((xs - start) / (end - start), 0.0, 1.0)
+    t = t * t * (3 - 2 * t)
+    keep = 1.0 - amount * (1.0 - t)
+    pixels[:, :, 3] = np.clip(pixels[:, :, 3] * keep[None, :], 0, 255).astype(np.uint8)
+    Image.fromarray(pixels, "RGBA").save(path)
+
+
+def contain_soft_alpha(path: str) -> None:
+    """Fade partial-alpha pixels before they can touch a frame edge."""
+    try:
+        import numpy as np
+        from PIL import Image
+    except ImportError:
+        return
+    image = Image.open(path).convert("RGBA")
+    pixels = np.array(image)
+    height, width = pixels.shape[:2]
+    ys = np.arange(height, dtype=np.float32) / max(1, height - 1)
+    xs = np.arange(width, dtype=np.float32) / max(1, width - 1)
+    edge = np.minimum(np.minimum(xs, 1 - xs)[None, :], np.minimum(ys, 1 - ys)[:, None])
+    ramp = np.clip(edge / 0.13, 0.0, 1.0)
+    ramp = ramp * ramp * (3 - 2 * ramp)
+    alpha = pixels[:, :, 3].astype(np.float32)
+    soft = alpha < 210
+    pixels[:, :, 3] = np.clip(np.where(soft, alpha * ramp, alpha), 0, 255).astype(np.uint8)
+    Image.fromarray(pixels, "RGBA").save(path)
+
+
 def denoise_png(path: str) -> None:
     """OpenImageDenoise on the CPU, then put the original alpha back."""
-    if not os.path.isfile(OIDN):
+    if os.environ.get("DOZEN_OIDN") == "skip" or not os.path.isfile(OIDN):
         print("oidn missing, left noisy", path)
         return
     ffmpeg = shutil.which("ffmpeg")
@@ -718,16 +826,20 @@ def main() -> None:
         images[screen_id] = image
     front = new_phone(os.path.join(SCREENS, "review.png"))
     back = new_phone(os.path.join(SCREENS, "testers.png"))
+    shadows = (contact_shadow(), contact_shadow())
     cam = configure_render(aspect, scale)
     out_dir = os.path.join(PNG_ROOT, aspect)
     os.makedirs(out_dir, exist_ok=True)
-    frames = [only] if only is not None else list(range(FRAME_COUNT))
+    frames = only if only is not None else list(range(FRAME_COUNT))
     for index in frames:
-        apply_pose((front, back), cam, keys, index, FRAME_COUNT)
+        fade = apply_pose((front, back), shadows, cam, keys, index, FRAME_COUNT)
         dest = os.path.join(out_dir, f"{index:02d}.png")
         bpy.context.scene.render.filepath = dest
         bpy.ops.render.render(write_still=True)
         denoise_png(dest)
+        if aspect == "desktop":
+            fade_copy_column(dest, fade)
+        contain_soft_alpha(dest)
         print("rendered", aspect, index)
 
 

@@ -1,6 +1,13 @@
 import { WaitlistCancel } from "@/components/waitlist-cancel";
+import { WaitlistEarlyAccess } from "@/components/waitlist-early-access";
 
-export function WaitlistJoined({ email }: { email?: string | null }) {
+export function WaitlistJoined({
+  email,
+  earlyAccessRequested = false,
+}: {
+  email?: string | null;
+  earlyAccessRequested?: boolean;
+}) {
   return (
     <div className="waitlist-joined surface space-y-4 p-6 sm:p-8">
       <p className="font-display text-[22px] font-semibold">You&apos;re on the list.</p>
@@ -16,6 +23,7 @@ export function WaitlistJoined({ email }: { email?: string | null }) {
           />
         ))}
       </div>
+      <WaitlistEarlyAccess initialDone={earlyAccessRequested} />
       {email ? <WaitlistCancel email={email} /> : null}
     </div>
   );

@@ -8,6 +8,12 @@ import { hasWaitlistBypass } from "@/lib/waitlist-guard";
 import { isAllowlistedAdminEmail } from "@/lib/waitlist-lock";
 import { safeInternalPath } from "@/lib/safe-path";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  EARLY_ACCESS_COOKIE,
+  earlyAccessCookieOptions,
+  earlyAccessSecret,
+  signEarlyAccessToken,
+} from "@/lib/early-access";
 import { markWaitlistConfirmed } from "@/lib/waitlist";
 
 const EMAIL_OTP_TYPES = new Set<string>([
@@ -117,6 +123,8 @@ export async function GET(request: Request) {
     user = data.user;
   }
 
+  let earlyAccessToken: string | null = null;
+
   if (user) {
     try {
       const admin = createAdminClient();
@@ -144,7 +152,11 @@ export async function GET(request: Request) {
         isAllowlistedAdminEmail(user.email) ||
         (await hasWaitlistBypass());
       if (user.email && (!bypass || next.startsWith("/waitlist"))) {
-        await markWaitlistConfirmed(user.email);
+        const rowId = await markWaitlistConfirmed(user.email);
+        const secret = earlyAccessSecret();
+        if (rowId && secret) {
+          earlyAccessToken = await signEarlyAccessToken(secret, rowId);
+        }
       }
 
       if (waitlistMode() && !bypass) {
@@ -161,6 +173,13 @@ export async function GET(request: Request) {
     path: "/",
     maxAge: 0,
   });
+  if (earlyAccessToken) {
+    redirectResponse.cookies.set(
+      EARLY_ACCESS_COOKIE,
+      earlyAccessToken,
+      earlyAccessCookieOptions(appOrigin.startsWith("https://")),
+    );
+  }
   const secure = appOrigin.startsWith("https://");
   pendingCookies.forEach(({ name, value, options }) => {
     redirectResponse.cookies.set(name, value, { ...options, secure });
