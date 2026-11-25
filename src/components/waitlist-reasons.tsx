@@ -41,14 +41,16 @@ export function WaitlistReasons() {
           <p className="hero-lead mt-4">For each friend who joins from your link.</p>
           <JoinLink />
         </div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          className="waitlist-reason-phone"
-          src="/marketing/waitlist/frames/mobile/15.webp"
-          alt=""
-          width={780}
-          height={1688}
-        />
+        <div className="waitlist-reason-shot">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            className="waitlist-reason-phone"
+            src="/marketing/waitlist/frames/mobile/15.webp"
+            alt=""
+            width={780}
+            height={1688}
+          />
+        </div>
       </section>
 
       <section id="reason-dots" className="waitlist-reason waitlist-reason-quiet" aria-labelledby="reason-dots-title">
@@ -74,31 +76,35 @@ export function WaitlistReasons() {
         </h2>
         <div className="waitlist-reason-pair">
           <figure>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="waitlist-reason-phone"
-              src="/marketing/waitlist/frames/mobile/00.webp"
-              alt=""
-              width={780}
-              height={1688}
-            />
+            <div className="waitlist-reason-shot">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="waitlist-reason-phone"
+                src="/marketing/waitlist/frames/mobile/00.webp"
+                alt=""
+                width={780}
+                height={1688}
+              />
+            </div>
             <figcaption>
               <Figure value="Reviews" />
               <p className="hero-lead mt-3">Structured notes instead of a pile of screenshots.</p>
             </figcaption>
           </figure>
           <figure>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              className="waitlist-reason-phone"
-              src="/marketing/waitlist/frames/mobile/10.webp"
-              alt=""
-              width={780}
-              height={1688}
-            />
+            <div className="waitlist-reason-shot">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                className="waitlist-reason-phone"
+                src="/marketing/waitlist/frames/mobile/10.webp"
+                alt=""
+                width={780}
+                height={1688}
+              />
+            </div>
             <figcaption>
               <Figure value="Testers" />
-              <p className="hero-lead mt-3">Twelve people. One clear signal.</p>
+              <p className="hero-lead mt-3">Real testers. Honest feedback.</p>
             </figcaption>
           </figure>
         </div>

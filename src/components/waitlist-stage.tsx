@@ -14,7 +14,7 @@ const MOMENTS = [
   {
     id: "testers",
     eyebrow: "Testers",
-    title: "Twelve people. One clear signal.",
+    title: "Real testers. Honest feedback.",
     body: "A tester run with slots, check-ins, and dots. Not a group chat.",
   },
   {
